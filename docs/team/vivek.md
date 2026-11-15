@@ -22,7 +22,7 @@ Written by hand (D16): reading list per phase in [`LEARNING.md`](../LEARNING.md#
 | Lab | `lab/`: `listLabOrders`, `uploadLabResult` | `lab/`, `lab/orders/[orderId]` |
 | Public | — | `(public)/` landing, `(public)/institutions` (ISR), Hindi/English toggle, Lighthouse pass |
 
-INT257 practicals you carry ([`evaluation/syllabus-coverage.md`](../evaluation/syllabus-coverage.md)):
+INT257 practicals you carry:
 nested/dynamic routes, loading + error UI, SSR vs client fetching, caching + revalidation, Server
 Actions + file upload, image optimization + metadata + lazy loading, and the Unit VI parallel and
 intercepting routes.

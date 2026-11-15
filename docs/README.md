@@ -19,8 +19,7 @@ directory holds the plan, the contracts, the design, the team briefs and the his
 
 **Examiner / teacher.**
 [`../README.md`](../README.md) → [`architecture/README.md`](architecture/README.md) →
-[`evaluation/syllabus-coverage.md`](evaluation/syllabus-coverage.md) (every practical → the
-feature that demonstrates it) → [`../SECURITY.md`](../SECURITY.md) (what's guaranteed, where,
+[`../SECURITY.md`](../SECURITY.md) (what's guaranteed, where,
 and how it's tested).
 
 **Resuming your own work.**
@@ -29,7 +28,7 @@ brief in [`team/`](team/README.md).
 
 **Learning a topic before you build it.** [`LEARNING.md`](LEARNING.md): official docs per person
 per phase. Code is written by hand (Master D16); if you use an AI tool, it's for debugging,
-review and learning: [`operations/ai-usage.md`](operations/ai-usage.md).
+review and learning only. Every commit is made by hand, never by an AI agent.
 
 **Running the demo.** [`operations/demo-runbook.md`](operations/demo-runbook.md).
 
@@ -54,16 +53,10 @@ Contracts are frozen. Changing one is its own PR (see [`../src/contracts/README.
 
 Domain design for records, clinical, lab, pharmacy and admin lives in the briefs, next to the tasks.
 
-## Evaluation
-| Document | What it covers |
-|---|---|
-| [`evaluation/syllabus-coverage.md`](evaluation/syllabus-coverage.md) | INT257 practicals mapped to features and owners, with status. (INT252 is a separate solo project since v2.) |
-
 ## Operations
 | Document | What it covers |
 |---|---|
 | [`operations/demo-runbook.md`](operations/demo-runbook.md) | Night-before checklist, the 11-step click path, seven access checks, what to do when something breaks. |
-| [`operations/ai-usage.md`](operations/ai-usage.md) | The hand-written-code rule, where to get help, and how to use AI for debugging, review and learning only. |
 
 ## The team
 [`team/README.md`](team/README.md) maps each person to their brief, code, log and demo steps.

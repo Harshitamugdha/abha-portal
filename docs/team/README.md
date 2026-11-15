@@ -56,4 +56,4 @@ session, read your top entry: it ends with **Next**, and that's where you start.
 ## Learning and AI
 Code is written by hand (D16). Before each phase, read its section in
 [`../LEARNING.md`](../LEARNING.md). AI tools are optional and only for debugging, review and
-learning: [`../operations/ai-usage.md`](../operations/ai-usage.md).
+learning. Every commit is made by hand, never by an AI agent.

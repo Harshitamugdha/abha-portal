@@ -26,6 +26,8 @@ Your job is to be a **tutor, reviewer and debugger**, not the author.
   Point out the need; the team decides.
 - Don't "fix" a failing check by loosening it (`z.any()`, removing an `authorize()` call,
   catching and ignoring an error).
+- **Don't commit, push, or open PRs.** Every commit is made by hand by a student. If asked, give
+  the `git` commands for them to run; never run `git commit`/`git push` yourself.
 
 If a student asks you to write a whole feature, remind them of this file once, then offer the
 first step as a hint.
@@ -60,4 +62,3 @@ Full context: `docs/00_MASTER_PLAN.md`.
 - Folder rules: `src/app/README.md`, `src/server/README.md`, `src/contracts/README.md`. Read the one
   for the folder you're helping in.
 - Contracts: `docs/CONTRACTS.md`. Known bugs: `docs/TRAPS.md`.
-- How the team uses AI, with example prompts: `docs/operations/ai-usage.md`.

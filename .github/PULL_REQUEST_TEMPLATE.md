@@ -31,7 +31,7 @@ Log in as:
 
 ## AI used
 
-<!-- none | debugging: … | review: … | learning: …   (Master D16, docs/operations/ai-usage.md) -->
+<!-- none | debugging: … | review: … | learning: …   (Master D16) -->
 
 none
 

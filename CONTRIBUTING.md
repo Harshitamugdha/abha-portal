@@ -47,6 +47,9 @@ a wrong role, with `DEV_FAKE_USER` unset.
 ## Commit messages
 `<area>: <what changed>`, for example `consent: narrow scopes on approve`, `pharmacy: dispense 409 state`.
 
+**Every commit is made by hand.** You run `git add`, `git commit` and `git push` yourself. No
+commits, pushes or PRs are made by an AI agent; an agent may only suggest the commands.
+
 ---
 
 ## Working rules
@@ -61,9 +64,9 @@ a wrong role, with `DEV_FAKE_USER` unset.
 We're learning React and Next.js, and each of us explains our code in the viva (Master D16).
 - **You can explain every line you commit.** If you can't, it isn't done.
 - Snippets from anywhere (AI, Stack Overflow, a tutorial) are **retyped from understanding**, never pasted.
-- AI tools are optional and only for **debugging, review and learning**:
-  [`docs/operations/ai-usage.md`](docs/operations/ai-usage.md). The root `CLAUDE.md` makes
-  Claude Code act as a tutor rather than an author.
+- AI tools are optional and only for **debugging, review and learning**. The root `CLAUDE.md`
+  makes Claude Code act as a tutor rather than an author.
+- **Commits are made by hand**, never by an AI agent.
 - Every PR says what AI was used for (`none` is a perfectly good answer).
 
 ## The honesty rule

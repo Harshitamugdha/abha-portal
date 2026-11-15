@@ -314,7 +314,7 @@ Settled. Superseded rows are kept, struck through by a later decision, so the hi
 | D13 | ~~Zustand for console state~~ **Superseded by D20** | No console. Client state is local `useState`; server state is React Query or Server Components. |
 | D14 | **PostgreSQL + Prisma 7** | Prisma 7 needs `prisma.config.ts`, an explicit generator `output`, and `@prisma/adapter-pg`. |
 | D15 | ~~npm workspaces~~ **Superseded by D20**: single app, no workspaces | |
-| D16 | **Code written by hand; AI only for debugging, review and learning** | We explain every line in the viva. [`operations/ai-usage.md`](operations/ai-usage.md). |
+| D16 | **Code written by hand; AI only for debugging, review and learning** | We explain every line in the viva. Every commit is made by hand, never by an AI agent. |
 | D17 | **Offset pagination (`page`, `pageSize`, `total`)** | Simple to write by hand, fine at demo scale. |
 | D18 | **Each person writes their own domain's Zod schemas in `src/contracts/`; Harshita writes the shared ones; each reviews the other's** | You learn Zod by writing real shapes. (Amended for two people.) |
 | D19 | **`bcryptjs` for staff passwords** | Pure JavaScript, installs identically on every laptop. |
@@ -326,9 +326,8 @@ Settled. Superseded rows are kept, struck through by a later decision, so the hi
 
 # PART 10 — SYLLABUS COVERAGE
 
-Every INT257 practical maps to a real feature and an owner:
-[`evaluation/syllabus-coverage.md`](evaluation/syllabus-coverage.md). INT252 is no longer covered
-by this project (D20).
+Every INT257 practical maps to a real feature and an owner (see each brief in
+[`team/`](team/README.md)). INT252 is no longer covered by this project (D20).
 
 ---
 
@@ -355,7 +354,7 @@ runs short the demo still works and the late items are polish, not holes. Work t
 |---|---|---|
 | 1 | Schema, seed, shared contracts, auth stubs (Master §8.3) | H |
 | 2 | Demo steps 1–11 (Part 2.1) working end to end with real `authorize()` | both |
-| 3 | `authorize()` policy-matrix tests; every row of [`evaluation/syllabus-coverage.md`](evaluation/syllabus-coverage.md) demonstrable | both |
+| 3 | `authorize()` policy-matrix tests; every INT257 practical demonstrable | both |
 | 4 | Staff verification (Dr Neel), audit log with all filters (outcome, patient, actor, date range), access-log display of denied attempts | H |
 | 5 | Encounter create form; optimistic prescription with rollback | V |
 | 6 | Intercepting-route record modal; parallel-route doctor dashboard | V |
