@@ -1,5 +1,5 @@
 # INTEGRATION LOG — every seam event in one place
-*Kept by Harshita (contract keeper). Newest first. One entry whenever two people's code meets:
+*Kept by Harshita (contract keeper). Newest first. One entry whenever Harshita's and Vivek's code meets:
 a stub replaced by the real thing, a contract changed, an access-gate run, a deploy.*
 
 The point: when something breaks between components, the history of what already broke there is
@@ -21,6 +21,23 @@ in one file, not scattered across two personal logs and a chat.
 ```
 
 ---
+
+## [2026-11-15 18:45] Correction — team and scope
+
+**Received / changed:** Correcting the 18:30 entry. The team is still four (Harshita, Vivek, Madhav,
+Ravuri); Harshita and Vivek build the app. **Nothing is cut**: full v1 scope restored, with a build
+order instead of a cut line (Master Part 12). Encounter create, institution create/edit, OTP rate
+limit, duplicate-request handling, Edge health, intercepting modal, parallel dashboard, optimistic
+rollback, Hindi/English and CI are all in scope.
+
+**Gates:** none yet (no code).
+
+**Broke:** nothing. Contracts: `createEncounter`, `createInstitution`, `updateInstitution` are full
+entries again (CONTRACTS §4.4, §4.7).
+
+**State:** docs v2.1 in place.
+
+**Next:** unchanged: Harshita Phase 0 stubs by end of day 2.
 
 ## [2026-11-15 18:30] Team and stack change — whole project
 

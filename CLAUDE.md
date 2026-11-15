@@ -34,8 +34,9 @@ first step as a hint.
 Unified health-record portal (problem statement G4). Patients log in with ABHA (mocked, D1);
 doctors read a patient's records from every participating institution **only under an active,
 scoped, time-bound consent**; pharmacy, lab and admin each get a narrow slice. **One Next.js 16 app
-at the repo root** holds every screen and the whole backend (no separate React app). Two students:
-Harshita (access, consent, pharmacy, admin) and Vivek (records, patient and doctor portals, lab).
+at the repo root** holds every screen and the whole backend (no separate React app). Team of four;
+Harshita (access, consent, pharmacy, admin) and Vivek (records, patient and doctor portals, lab)
+write the code.
 Full context: `docs/00_MASTER_PLAN.md`.
 
 ## Rules to review their code against

@@ -18,9 +18,9 @@ Written by hand (D16): reading list per phase in [`LEARNING.md`](../LEARNING.md#
 | Contracts | `src/contracts/records.ts`, `clinical.ts`, `lab.ts` (Harshita reviews) | — |
 | Records | `records/`: `listPatientRecords`, `getRecord`, pagination, filters; Route Handlers `/patients/:id/records`, `/records/:id` | `patient/` dashboard, `patient/records` timeline, `patient/records/[id]` + intercepted modal |
 | Uploads + files | `records/storage.ts`, `uploadDocument` action, `/files/:id` | `patient/upload` |
-| Doctor portal *(from Madhav)* | `clinical/`: patient lookup, summary, `createPrescription` (+ share code), `createLabOrder` | `doctor/` dashboard (parallel routes), `doctor/patients` search, `doctor/patients/[patientId]` viewer, `…/request-consent`, `…/prescribe`, `…/lab-order` |
+| Doctor portal *(from Madhav)* | `clinical/`: patient lookup, summary, `createEncounter`, `createPrescription` (+ share code), `createLabOrder` | `doctor/` dashboard (parallel routes), `doctor/patients` search, `doctor/patients/[patientId]` viewer, `…/request-consent`, `…/encounter`, `…/prescribe`, `…/lab-order` |
 | Lab | `lab/`: `listLabOrders`, `uploadLabResult` | `lab/`, `lab/orders/[orderId]` |
-| Public | — | `(public)/` landing, `(public)/institutions` (ISR) |
+| Public | — | `(public)/` landing, `(public)/institutions` (ISR), Hindi/English toggle, Lighthouse pass |
 
 INT257 practicals you carry ([`evaluation/syllabus-coverage.md`](../evaluation/syllabus-coverage.md)):
 nested/dynamic routes, loading + error UI, SSR vs client fetching, caching + revalidation, Server
@@ -90,7 +90,9 @@ form), login, pharmacy, admin.
 - Prescription writer: dynamic drug rows (add/remove, 1–10), every row controlled, validated with
   `PrescriptionCreate`.
 - `createLabOrder`: lab picker (seeded labs), tests list.
-- Optimistic prescription with rollback (`useOptimistic`, TRAPS §15) is **Should**.
+- `createEncounter` + form (`…/encounter`): title, summary, date; same session → Zod → `authorize` pattern.
+- Optimistic prescription with rollback (`useOptimistic`, TRAPS §15): the new prescription appears
+  instantly; on failure (e.g. consent revoked) it's removed and the reason is shown.
 - **Checkpoint:** demo step 6; Harshita's pharmacy finds your new share code.
 
 ## Phase 5 — Lab · seeded pending order unblocks you
@@ -102,12 +104,12 @@ form), login, pharmacy, admin.
 - Screens: `/lab` orders table (loading/error/empty) and `/lab/orders/[orderId]` upload form.
 - **Checkpoint:** demo step 7; Asha sees the new lab report in her timeline.
 
-## Phase 6 — Routing extras · **Should**
+## Phase 6 — Routing extras
 - Record detail intercepted at `patient/@modal/(.)records/[id]`: modal from the timeline, full page on
   refresh or a shared link.
 - Doctor dashboard with parallel routes `@pending` (my requests awaiting patients) and `@recent`, each
   with its own `loading.tsx`.
-- `loading.tsx` and `error.tsx` per segment (these two are **Must**, they're a practical).
+- `loading.tsx` and `error.tsx` per segment (a practical in their own right).
 
 ## Phase 7 — Public pages
 - Landing: what the portal is, the five roles, two CTAs (patient login, staff login).
@@ -115,6 +117,13 @@ form), login, pharmacy, admin.
   `generateStaticParams`, `generateMetadata`, `next/image`. Public data only.
 - Five lines in your log comparing the SSR records page with the client-fetched doctor viewer (what's
   in the HTML, time to first content). That's the "compare rendering strategies" practical.
+
+## Phase 8 — Hindi/English + Lighthouse
+- Language toggle on the landing page and the patient nav: a `messages/en.json` + `messages/hi.json`
+  dictionary, the choice kept in a cookie (not `localStorage`), read on the server so the first render
+  is already in the right language. Public and patient-nav strings only, not clinical content.
+- Lighthouse on the landing page and institution directory; record performance, accessibility and SEO
+  scores in your log, fix what's red.
 
 ---
 
@@ -127,6 +136,7 @@ the doctor is acting for. If they have more than one, ask in the form; don't tak
 
 # PART D — DONE MEANS
 - [ ] Demo steps 1 (timeline), 2, 3 (form), 5, 6, 7 work on the deployed build
+- [ ] Encounter form, optimistic prescription, intercepting modal, parallel dashboard, Hindi/English toggle all working
 - [ ] Out-of-scope records never appear in any network response
 - [ ] Files can't be fetched without an authorized session
 - [ ] `patient/*` and `doctor/*` are dynamic; only `(public)/*` is static/ISR

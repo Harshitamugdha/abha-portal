@@ -1,9 +1,12 @@
 # The team
 
-Two people, one Next.js app. Each owns backend **and** frontend for their area (Master D21). Since
-v2 (15 Nov 2026), Madhav's doctor portal moved to Vivek and Ravuri's pharmacy, admin and deployment
-moved to Harshita. Check Master Part 8 before saying you're blocked: seeded rows and stubs cover
-most of what looks like a dependency.
+**Team:** Harshita, Vivek, Madhav, Ravuri. **Build owners:** Harshita and Vivek, one Next.js app,
+each owning backend **and** frontend for their area (Master D21). Since v2 (15 Nov 2026), the doctor
+portal planned for Madhav is Vivek's, and the pharmacy, admin and deployment planned for Ravuri are
+Harshita's. Full scope, nothing cut (Master Part 12).
+
+Check Master Part 8 before saying you're blocked: seeded rows and stubs cover most of what looks
+like a dependency.
 
 ---
 
@@ -38,7 +41,7 @@ most of what looks like a dependency.
 | 10 Revoke → consent required again | Harshita + Vivek |
 | 11 Admin sees denied read, can't open record | Harshita |
 
-## Working as two
+## Working as the two builders
 - **Review each other's PRs.** Harshita merges.
 - **Contracts:** each writes their own schemas in `src/contracts/`; the other reviews before use.
 - **One seam to watch:** the consent request form (Vivek) calls `requestConsent` (Harshita). Agree the

@@ -11,7 +11,7 @@ code folder.
 row. Pages, Route Handlers and Server Actions call data functions in
 `src/server/<domain>/`, never `prisma` directly for clinical tables.
 
-It exists so two people can build in parallel, and so one person's shortcut can't
+It exists so Harshita and Vivek can build in parallel, and so one person's shortcut can't
 open a hole in another person's feature.
 
 ---

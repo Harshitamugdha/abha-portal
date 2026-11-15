@@ -26,16 +26,16 @@ src/app/
 ├─ (auth)/                   login/ (ABHA) · login/otp/ · staff/login/ (redirects by role)         H
 ├─ patient/                  layout.tsx (role gate) · page.tsx (dashboard)                          V
 │  ├─ records/               page.tsx (timeline, searchParams filters) · [id]/page.tsx              V
-│  ├─ @modal/(.)records/[id]/  intercepted detail modal (Should)                                    V
+│  ├─ @modal/(.)records/[id]/  intercepted detail modal                                            V
 │  ├─ upload/                form → uploadDocument                                                  V
 │  ├─ consents/              Consent Center → approve/deny/revoke actions                           H
 │  └─ access-log/            who viewed my records                                                  H
-├─ doctor/                   layout.tsx · dashboard with @pending + @recent (Should)                V
+├─ doctor/                   layout.tsx · dashboard with @pending + @recent                         V
 │  ├─ patients/              search by ABHA                                                         V
-│  └─ patients/[patientId]/  viewer (React Query) · request-consent/ · prescribe/ · lab-order/      V
+│  └─ patients/[patientId]/  viewer (React Query) · request-consent/ · encounter/ · prescribe/ · lab-order/  V
 ├─ lab/                      pending orders · orders/[orderId]/ (upload result)                     V
 ├─ pharmacy/                 share-code form · rx/[code]/ (prescription + dispense)                 H
-├─ admin/                    staff/ (verify) · audit/ (filters in searchParams) · institutions/     H
+├─ admin/                    staff/ (verify) · audit/ (filters in searchParams) · institutions/ (create/edit)  H
 └─ api/v1/                   auth/ · consents/latest · health/ (Edge)                               H
                              patients/[patientId]/records · patients/lookup · patients/[id]/summary
                              records/[id] · files/[id]                                              V

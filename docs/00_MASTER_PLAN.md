@@ -1,9 +1,10 @@
-# ABHA PORTAL — MASTER PLAN v2
-## INT257 (Next.js) project · Problem statement G4 · Team of two: Harshita, Vivek
+# ABHA PORTAL — MASTER PLAN v2.1
+## INT257 (Next.js) project · Problem statement G4 · Team: Harshita, Vivek, Madhav, Ravuri
 
 > **v2 (15 Nov 2026) replaces v1.1.** Two changes drive everything in it: the React/Vite console
-> app is gone (the project is **pure Next.js**, D20), and the team is now **two people** (D21).
-> Madhav's and Ravuri's work is split between Harshita and Vivek, and the scope is cut to fit (Part 12).
+> app is gone (the project is **pure Next.js**, D20), and **Harshita and Vivek build the whole app**
+> (D21). Madhav's and Ravuri's planned work is split between them. **Nothing is cut**: the full
+> v1 scope stays, in the build order in Part 12.
 >
 > **This is the single source of truth** for scope, architecture, ownership, dependencies and
 > decisions. If your brief conflicts with this file, this file wins. If this file conflicts with
@@ -70,7 +71,7 @@ consent**.
 | 3 | Dr Kavya | Requests consent: prescriptions + lab reports, 7 days, purpose "Follow-up" | Scoped, time-bound request | V (form) + H (engine) |
 | 4 | Asha | Opens Consent Center, approves | Patient controls access | H |
 | 5 | Dr Kavya | Sees prescriptions + lab reports from both hospitals, **grouped by institution**; does **not** see the excluded scope (documents) | Scope filtering, cross-institution | V |
-| 6 | Dr Kavya | Writes a prescription and a lab order | Clinical write | V |
+| 6 | Dr Kavya | Writes a prescription and a lab order (and can record an encounter) | Clinical write | V |
 | 7 | Lab (Precision Diagnostics) | Sees the pending order, uploads the result PDF | Lab sees orders, not history | V |
 | 8 | Pharmacy (Green Cross) | Enters the prescription's share code, marks it dispensed | Pharmacy sees one prescription only | H |
 | 9 | Asha | Opens "Who viewed my records": Kavya's reads are there, with times | Audit visible to patient | H |
@@ -86,10 +87,10 @@ H = Harshita, V = Vivek. Steps 10 and 11 are the ones examiners remember. Rehear
 | Auth | ABHA login, OTP, staff login (redirects by role) | Harshita |
 | Patient | Dashboard, records timeline, record detail, upload | Vivek |
 | Patient | Consent Center, "Who viewed my records" | Harshita |
-| Doctor | Dashboard, patient search, unified viewer, request consent, prescription writer, lab order | Vivek |
+| Doctor | Dashboard, patient search, unified viewer, request consent, encounter, prescription writer, lab order | Vivek |
 | Lab | Pending orders, result upload | Vivek |
 | Pharmacy | Share-code lookup, prescription + dispense | Harshita |
-| Admin | Staff verification, audit log | Harshita |
+| Admin | Staff verification, audit log, institutions (create/edit) | Harshita |
 
 ---
 
@@ -120,8 +121,7 @@ All fictional. `npm run db:reset` must produce exactly this, every time, from no
 | Admin | Admin | `admin@portal.test` | |
 
 Asha has at least 2 encounters, 2 prescriptions, 2 lab reports and 1 uploaded document across the
-two hospitals, so scope filtering in step 5 is visible. **Encounters are seeded only**; there's no
-form to create one (Part 12).
+two hospitals, so scope filtering in step 5 is visible.
 
 Seeded so neither of you waits for the other's write path:
 - A **pending lab order** for Asha at Precision, ordered by Dr Arjun (Vivek's lab upload works
@@ -236,14 +236,15 @@ DB changes), approved by the other person before any code uses it.
 
 # PART 7 — OWNERSHIP
 
-Each of you owns backend **and** frontend for your area (D21).
+Harshita and Vivek build the app; each owns backend **and** frontend for their area (D21). The team
+is Harshita, Vivek, Madhav and Ravuri.
 
 | | **Harshita**: access + staff side | **Vivek**: records + clinical side |
 |---|---|---|
-| **Backend** | Mock ABHA OTP (`AbhaProvider`), sessions, staff login, `proxy.ts`, **`authorize()`** + policy tests, consent engine, audit writer + queries, Prisma schema + seed, shared contracts, pharmacy (lookup, dispense), admin (staff verify, audit query), Edge health route | Records list/detail, uploads, file serving, patient lookup, cross-institution summary, prescriptions (+ share code), lab orders, lab result upload |
-| **Frontend** | ABHA login + OTP, staff login, Consent Center, access log, pharmacy screens, admin screens | Patient dashboard + timeline + record detail + upload, doctor dashboard + search + viewer + consent request + prescription writer + lab order, lab screens, public pages |
-| **Also** | Deployment, `_INTEGRATION.md`, merges | — |
-| **Inherited from** | Ravuri (pharmacy, admin, health route, deploy) | Madhav (whole doctor portal), plus his own records/patient/lab work |
+| **Backend** | Mock ABHA OTP (`AbhaProvider`), sessions, staff login, `proxy.ts`, **`authorize()`** + policy tests, consent engine, audit writer + queries, Prisma schema + seed, shared contracts, pharmacy (lookup, dispense), admin (staff verify, audit query, institution create/edit), Edge health route | Records list/detail, uploads, file serving, patient lookup, cross-institution summary, encounters, prescriptions (+ share code), lab orders, lab result upload |
+| **Frontend** | ABHA login + OTP, staff login, Consent Center, access log, pharmacy screens, admin screens | Patient dashboard + timeline + record detail + upload, doctor dashboard + search + viewer + consent request + encounter form + prescription writer + lab order, lab screens, public pages, Hindi/English toggle |
+| **Also** | Deployment, CI, `_INTEGRATION.md`, merges | Lighthouse pass |
+| **Takes on Ravuri's / Madhav's planned work** | Ravuri's: pharmacy, admin, health route, deploy | Madhav's: the whole doctor portal |
 | **Demo steps** | 1 (login), 3 (engine), 4, 8, 9, 10, 11 | 1 (timeline), 2, 3 (form), 5, 6, 7, 10 (viewer) |
 
 **Why this split:** Harshita's side is the hardest logic (everything depends on `authorize()` and
@@ -318,7 +319,7 @@ Settled. Superseded rows are kept, struck through by a later decision, so the hi
 | D18 | **Each person writes their own domain's Zod schemas in `src/contracts/`; Harshita writes the shared ones; each reviews the other's** | You learn Zod by writing real shapes. (Amended for two people.) |
 | D19 | **`bcryptjs` for staff passwords** | Pure JavaScript, installs identically on every laptop. |
 | D20 | **Pure Next.js: one app at the repo root; React/Vite console removed (Nov 2026)** | INT252 is now a separate solo project. Pharmacy, lab and admin become route groups in the same app, behind the same `authorize()`. Removes bearer tokens, CORS and a second deploy. |
-| D21 | **Team of two. Harshita: access + staff side. Vivek: records + clinical side** | Madhav's and Ravuri's work split by data path, so no page has two owners (Part 7). |
+| D21 | **Harshita and Vivek build the whole app. Harshita: access + staff side. Vivek: records + clinical side** | The team is four, but two people do the build. Madhav's and Ravuri's planned work is split by data path, so no page has two owners (Part 7). Full scope kept (Part 12). |
 | D22 | **Server Components read, Server Actions write, Route Handlers for auth + client-side reads + files** | One rule for where code goes, and it still covers the INT257 Route Handler practical (Part 4.2). |
 
 ---
@@ -345,28 +346,27 @@ by this project (D20).
 
 ---
 
-# PART 12 — CUT LINE (re-cut for two people)
+# PART 12 — BUILD ORDER (full scope, nothing cut)
 
-Half the team means this list matters more than anything else in the plan. **When behind, cut from
-the bottom, never the top**, and log the cut in `updates/_INTEGRATION.md`.
+Everything in v1's scope is in. This part says only **what to build first**, so that if time
+runs short the demo still works and the late items are polish, not holes. Work top to bottom.
 
-| Priority | What | Owner |
+| Order | What | Owner |
 |---|---|---|
-| **Must** | Demo steps 1–11 (Part 2.1) with real `authorize()` | both |
-| **Must** | Every row in [`evaluation/syllabus-coverage.md`](evaluation/syllabus-coverage.md) | both |
-| **Must** | `authorize()` policy-matrix tests | H |
-| **Must** | Staff verification (Dr Neel) + audit view with an ALLOWED/DENIED filter | H |
-| **Should** | Intercepting-route record modal, parallel-route doctor dashboard | V |
-| **Should** | Optimistic prescription with rollback | V |
-| **Should** | Edge health route, access-log display of denied attempts, audit filters beyond outcome | H |
-| **Could** | OTP rate limiting, duplicate-request handling in consent | H |
-| **Could** | Institution create/edit in admin (seeded and read-only until then) | H |
-| **Could** | Encounter create form (seeded until then) | V |
-| **Could** | Lighthouse pass, GitHub Actions CI, Hindi/English toggle | either |
+| 1 | Schema, seed, shared contracts, auth stubs (Master §8.3) | H |
+| 2 | Demo steps 1–11 (Part 2.1) working end to end with real `authorize()` | both |
+| 3 | `authorize()` policy-matrix tests; every row of [`evaluation/syllabus-coverage.md`](evaluation/syllabus-coverage.md) demonstrable | both |
+| 4 | Staff verification (Dr Neel), audit log with all filters (outcome, patient, actor, date range), access-log display of denied attempts | H |
+| 5 | Encounter create form; optimistic prescription with rollback | V |
+| 6 | Intercepting-route record modal; parallel-route doctor dashboard | V |
+| 7 | Institution create/edit in admin; OTP rate limiting; duplicate consent-request handling; Edge health route | H |
+| 8 | Hindi/English toggle (landing + patient nav); Lighthouse pass on public pages | V |
+| 9 | GitHub Actions CI (`npm run check` + build on every PR) | H |
 
-**Removed entirely:** the console app, bearer tokens, CORS, React Router, Vite, Zustand, Axios.
+**Removed by D20 (stack, not scope):** the console app, bearer tokens, CORS, React Router, Vite,
+Zustand, Axios. Every screen they served now lives in the Next.js app.
 
-If a **Must** is at risk, say so the same day.
+If anything in rows 1–3 is at risk, say so the same day.
 
 ---
 
@@ -374,7 +374,7 @@ If a **Must** is at risk, say so the same day.
 
 - [ ] Fill start and demo dates in the header.
 - [ ] Hosting: Vercel (app) + Neon or Supabase (Postgres). Harshita confirms in her Phase 0.
-- [ ] Tell the INT257 teacher that the team is now two people and the console is gone (D20, D21).
+- [ ] Tell the INT257 teacher the console is gone and the project is pure Next.js (D20).
 
 ## Deliberately not building
 Real ABDM integration · real HPR/HFR registries · FHIR bundles · emergency "break-glass" access ·

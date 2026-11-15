@@ -23,8 +23,8 @@ Written by hand (D16): reading list per phase in [`LEARNING.md`](../LEARNING.md#
 | Consent | `consent/engine.ts`: request, approve (narrow only), deny, revoke, `activeGrant()`; Server Actions | `patient/consents/` Consent Center |
 | Audit | `audit/write.ts` (called only by `authorize`), `audit/queries.ts` | `patient/access-log/` |
 | Pharmacy *(from Ravuri)* | `pharmacy/`: `lookupPrescription`, `dispensePrescription` | `pharmacy/`, `pharmacy/rx/[code]` |
-| Admin *(from Ravuri)* | `admin/`: `listStaff`, `verifyStaff`, `queryAudit`, `listInstitutions` | `admin/staff`, `admin/audit`, `admin/institutions` (read-only) |
-| Deployment *(from Ravuri)* | Vercel + hosted Postgres, env per environment, error logging helper | — |
+| Admin *(from Ravuri)* | `admin/`: `listStaff`, `verifyStaff`, `queryAudit`, `listInstitutions` | `admin/staff`, `admin/audit`, `admin/institutions` |
+| Deployment + CI *(from Ravuri)* | Vercel + hosted Postgres, env per environment, error logging helper, GitHub Actions | — |
 
 **Why it's the hardest:**
 1. **Vivek depends on it.** If `authorize()` and the schema don't exist on day 2, he stalls. That's
@@ -65,10 +65,10 @@ interface AbhaProvider {
 }
 ```
 - `parseAbhaInput()` accepts `91-1000-0000-0001`, `91100000000001` or `asha.verma@abdm` (lowercased).
-- Txn store: in-memory `Map`, 5-minute TTL, 3 wrong attempts kills the txn. (Rate limiting per ABHA
-  is **Could**.)
+- Txn store: in-memory `Map`, 5-minute TTL, 3 wrong attempts kills the txn, 3 OTP requests per
+  ABHA per 10 minutes → `RATE_LIMITED`.
 - Unknown ABHA → same response shape as a known one, but verify always fails.
-- **Checkpoint:** Vitest: happy path, wrong OTP ×3, expired txn, unknown ABHA.
+- **Checkpoint:** Vitest: happy path, wrong OTP ×3, expired txn, rate limit, unknown ABHA.
 
 ## Phase 2 — Sessions, staff login, proxy
 - `jose` HS256 JWT carrying `SessionUser`, in cookie `portal_session` (CONTRACTS §5). Cookie only.
@@ -94,7 +94,7 @@ interface AbhaProvider {
 
 ## Phase 4 — Consent engine
 - `request`: doctor must be verified; an open `REQUESTED` grant for the same pair is returned, not
-  duplicated (**Could**, if time is short).
+  duplicated.
 - `approve(patient, id, scopes?)`: owner only; from `REQUESTED` only; `approved = requested ∩ submitted`
   (TRAPS §7); `validFrom = now`, `validTo = now + durationDays`.
 - `deny`, `revoke` (from `GRANTED` only). Revoke is effective on the next read.
@@ -110,7 +110,7 @@ interface AbhaProvider {
   *Past*. Approve opens a dialog with the requested scopes pre-ticked (others not shown). Revoke
   confirms and says what will stop working.
 - **Access log** (`/patient/access-log`): who, what, when (`formatIST`), under which consent. Denied
-  attempts shown muted (**Should**).
+  attempts shown muted with "No consent at the time".
 - **Checkpoint:** demo steps 1 (login), 4, 9, 10.
 
 ## Phase 6 — Pharmacy *(from Ravuri)* · seeded `ASHA7K` unblocks you
@@ -126,19 +126,24 @@ interface AbhaProvider {
 - **Staff verification** (`/admin/staff`): unverified list, `verifyStaff` action. Test: Dr Neel can't
   log in, gets verified, now can.
 - **Audit log** (`/admin/audit`): Server Component reading `queryAudit` with filters in `searchParams`
-  (outcome is **Must**; patient/actor/date range **Should**), page numbers in the URL, DENIED rows
+  (outcome, patient, actor, date range), page numbers in the URL, DENIED rows
   visually distinct. No record titles or content.
-- **Institutions** (`/admin/institutions`): read-only list. Create/edit is **Could**.
+- **Institutions** (`/admin/institutions`): list + create/edit form (`createInstitution`,
+  `updateInstitution`, Zod `InstitutionCreate`).
 - **Checkpoint:** demo step 11: admin sees Kavya's denied read after revocation; opening
   `/api/v1/records/<id>` as admin → 404.
 
 ## Phase 8 — Deploy + integration
 - Vercel project, env vars per environment (TRAPS §9: no secret gets a `NEXT_PUBLIC_` prefix), prod
-  database migrated and seeded, Edge `/api/v1/health` (**Should**), `logError()` helper used by the
+  database migrated and seeded, Edge `/api/v1/health`, `logError()` helper used by the
   handler and action wrappers.
 - Run the full demo story (Master §2.1) on the deployed build as each persona.
 - Run the seven checks in [`operations/demo-runbook.md`](../operations/demo-runbook.md) §3.
 - Log every seam event in [`updates/_INTEGRATION.md`](../updates/_INTEGRATION.md).
+
+## Phase 9 — CI
+- GitHub Actions workflow: on every PR, `npm ci`, `npm run check`, `npm run build`, with a throwaway
+  Postgres service for the tests. A red check blocks the merge.
 
 ---
 
@@ -155,6 +160,7 @@ widening), §9 (public env prefixes), §10 (Prisma client), §11 (403 vs 404), �
 - [ ] `npm run check` green; `authorize.test.ts` covers every matrix cell
 - [ ] `DEV_FAKE_USER` code path deleted
 - [ ] Demo steps 1, 4, 8, 9, 10, 11 work on the deployed build
+- [ ] Institution create/edit, OTP rate limit, Edge health route and CI all working
 - [ ] Meera's expired consent refuses; Dr Neel can't log in until verified
 - [ ] [`architecture/identity-and-consent.md`](../architecture/identity-and-consent.md) matches the code
 

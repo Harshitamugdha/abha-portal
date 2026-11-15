@@ -3,6 +3,35 @@
 
 ---
 
+## [2026-11-15 18:45] Phase −1 (v2.1) — correction: team of four, full scope
+
+**Done:** Corrected v2. The team is still Harshita, Vivek, Madhav and Ravuri; Harshita and Vivek
+build the app. Full v1 scope restored: Master Part 12 is now a build order, not a cut line. Added
+back to the briefs: OTP rate limit, duplicate consent requests, institution create/edit, Edge health
+route and a CI phase (Harshita); encounter form, optimistic prescription, intercepting modal,
+parallel dashboard, Hindi/English and Lighthouse (Vivek).
+
+**Files touched:** `docs/00_MASTER_PLAN.md`, `docs/CONTRACTS.md`, `docs/team/*`, `docs/LEARNING.md`,
+`docs/evaluation/syllabus-coverage.md`, `src/app/README.md`, `CLAUDE.md`, `CONTRIBUTING.md`,
+`CHANGELOG.md`, `docs/updates/_INTEGRATION.md`
+
+**Run command:** none yet: no code.
+
+**Access check:** n/a
+
+**Demo steps enabled:** none yet
+
+**Learned:** —
+
+**AI used:** review: updating the docs for the correction.
+
+**Open issues:**
+- Start and demo dates still blank in the Master header.
+- Repo is local only: needs a GitHub remote before Vivek can clone.
+
+**Next:** Phase 0: `create-next-app` at the repo root, Prisma schema + seed, shared contracts, auth
+stubs. Deadline end of day 2.
+
 ## [2026-11-15 18:30] Phase −1 (v2) — pure Next.js, team of two, work reassigned
 
 **Done:** Restructured the plan for two changes: the React/Vite console is gone (one Next.js app at

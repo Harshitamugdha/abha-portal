@@ -8,7 +8,7 @@
 > database changes), approved by the other person before any code relies on it.
 >
 > **v2:** one Next.js app (Master D20), cookie sessions only, entry points split into Server
-> Components, Server Actions and Route Handlers (D22), ownership for two people (D21).
+> Components, Server Actions and Route Handlers (D22), Harshita and Vivek as owners (D21).
 
 ---
 
@@ -276,7 +276,7 @@ Every entry point calls a data function in `src/server/<domain>/`, which calls `
 | Route Handler GET | `/patients/:patientId/summary` | → `{ byInstitution: [{ institution, counts, latestAt }] }`, consented scopes only |
 | Server Action | `createPrescription` | `PrescriptionCreate { patientId, items: PrescriptionItem[1..10], notes? }` → `{ recordId, shareCode }` |
 | Server Action | `createLabOrder` | `LabOrderCreate { patientId, labInstitutionId, tests: string[1..10] }` → `LabOrderDTO` |
-| Server Action | `createEncounter` | **Could** (Master Part 12). Encounters are seeded until then |
+| Server Action | `createEncounter` | `EncounterCreate { patientId, title, summary, occurredAt }` → `RecordDTO` |
 
 ### 4.5 Lab — Vivek · `src/contracts/lab.ts`
 | Kind | Path / name | Input → Output |
@@ -296,7 +296,8 @@ Every entry point calls a data function in `src/server/<domain>/`, which calls `
 | Data function | `listStaff(user, { verified })` | → `Page<StaffDTO>` |
 | Server Action | `verifyStaff` | `{ userId }` → `StaffDTO` |
 | Data function | `queryAudit(user, { patientId?, actorId?, outcome?, from?, to?, page })` | → `Page<AuditEntryDTO>`: ids, roles, actions, outcomes; **no clinical content** |
-| Data function | `listInstitutions(user)` | → `InstitutionDTO[]` (read-only; create/edit is **Could**) |
+| Data function | `listInstitutions(user)` | → `InstitutionDTO[]` |
+| Server Action | `createInstitution` / `updateInstitution` | `InstitutionCreate { name, type, city }` / `{ id, …InstitutionCreate }` → `InstitutionDTO` |
 | Route Handler GET | `/health` | Edge runtime → `{ ok: true, at }`. No Prisma |
 
 ---

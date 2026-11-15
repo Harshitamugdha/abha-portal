@@ -35,6 +35,7 @@ Course text (INT257 syllabus): *Modern Web Applications with Next.js*, Shubham J
 | 6 Pharmacy | Dynamic segments (`[code]`); `notFound()` | Next.js docs: search "dynamic routes", "notFound" |
 | 7 Admin | `searchParams` for URL-driven filters and paging | Next.js docs: search "searchParams" |
 | 8 Deploy | Deploying Next.js; environment variables; Edge runtime limits | Next.js docs: search "deploying", "environment variables", "edge runtime" |
+| 9 CI | GitHub Actions workflows, service containers for Postgres | [GitHub Actions docs](https://docs.github.com/actions) |
 
 ## Vivek
 | Phase | Read | Where |
@@ -43,10 +44,11 @@ Course text (INT257 syllabus): *Modern Web Applications with Next.js*, Shubham J
 | 1 Records API | Route Handlers; `searchParams`; Prisma `findMany` with `skip`/`take`/`orderBy`, `count` | Next.js docs: search "route handlers" · Prisma docs: search "pagination" |
 | 2 Uploads | Server Actions, `FormData`, `revalidatePath`; `serverActions.bodySizeLimit`; uncontrolled inputs | Next.js docs: search "updating data", "bodySizeLimit" · [react.dev: `<input>`](https://react.dev/reference/react-dom/components/input) |
 | 3 Doctor viewer | React Query `useQuery`, query keys, refetch on window focus, error handling; `useMemo`; `next/dynamic` | [TanStack Query](https://tanstack.com/query/latest/docs/framework/react/overview) · [react.dev: useMemo](https://react.dev/reference/react/useMemo) · Next.js docs: search "lazy loading" |
-| 4 Clinical writes | Controlled forms with dynamic rows; updating arrays in state; `useOptimistic` (Should); Prisma transactions | [react.dev: updating arrays in state](https://react.dev/learn/updating-arrays-in-state) · [react.dev: useOptimistic](https://react.dev/reference/react/useOptimistic) |
+| 4 Clinical writes | Controlled forms with dynamic rows; updating arrays in state; `useOptimistic`; Prisma transactions | [react.dev: updating arrays in state](https://react.dev/learn/updating-arrays-in-state) · [react.dev: useOptimistic](https://react.dev/reference/react/useOptimistic) |
 | 5 Lab | Server Actions with files; transactions | Next.js docs: search "updating data" |
 | 6 Routing extras | `loading.tsx`, `error.tsx`, parallel routes (`@slot`), intercepting routes (`(.)`) | Next.js docs: search "error handling", "parallel routes", "intercepting routes" |
 | 7 Public pages | ISR / `revalidate`, `generateStaticParams`, `generateMetadata`, `next/image` | Next.js docs: search "ISR", "metadata", "image" |
+| 8 i18n + Lighthouse | Internationalization in the App Router; reading a cookie on the server; Lighthouse audits | Next.js docs: search "internationalization" · [Chrome: Lighthouse](https://developer.chrome.com/docs/lighthouse/overview) |
 
 ---
 

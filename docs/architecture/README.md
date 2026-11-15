@@ -22,7 +22,7 @@ flowchart LR
 ```
 
 ### Why it's built this way
-- **Two people, one policy.** If each area checked access its own way, the project would have two
+- **Two builders, one policy.** If each area checked access its own way, the project would have two
   slightly different ideas of "authorized doctor", and the weaker one would be the real policy. One function means one policy, tested once as a table.
 - **The check returns *what* is allowed, not just *whether*.** `authorize()` returns
   `allowedTypes` for list queries, so the scope filter is applied **in the SQL**, by the code that
