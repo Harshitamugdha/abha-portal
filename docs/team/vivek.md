@@ -1,6 +1,6 @@
 # VIVEK — Health records, patient portal, doctor portal, lab
 *v2. Read with [`00_MASTER_PLAN.md`](../00_MASTER_PLAN.md). Organised in phases, not days.
-Written by hand (D16): reading list per phase in [`LEARNING.md`](../LEARNING.md#vivek).*
+AI writes the code, you own it (D16): reading list per phase in [`LEARNING.md`](../LEARNING.md#vivek).*
 
 > **You own the records and everyone who reads or writes them clinically: the patient's timeline,
 > the doctor's viewer, prescriptions, lab orders and lab results.** Since v2 that includes the whole

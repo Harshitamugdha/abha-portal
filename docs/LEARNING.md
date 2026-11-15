@@ -1,7 +1,7 @@
 # Learning path
 
-What to read **before** you write each phase, in official docs. Read the section, try the smallest
-version in a scratch file, then build your feature by hand. "Search for" means use the search box
+What to read **before** you write each phase, in official docs. Read the section so you can review and
+explain the AI-written code for that phase. "Search for" means use the search box
 on that docs site. Phase numbers match your brief.
 
 Course text (INT257 syllabus): *Modern Web Applications with Next.js*, Shubham Jain and Mathew Dony.

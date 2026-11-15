@@ -60,14 +60,12 @@ commits, pushes or PRs are made by an AI agent; an agent may only suggest the co
 - **Log every phase** in `docs/updates/<you>.md` ([template](docs/updates/TEMPLATE.md)).
 - **Read before you write.** Each phase has a reading list in [`docs/LEARNING.md`](docs/LEARNING.md).
 
-## Code is written by hand
-We're learning React and Next.js, and each of us explains our code in the viva (Master D16).
-- **You can explain every line you commit.** If you can't, it isn't done.
-- Snippets from anywhere (AI, Stack Overflow, a tutorial) are **retyped from understanding**, never pasted.
-- AI tools are optional and only for **debugging, review and learning**. The root `CLAUDE.md`
-  makes Claude Code act as a tutor rather than an author.
+## AI writes code; you own it
+AI tools (Claude Code, via the root `CLAUDE.md`) write the code: components, pages, route handlers,
+Server Actions, data functions, schemas and tests (Master D16).
+- **You review every line before you commit it, and can explain it in the viva.** If you can't, it isn't done.
 - **Commits are made by hand**, never by an AI agent.
-- Every PR says what AI was used for (`none` is a perfectly good answer).
+- Every PR says what AI was used for.
 
 ## The honesty rule
 This is a health-data project. No real ABHA numbers, names or medical documents, in seeds,

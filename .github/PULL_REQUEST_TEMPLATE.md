@@ -27,11 +27,11 @@ Log in as:
 - [ ] Any new dependency is pinned, justified below, and announced in the group
 - [ ] `docs/updates/<yourname>.md` has an entry for this phase
 - [ ] Only seed data in code, tests and screenshots
-- [ ] **I can explain every line in this PR without notes** (D16)
+- [ ] **I reviewed every line (including AI-written code) and can explain it without notes** (D16)
 
 ## AI used
 
-<!-- none | debugging: … | review: … | learning: …   (Master D16) -->
+<!-- none | code: … | debugging: … | review: … | learning: …   (Master D16) -->
 
 none
 

@@ -224,7 +224,7 @@ Everything else is denied and logged. Expiry is evaluated **at read time** (D9).
 # PART 6 — THE FROZEN CONTRACTS
 
 Full contract in [`CONTRACTS.md`](CONTRACTS.md). The executable copy is `src/contracts/`: each of
-you writes the schemas for your own domain by hand (D18).
+you owns the schemas for your own domain (D18).
 
 Frozen: §1 error shape + codes · §2 data model · §3 `authorize()` + policy matrix · §4 entry points
 · §5 session shape.
@@ -314,8 +314,8 @@ Settled. Superseded rows are kept, struck through by a later decision, so the hi
 | D13 | ~~Zustand for console state~~ **Superseded by D20** | No console. Client state is local `useState`; server state is React Query or Server Components. |
 | D14 | **PostgreSQL + Prisma 7** | Prisma 7 needs `prisma.config.ts`, an explicit generator `output`, and `@prisma/adapter-pg`. |
 | D15 | ~~npm workspaces~~ **Superseded by D20**: single app, no workspaces | |
-| D16 | **Code written by hand; AI only for debugging, review and learning** | We explain every line in the viva. Every commit is made by hand, never by an AI agent. |
-| D17 | **Offset pagination (`page`, `pageSize`, `total`)** | Simple to write by hand, fine at demo scale. |
+| D16 | **AI writes the code; we review, own and commit it** | Faster build; we still explain every line in the viva. Every commit is made by hand, never by an AI agent. |
+| D17 | **Offset pagination (`page`, `pageSize`, `total`)** | Simple to implement, fine at demo scale. |
 | D18 | **Each person writes their own domain's Zod schemas in `src/contracts/`; Harshita writes the shared ones; each reviews the other's** | You learn Zod by writing real shapes. (Amended for two people.) |
 | D19 | **`bcryptjs` for staff passwords** | Pure JavaScript, installs identically on every laptop. |
 | D20 | **Pure Next.js: one app at the repo root; React/Vite console removed (Nov 2026)** | INT252 is now a separate solo project. Pharmacy, lab and admin become route groups in the same app, behind the same `authorize()`. Removes bearer tokens, CORS and a second deploy. |
@@ -340,7 +340,7 @@ Every INT257 practical maps to a real feature and an owner (see each brief in
 4. **Branch per person, PR to `main`, the other person reviews.** Harshita merges.
 5. **Log after every phase** in `docs/updates/<you>.md` ([template](updates/TEMPLATE.md)).
 6. **Fix the cause, not the symptom.** Never hand-edit seed data or a response to make a screen work.
-7. **You can explain every line you commit** (D16).
+7. **You review and can explain every line you commit**, including AI-written code (D16).
 8. **Read before you write.** Reading list per phase: [`LEARNING.md`](LEARNING.md).
 
 ---

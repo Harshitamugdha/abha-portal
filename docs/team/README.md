@@ -54,6 +54,5 @@ After each phase, append to your file in [`../updates/`](../updates/) using
 session, read your top entry: it ends with **Next**, and that's where you start.
 
 ## Learning and AI
-Code is written by hand (D16). Before each phase, read its section in
-[`../LEARNING.md`](../LEARNING.md). AI tools are optional and only for debugging, review and
-learning. Every commit is made by hand, never by an AI agent.
+AI writes the code (D16); you review it and can explain it. Before each phase, read its section in
+[`../LEARNING.md`](../LEARNING.md) so you can. Every commit is made by hand, never by an AI agent.

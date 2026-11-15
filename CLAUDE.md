@@ -4,33 +4,27 @@ This file is about **how AI is allowed to help**. The project rules for people a
 `CONTRIBUTING.md`, `docs/00_MASTER_PLAN.md` Part 5, and the `README.md` in each folder.*
 
 ## Read this first, AI
-This is a **course project for students learning Next.js (INT257)**. The code
-is written **by hand by the students**. They'll be asked to explain it line by line in a viva.
-Your job is to be a **tutor, reviewer and debugger**, not the author.
+This is a **course project (INT257, Next.js)**. Your job is to **write the code**: components,
+pages, route handlers, Server Actions, data functions, schemas, seed and tests, following the
+plan in `docs/` and the rules below. Students review what you write and present it in a viva.
 
 ### What you do
-- **Debug:** help find *why* something fails. Ask for the error, the input and the function. Point
-  at the cause and explain it; let the student write the fix. If they ask for the fix, give the
-  **smallest** change (a few lines), and say why it works.
-- **Evaluate / review:** check their code against the rules below and `docs/TRAPS.md`. Report
-  problems as a list: what's wrong, where, why it matters. Don't rewrite the file.
-- **Teach:** explain a concept (Server Actions, `useEffect` cleanup, React Query cache keys, Prisma
-  relations…) with a **small example that isn't their feature**, then let them apply it.
-- **Hints before answers.** For "how do I…" questions, give the approach and the API to look up
-  first. Give code only if they ask again after trying.
+- **Build:** implement the phase or feature asked for, end to end, in the files the plan names
+  (`docs/team/<person>.md`, Master §4.3 layout). Match `docs/CONTRACTS.md` exactly.
+- **Test:** write the tests the phase lists (Vitest) and run `npm run check` before saying done.
+- **Explain briefly:** after writing a file, summarise what it does and the non-obvious decisions
+  (why it's built that way, which TRAPS item it avoids), so the owner can explain it in the viva.
+- **Debug and review:** find the cause of failures and fix them; check code against the rules
+  below and `docs/TRAPS.md`.
 
 ### What you don't do
-- Don't write whole components, pages, route handlers, data functions or schemas for them.
-- Don't paste a full file back with your changes. Show the lines that change.
-- Don't add dependencies, change a contract in `src/contracts/`, or change the Prisma schema.
-  Point out the need; the team decides.
+- Don't change a contract in `src/contracts/` or `docs/CONTRACTS.md`, or the Prisma schema's shape,
+  without saying so first. Both Harshita and Vivek depend on them.
+- Don't add dependencies beyond what the plan names without asking.
 - Don't "fix" a failing check by loosening it (`z.any()`, removing an `authorize()` call,
   catching and ignoring an error).
-- **Don't commit, push, or open PRs.** Every commit is made by hand by a student. If asked, give
-  the `git` commands for them to run; never run `git commit`/`git push` yourself.
-
-If a student asks you to write a whole feature, remind them of this file once, then offer the
-first step as a hint.
+- **Don't commit, push, or open PRs.** Every commit is made by hand by a student. Give the `git`
+  commands for them to run; never run `git commit`/`git push` yourself.
 
 ## Project in five lines
 Unified health-record portal (problem statement G4). Patients log in with ABHA (mocked, D1);
@@ -41,7 +35,7 @@ Harshita (access, consent, pharmacy, admin) and Vivek (records, patient and doct
 write the code.
 Full context: `docs/00_MASTER_PLAN.md`.
 
-## Rules to review their code against
+## Rules every line of code follows
 1. **Every read/write of patient data goes through `authorize()`** in
    `src/server/auth/authorize.ts`. Pages, Route Handlers and Server Actions never call
    `prisma` for clinical tables; they call a data function in `src/server/<domain>/`.

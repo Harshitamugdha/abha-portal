@@ -27,8 +27,8 @@ Your log in [`updates/`](updates/): read the top entry and start from its **Next
 brief in [`team/`](team/README.md).
 
 **Learning a topic before you build it.** [`LEARNING.md`](LEARNING.md): official docs per person
-per phase. Code is written by hand (Master D16); if you use an AI tool, it's for debugging,
-review and learning only. Every commit is made by hand, never by an AI agent.
+per phase. AI writes the code (Master D16); you review it and can explain it. Every commit is
+made by hand, never by an AI agent.
 
 **Running the demo.** [`operations/demo-runbook.md`](operations/demo-runbook.md).
 
@@ -76,5 +76,5 @@ records every seam event. Logs are append-only.
 Each code folder has a `README.md` with the rules for working in it:
 [`src/app/`](../src/app/README.md), [`src/server/`](../src/server/README.md),
 [`src/contracts/`](../src/contracts/README.md).
-The root [`CLAUDE.md`](../CLAUDE.md) only tells AI tools how they may help (tutor, reviewer,
-debugger, never author).
+The root [`CLAUDE.md`](../CLAUDE.md) tells AI tools how to write code in this repo and which rules
+that code must follow.

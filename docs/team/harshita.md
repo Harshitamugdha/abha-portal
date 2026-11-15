@@ -1,6 +1,6 @@
 # HARSHITA — Access control, consent, audit, and the staff side (pharmacy, admin)
 *v2. Read with [`00_MASTER_PLAN.md`](../00_MASTER_PLAN.md). Organised in phases, not days.
-Written by hand (D16): reading list per phase in [`LEARNING.md`](../LEARNING.md#harshita).*
+AI writes the code, you own it (D16): reading list per phase in [`LEARNING.md`](../LEARNING.md#harshita).*
 
 > **You own the one thing everything depends on, and the one place where a bug is a data leak.**
 > Vivek builds most of the screens; you decide who is allowed to see them. Since v2 you also own

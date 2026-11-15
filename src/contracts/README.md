@@ -5,7 +5,7 @@ components. Readable copy: `docs/CONTRACTS.md`. **If they disagree, this folder 
 the bug.**
 
 ## Who writes what (D18)
-Each of you writes **your own** schemas, by hand, and the other reviews.
+Each of you owns **your own** schemas (AI-written, D16), and the other reviews.
 
 | File | Writer |
 |---|---|

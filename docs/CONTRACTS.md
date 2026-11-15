@@ -18,7 +18,7 @@
 - ABHA number in payloads: 14 digits, no hyphens (`"91100000000001"`). Display via `formatAbha()`.
 - Enums are `UPPER_SNAKE`. Field names are `camelCase`.
 - List endpoints take `?page=1&pageSize=20` and return `{ items: T[], page, pageSize, total }`.
-  Default page size 20, max 50. Offset pagination (D17): simple to write by hand, fine at demo scale.
+  Default page size 20, max 50. Offset pagination (D17): simple to implement, fine at demo scale.
 - Every response body is validated against its schema in dev (`parseResponse()` helper). A
   shape mismatch throws in dev rather than rendering garbage.
 - **Server Actions return** `{ ok: true, data }` or `{ ok: false, error: { code, message, details? } }`

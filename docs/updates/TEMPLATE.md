@@ -19,7 +19,7 @@ Open your file, read the top entry, start from its **Next** line.
   paste it and have it work, the phase isn't done.
 - **Access check is mandatory**: which wrong role / no-consent case you tried, and what happened.
 - **Learned** is one honest line. "Nothing" is allowed. A copied definition isn't.
-- **AI used** is one of `none` · `debugging` · `review` · `learning`, with a few words (D16).
+- **AI used** is one of `none` · `code` · `debugging` · `review` · `learning`, with a few words (D16).
 - Open issues are for things genuinely unresolved. An empty list on a phase that had problems is
   a lie your future self pays for.
 - Commit it with your code, same push.
