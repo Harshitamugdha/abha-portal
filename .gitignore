@@ -5,5 +5,7 @@ dist/
 .env.*
 !.env.example
 .uploads/
-apps/web/src/generated/
+src/generated/
 coverage/
+next-env.d.ts
+*.tsbuildinfo
