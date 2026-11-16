@@ -28,7 +28,7 @@ Edit `.env`:
 npm run db:reset                 # drop, migrate, seed — safe to run any time
 npm run db:studio                # optional: browse tables
 ```
-Expected: `Seeded 5 institutions, 3 patients, 6 staff, N records, 1 pending lab order, 1 prescription (ASHA7K)`.
+Expected: `Seeded 5 institutions, 3 patients, 6 staff, 11 records, 1 pending lab order, 2 prescriptions (ASHA7K undispensed), 1 expired consent (Meera)`.
 
 ## 4. Run
 ```bash
