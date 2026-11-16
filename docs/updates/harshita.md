@@ -3,6 +3,52 @@
 
 ---
 
+## [2026-11-16 20:20] Phase 2 — Sessions (JWT), login routes, staff registration, proxy
+
+**Done:** Signed HS256 JWT (`jose`) carrying `SessionUser` in the httpOnly cookie `portal_session`
+(8 h, `SameSite=Lax`, `Secure` in production). Routes: `POST /auth/abha/otp`, `/auth/abha/verify`,
+`/auth/staff/login` (redirect by role), `/auth/logout`. Staff login: bcrypt compare; unknown email
+and wrong password give the same error; unverified → `STAFF_UNVERIFIED` only after the password is
+right. `registerStaff` Server Action (public, Zod + role/institution checks, creates an unverified
+user + membership). `proxy.ts` coarse gate: logged out → `/login` or `/staff/login`, wrong role →
+own home, no DB calls. `DEV_FAKE_USER` still works when there's no cookie (dev only) and is marked
+for deletion in Phase 3. `typecheck` now runs `next typegen` first so it works on a fresh clone.
+
+**Files touched:** `src/server/auth/{token,login,register,gate}.ts` + `token.test.ts`,
+`gate.test.ts`, `src/proxy.ts`, `src/app/api/v1/auth/{abha/otp,abha/verify,staff/login,logout}/route.ts`,
+`src/app/(auth)/staff/register/actions.ts` (new) · `session.ts`, `http.ts`, `src/contracts/auth.ts`
++ tests, `package.json` (`jose`, typecheck script) (modified)
+
+**Run command:**
+```bash
+npm run dev
+curl -c jar -H content-type:application/json -d '{"email":"kavya@citygen.test","password":"Demo@1234"}' http://localhost:3000/api/v1/auth/staff/login
+curl -b jar http://localhost:3000/api/v1/auth/me
+```
+`.env` needs `JWT_SECRET` (32+ random chars) and `SESSION_HOURS=8`.
+
+**Access check (DEV_FAKE_USER unset):** Asha OTP login → `/auth/me` = Asha. Kavya, lab, pharmacy,
+admin → `/doctor`, `/lab`, `/pharmacy`, `/admin`. Neel → 403 `STAFF_UNVERIFIED`. Wrong password and
+unknown email → identical 401. Asha opening `/doctor` or `/admin` → 307 to `/patient`; Kavya opening
+`/admin/audit` → `/doctor`; logged out `/patient` → `/login`, `/lab` → `/staff/login`. Tampered cookie
+→ 401 and redirect to `/login`. Logout → 204, then 401. Registered a new doctor → login refused with
+`STAFF_UNVERIFIED`; same email again → `CONFLICT`; lab role + hospital → `VALIDATION_FAILED`.
+69 tests pass.
+
+**Demo steps enabled:** step 1 login works at the API level (screens in Phase 5)
+
+**Learned:** The proxy can check the JWT signature (no database needed), which is why a tampered
+cookie is caught even there; but it's still not the security boundary. `next typegen` generates the
+`LayoutProps` type, so `tsc` fails on a clean clone without it.
+
+**AI used:** code: everything above · debugging: stale `.next` types after a deleted route.
+
+**Open issues:**
+- No `/login`, `/staff/login`, `/patient`… pages yet, so redirects land on 404s until Phase 5 / Vivek's screens.
+- OTP transactions are in memory (see Phase 1): decide before Phase 8 whether to move them to a table.
+
+**Next:** Phase 3 — the real `authorize()` policy matrix + `authorize.test.ts`, delete `DEV_FAKE_USER`.
+
 ## [2026-11-16 20:10] Phase 1 — Mock ABHA provider
 
 **Done:** `AbhaProvider` interface and `MockAbhaProvider`: OTP transactions in memory with a

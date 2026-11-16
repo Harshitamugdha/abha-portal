@@ -13,7 +13,7 @@
     "db:seed": "prisma db seed",
     "db:reset": "prisma migrate reset --force && prisma db seed",
     "db:studio": "prisma studio",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "check": "npm run typecheck && npm run lint && npm run test"
   },
@@ -22,6 +22,7 @@
     "@prisma/client": "^7.10.1",
     "bcryptjs": "^3.0.3",
     "dotenv": "^18.0.10",
+    "jose": "^6.2.17",
     "next": "16.4.6",
     "pg": "^8.23.1",
     "react": "19.3.0",

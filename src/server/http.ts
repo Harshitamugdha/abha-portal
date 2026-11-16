@@ -54,3 +54,32 @@ export function actionError(code: ErrorCode, message?: string, details?: unknown
   const body = buildErrorBody(code, message, details);
   return { ok: false, error: body.error };
 }
+
+// Reads a request's JSON body. Returns null if the body isn't valid JSON, so Zod then reports
+// VALIDATION_FAILED instead of the route crashing.
+export async function readJsonBody(request: Request): Promise<unknown> {
+  try {
+    return await request.json();
+  } catch {
+    return null;
+  }
+}
+
+// For the catch block of a Route Handler. An ApiError becomes its own error response; anything
+// else is a bug: log it on the server and send a plain 500 (never the real message, CONTRACTS §1).
+export function handleRouteError(error: unknown): Response {
+  if (error instanceof ApiError) {
+    return apiError(error.code, error.message, error.details);
+  }
+  console.error(error);
+  return apiError("INTERNAL");
+}
+
+// Same idea for the catch block of a Server Action.
+export function handleActionError(error: unknown): ActionResult<never> {
+  if (error instanceof ApiError) {
+    return actionError(error.code, error.message, error.details);
+  }
+  console.error(error);
+  return actionError("INTERNAL");
+}
