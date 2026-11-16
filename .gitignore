@@ -9,3 +9,4 @@ src/generated/
 coverage/
 next-env.d.ts
 *.tsbuildinfo
+.vitest/

@@ -2,14 +2,19 @@
 // Run with `npm run db:reset` (drop + migrate + seed) or `npm run db:seed`.
 // Every run produces the same data, from nothing.
 //
+// Ids are FIXED (user-asha, rec-asha-cbc, ...), so URLs, tests and DEV_FAKE_USER keep working
+// after every reset.
+//
+// Dates:
+// - Medical history uses FIXED dates, so the timeline looks the same in every screenshot.
+// - Three things use dates RELATIVE to today, because they must be on the right side of "now":
+//     ASHA7K must not be expired, Meera's consent must be expired, the lab order should be recent.
+//
 // Important for the demo:
 // - Asha has NO consent with anyone, so Dr Kavya sees "Consent required" (demo step 2).
 // - Seeded hospital history has authorId = null (imported from the hospital's own system).
 //   If Kavya were the author, she could read those records without consent (author access, D5),
 //   and step 2 would not show "Consent required".
-// - Meera's consent to Kavya ended yesterday, to test expiry (D9).
-// - ASHA7K is an undispensed prescription for the pharmacy screens.
-// - One pending lab order at Precision for the lab screens.
 
 import "dotenv/config";
 import bcrypt from "bcryptjs";
@@ -58,6 +63,7 @@ async function createInstitutions() {
 }
 
 type PatientSeed = {
+  id: string;
   name: string;
   abhaNumber: string;
   abhaAddress: string;
@@ -67,8 +73,9 @@ type PatientSeed = {
 };
 
 async function createPatient(p: PatientSeed) {
-  return db.user.create({
+  await db.user.create({
     data: {
+      id: p.id,
       role: "PATIENT",
       name: p.name,
       verified: true,
@@ -86,6 +93,7 @@ async function createPatient(p: PatientSeed) {
 }
 
 type StaffSeed = {
+  id: string;
   role: "DOCTOR" | "PHARMACY" | "LAB" | "ADMIN";
   name: string;
   email: string;
@@ -95,8 +103,9 @@ type StaffSeed = {
 };
 
 async function createStaff(s: StaffSeed, passwordHash: string) {
-  const user = await db.user.create({
+  await db.user.create({
     data: {
+      id: s.id,
       role: s.role,
       name: s.name,
       email: s.email,
@@ -109,11 +118,9 @@ async function createStaff(s: StaffSeed, passwordHash: string) {
   // Link the staff member to their institution. Admin has none, so we skip it.
   if (s.institutionId) {
     await db.membership.create({
-      data: { userId: user.id, institutionId: s.institutionId },
+      data: { userId: s.id, institutionId: s.institutionId },
     });
   }
-
-  return user;
 }
 
 async function main() {
@@ -121,7 +128,8 @@ async function main() {
   await createInstitutions();
 
   // ---------- Patients (dev OTP 123456 for all) ----------
-  const asha = await createPatient({
+  await createPatient({
+    id: "user-asha",
     name: "Asha Verma",
     abhaNumber: "91100000000001",
     abhaAddress: "asha.verma@abdm",
@@ -129,7 +137,8 @@ async function main() {
     dob: "1990-04-12",
     gender: "F",
   });
-  const rohan = await createPatient({
+  await createPatient({
+    id: "user-rohan",
     name: "Rohan Mehta",
     abhaNumber: "91100000000002",
     abhaAddress: "rohan.mehta@abdm",
@@ -137,7 +146,8 @@ async function main() {
     dob: "1985-09-03",
     gender: "M",
   });
-  const meera = await createPatient({
+  await createPatient({
+    id: "user-meera",
     name: "Meera Pillai",
     abhaNumber: "91100000000003",
     abhaAddress: "meera.pillai@abdm",
@@ -149,82 +159,95 @@ async function main() {
   // ---------- Staff (password Demo@1234 for all) ----------
   const passwordHash = await bcrypt.hash("Demo@1234", 10);
 
-  const kavya = await createStaff(
-    { role: "DOCTOR", name: "Dr Kavya Iyer", email: "kavya@citygen.test", verified: true,
-      hprId: "HPR-DEMO-0001", institutionId: "inst-citygen" },
-    passwordHash,
-  );
-  const arjun = await createStaff(
-    { role: "DOCTOR", name: "Dr Arjun Rao", email: "arjun@sunrise.test", verified: true,
-      hprId: "HPR-DEMO-0002", institutionId: "inst-sunrise" },
+  await createStaff(
+    { id: "user-kavya", role: "DOCTOR", name: "Dr Kavya Iyer", email: "kavya@citygen.test",
+      verified: true, hprId: "HPR-DEMO-0001", institutionId: "inst-citygen" },
     passwordHash,
   );
   await createStaff(
-    { role: "DOCTOR", name: "Dr Neel Shah", email: "neel@lakeside.test", verified: false,
-      hprId: "HPR-DEMO-0003", institutionId: "inst-lakeside" },
-    passwordHash,
-  );
-  const pharmacist = await createStaff(
-    { role: "PHARMACY", name: "Green Cross staff", email: "counter@greencross.test", verified: true,
-      institutionId: "inst-greencross" },
+    { id: "user-arjun", role: "DOCTOR", name: "Dr Arjun Rao", email: "arjun@sunrise.test",
+      verified: true, hprId: "HPR-DEMO-0002", institutionId: "inst-sunrise" },
     passwordHash,
   );
   await createStaff(
-    { role: "LAB", name: "Precision staff", email: "desk@precision.test", verified: true,
-      institutionId: "inst-precision" },
+    { id: "user-neel", role: "DOCTOR", name: "Dr Neel Shah", email: "neel@lakeside.test",
+      verified: false, hprId: "HPR-DEMO-0003", institutionId: "inst-lakeside" },
     passwordHash,
   );
   await createStaff(
-    { role: "ADMIN", name: "Admin", email: "admin@portal.test", verified: true },
+    { id: "user-pharmacy", role: "PHARMACY", name: "Green Cross staff", email: "counter@greencross.test",
+      verified: true, institutionId: "inst-greencross" },
+    passwordHash,
+  );
+  await createStaff(
+    { id: "user-lab", role: "LAB", name: "Precision staff", email: "desk@precision.test",
+      verified: true, institutionId: "inst-precision" },
+    passwordHash,
+  );
+  await createStaff(
+    { id: "user-admin", role: "ADMIN", name: "Admin", email: "admin@portal.test", verified: true },
     passwordHash,
   );
 
-  // ---------- Asha's records: two hospitals, every type (so scope filtering is visible) ----------
+  // ---------- Asha's history: two hospitals, every type (so scope filtering is visible) ----------
+  // Fixed dates. Times are in UTC (the "Z"); 04:30Z is 10:00 in India.
   await db.healthRecord.createMany({
     data: [
-      { patientId: asha.id, institutionId: "inst-citygen", type: "ENCOUNTER",
+      { id: "rec-asha-opd", patientId: "user-asha", institutionId: "inst-citygen", type: "ENCOUNTER",
         title: "OPD visit: fever and body ache", summary: "Viral fever. Rest and fluids advised.",
-        occurredAt: daysAgo(60), createdAt: daysAgo(60) },
-      { patientId: asha.id, institutionId: "inst-citygen", type: "LAB_REPORT",
+        occurredAt: new Date("2026-09-15T04:30:00Z"), createdAt: new Date("2026-09-15T04:30:00Z") },
+      { id: "rec-asha-cbc", patientId: "user-asha", institutionId: "inst-citygen", type: "LAB_REPORT",
         title: "Complete blood count", summary: "All values within normal range.",
-        occurredAt: daysAgo(58), createdAt: daysAgo(58) },
-      { patientId: asha.id, institutionId: "inst-sunrise", type: "ENCOUNTER",
+        occurredAt: new Date("2026-09-17T06:00:00Z"), createdAt: new Date("2026-09-17T06:00:00Z") },
+      { id: "rec-asha-cardio", patientId: "user-asha", institutionId: "inst-sunrise", type: "ENCOUNTER",
         title: "Cardiology consultation", summary: "Mild hypertension. Lifestyle changes, review in 3 months.",
-        occurredAt: daysAgo(20), createdAt: daysAgo(20) },
-      { patientId: asha.id, institutionId: "inst-sunrise", type: "LAB_REPORT",
+        occurredAt: new Date("2026-10-22T05:00:00Z"), createdAt: new Date("2026-10-22T05:00:00Z") },
+      { id: "rec-asha-lipid", patientId: "user-asha", institutionId: "inst-sunrise", type: "LAB_REPORT",
         title: "Lipid profile", summary: "LDL slightly raised.",
-        occurredAt: daysAgo(19), createdAt: daysAgo(19) },
+        occurredAt: new Date("2026-10-23T03:30:00Z"), createdAt: new Date("2026-10-23T03:30:00Z") },
       // Uploaded by Asha herself, so no author.
-      { patientId: asha.id, institutionId: "inst-sunrise", type: "DOCUMENT",
+      { id: "rec-asha-discharge", patientId: "user-asha", institutionId: "inst-sunrise", type: "DOCUMENT",
         title: "Discharge summary (uploaded)", summary: "Scanned copy of a 2024 discharge summary.",
-        occurredAt: daysAgo(15), createdAt: daysAgo(15) },
+        occurredAt: new Date("2026-10-28T12:00:00Z"), createdAt: new Date("2026-10-28T12:00:00Z") },
     ],
   });
 
   // Prescriptions are a HealthRecord plus a Prescription row (1:1), created together.
-  // Old one: dispensed long ago and expired.
+  // Old one: fixed dates, dispensed long ago, expired.
   await db.healthRecord.create({
     data: {
-      patientId: asha.id, institutionId: "inst-citygen", type: "PRESCRIPTION",
-      title: "Prescription: fever", occurredAt: daysAgo(60), createdAt: daysAgo(60),
+      id: "rec-asha-rx-fever",
+      patientId: "user-asha",
+      institutionId: "inst-citygen",
+      type: "PRESCRIPTION",
+      title: "Prescription: fever",
+      occurredAt: new Date("2026-09-15T04:45:00Z"),
+      createdAt: new Date("2026-09-15T04:45:00Z"),
       prescription: {
         create: {
           shareCode: "CGEN52",
           items: [
             { drug: "Paracetamol 500 mg", dose: "1 tablet", frequency: "Three times a day", durationDays: 5 },
           ],
-          dispensedAt: daysAgo(59),
-          dispensedBy: pharmacist.id,
-          expiresAt: daysAgo(30),
+          dispensedAt: new Date("2026-09-15T09:00:00Z"),
+          dispensedBy: "user-pharmacy",
+          expiresAt: new Date("2026-10-15T04:45:00Z"), // created + 30 days
         },
       },
     },
   });
-  // ASHA7K: recent, NOT dispensed, still valid. The pharmacy demo (step 8) uses this one.
+
+  // ASHA7K: RELATIVE dates. Written 3 days ago, valid for 30 days, so it never goes stale.
+  // The pharmacy demo (step 8) uses this one.
   await db.healthRecord.create({
     data: {
-      patientId: asha.id, institutionId: "inst-sunrise", type: "PRESCRIPTION",
-      title: "Prescription: blood pressure", occurredAt: daysAgo(3), createdAt: daysAgo(3),
+      id: "rec-asha-rx-bp",
+      patientId: "user-asha",
+      institutionId: "inst-sunrise",
+      type: "PRESCRIPTION",
+      title: "Prescription: blood pressure",
+      occurredAt: daysAgo(3),
+      createdAt: daysAgo(3),
       prescription: {
         create: {
           shareCode: "ASHA7K",
@@ -242,30 +265,33 @@ async function main() {
   // ---------- Rohan: Lakeside only, no consent to anyone ----------
   await db.healthRecord.createMany({
     data: [
-      { patientId: rohan.id, institutionId: "inst-lakeside", type: "ENCOUNTER",
+      { id: "rec-rohan-checkup", patientId: "user-rohan", institutionId: "inst-lakeside", type: "ENCOUNTER",
         title: "General check-up", summary: "No complaints.",
-        occurredAt: daysAgo(30), createdAt: daysAgo(30) },
-      { patientId: rohan.id, institutionId: "inst-lakeside", type: "LAB_REPORT",
+        occurredAt: new Date("2026-10-05T05:30:00Z"), createdAt: new Date("2026-10-05T05:30:00Z") },
+      { id: "rec-rohan-sugar", patientId: "user-rohan", institutionId: "inst-lakeside", type: "LAB_REPORT",
         title: "Fasting blood sugar", summary: "Normal.",
-        occurredAt: daysAgo(29), createdAt: daysAgo(29) },
+        occurredAt: new Date("2026-10-06T03:00:00Z"), createdAt: new Date("2026-10-06T03:00:00Z") },
     ],
   });
 
-  // ---------- Meera: records at City General + a consent to Kavya that expired yesterday ----------
+  // ---------- Meera: records at City General + a consent to Kavya that ended yesterday ----------
   await db.healthRecord.createMany({
     data: [
-      { patientId: meera.id, institutionId: "inst-citygen", type: "ENCOUNTER",
+      { id: "rec-meera-review", patientId: "user-meera", institutionId: "inst-citygen", type: "ENCOUNTER",
         title: "Diabetes review", summary: "Sugar control fair. Continue current plan.",
-        occurredAt: daysAgo(10), createdAt: daysAgo(10) },
-      { patientId: meera.id, institutionId: "inst-citygen", type: "LAB_REPORT",
+        occurredAt: new Date("2026-11-02T05:00:00Z"), createdAt: new Date("2026-11-02T05:00:00Z") },
+      { id: "rec-meera-hba1c", patientId: "user-meera", institutionId: "inst-citygen", type: "LAB_REPORT",
         title: "HbA1c", summary: "7.4%",
-        occurredAt: daysAgo(10), createdAt: daysAgo(10) },
+        occurredAt: new Date("2026-11-02T06:00:00Z"), createdAt: new Date("2026-11-02T06:00:00Z") },
     ],
   });
+
+  // RELATIVE dates: granted 8 days ago, ended yesterday, so it is always expired.
   await db.consentGrant.create({
     data: {
-      patientId: meera.id,
-      doctorId: kavya.id,
+      id: "consent-meera-kavya",
+      patientId: "user-meera",
+      doctorId: "user-kavya",
       institutionId: "inst-citygen",
       scopes: ["ENCOUNTER", "PRESCRIPTION", "LAB_REPORT", "DOCUMENT"],
       purpose: "Diabetes follow-up",
@@ -278,10 +304,12 @@ async function main() {
   });
 
   // ---------- Pending lab order: Asha, ordered by Dr Arjun, at Precision ----------
+  // RELATIVE date so it always looks like a fresh order on the lab's list.
   await db.labOrder.create({
     data: {
-      patientId: asha.id,
-      orderedById: arjun.id,
+      id: "laborder-asha-1",
+      patientId: "user-asha",
+      orderedById: "user-arjun",
       labInstitutionId: "inst-precision",
       tests: ["HbA1c", "Thyroid profile (T3, T4, TSH)"],
       status: "PENDING",

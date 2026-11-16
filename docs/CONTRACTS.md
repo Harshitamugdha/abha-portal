@@ -13,7 +13,9 @@
 ---
 
 ## 0. Conventions every shape obeys
-- Ids are strings (`cuid`). Never expose an auto-increment integer.
+- Ids are strings. New rows get a `cuid`; seeded rows have readable fixed ids (`user-asha`,
+  `rec-asha-cbc`, `inst-citygen`). So validate ids as `z.string().min(1)`, **never** `.cuid()`.
+  Never expose an auto-increment integer.
 - Timestamps: ISO 8601 UTC with trailing `Z` (`"2026-10-21T09:30:00.000Z"`). Display via `formatIST()`.
 - ABHA number in payloads: 14 digits, no hyphens (`"91100000000001"`). Display via `formatAbha()`.
 - Enums are `UPPER_SNAKE`. Field names are `camelCase`.
@@ -244,6 +246,7 @@ Every entry point calls a data function in `src/server/<domain>/`, which calls `
 |---|---|---|
 | Route Handler POST | `/auth/abha/otp` | `AbhaOtpRequest { abha }` (number or address) → `{ txnId, maskedMobile, devOtp? }` (`devOtp` only in development) |
 | Route Handler POST | `/auth/abha/verify` | `AbhaVerifyRequest { txnId, otp }` → sets cookie; `{ user: SessionUser }` |
+| Server Action | `registerStaff` | `StaffRegisterRequest { name, email, password (8+ chars), role: DOCTOR\|PHARMACY\|LAB, institutionId, hprId? (required for DOCTOR) }` → `{ userId }`. Creates an **unverified** user + membership; doesn't log in. `CONFLICT` if the email is taken; `VALIDATION_FAILED` if the institution type doesn't match the role. Public (no session) |
 | Route Handler POST | `/auth/staff/login` | `StaffLoginRequest { email, password }` → sets cookie; `{ user, redirectTo }` (`/doctor`, `/lab`, `/pharmacy` or `/admin`) |
 | Route Handler POST | `/auth/logout` | → `204`, cookie cleared |
 | Route Handler GET | `/auth/me` | → `{ user: SessionUser }` |

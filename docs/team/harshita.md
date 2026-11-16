@@ -17,6 +17,7 @@ AI writes the code, you own it (D16): reading list per phase in [`LEARNING.md`](
 | Database | `prisma/schema.prisma`, migrations, `seed.ts` | — |
 | Contracts | `src/contracts/shared.ts`, `format.ts`, `auth.ts`, `consent.ts`, `audit.ts`, `pharmacy.ts`, `admin.ts`; review Vivek's | — |
 | ABHA identity | `auth/abha/`: `AbhaProvider` + `MockAbhaProvider` | `(auth)/login`, `(auth)/login/otp` |
+| Staff registration | `auth/register.ts` (`registerStaff`) | `(auth)/staff/register` |
 | Sessions | `auth/session.ts` (`getSession`, `requireSession`), staff login (`bcryptjs`) | `(auth)/staff/login` (redirects by role) |
 | Coarse gate | `src/proxy.ts` | — |
 | **Access control** | **`auth/authorize.ts` + `authorize.test.ts` (policy matrix)** | — |
@@ -75,10 +76,17 @@ interface AbhaProvider {
 - `requireSession()` throws `UNAUTHENTICATED`.
 - Staff login: `bcryptjs` compare; `verified=false` → `STAFF_UNVERIFIED`; same error for unknown
   email and wrong password. Response includes `redirectTo` by role.
+- **Staff registration** (`registerStaff` Server Action, CONTRACTS §4.1): Zod `StaffRegisterRequest`;
+  role is `DOCTOR`, `PHARMACY` or `LAB` only (never `ADMIN`); the institution's type must match the
+  role (doctor → hospital, pharmacy → pharmacy, lab → lab); doctors must give an HPR id; password
+  hashed with `bcryptjs`; user created with `verified: false` plus a `Membership`. Does **not** log
+  them in. Email already used → `CONFLICT`. Public action (no session yet), so it is the one Server
+  Action without `requireSession()` + `authorize()`; Zod + the role/institution checks are its guard.
 - `proxy.ts`: logged-out → `/login` (patient area) or `/staff/login` (doctor, lab, pharmacy, admin);
   wrong role → their own home. **No DB calls.**
 - **Checkpoint:** log in as Asha, Kavya, lab, pharmacy, admin with `DEV_FAKE_USER` unset; a patient
-  visiting `/doctor` or `/admin` is redirected; a tampered cookie → 401.
+  visiting `/doctor` or `/admin` is redirected; a tampered cookie → 401. Register a new doctor →
+  login refused with `STAFF_UNVERIFIED` until admin verifies (Phase 7).
 
 ## Phase 3 — `authorize()` for real + audit · THE CORE
 - The policy matrix in [`CONTRACTS.md`](../CONTRACTS.md) §3 as a pure function
@@ -105,7 +113,10 @@ interface AbhaProvider {
 ## Phase 5 — Patient-side screens
 - **ABHA login** (`/login`) and **OTP** (`/login/otp`): `useCountdown(30)` custom hook for resend
   (effect **with cleanup**, TRAPS §13); error states for `OTP_INVALID`; dev shows the `devOtp` hint.
-- **Staff login** (`/staff/login`): one form for all staff, redirect by role.
+- **Staff login** (`/staff/login`): one form for all staff, redirect by role. Link to registration.
+- **Staff registration** (`/staff/register`): name, email, password, role, institution (filtered by
+  role), HPR id (doctors). On success: "Registered. An admin must verify your account before you can
+  log in."
 - **Consent Center** (`/patient/consents`, Server Component + actions): *Waiting for you* · *Active* ·
   *Past*. Approve opens a dialog with the requested scopes pre-ticked (others not shown). Revoke
   confirms and says what will stop working.

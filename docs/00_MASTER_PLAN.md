@@ -84,7 +84,7 @@ H = Harshita, V = Vivek. Steps 10 and 11 are the ones examiners remember. Rehear
 | Area | Screens | Owner |
 |---|---|---|
 | Public | Landing, institution directory (ISR) | Vivek |
-| Auth | ABHA login, OTP, staff login (redirects by role) | Harshita |
+| Auth | ABHA login, OTP, staff login (redirects by role), staff registration (unverified until admin verifies) | Harshita |
 | Patient | Dashboard, records timeline, record detail, upload | Vivek |
 | Patient | Consent Center, "Who viewed my records" | Harshita |
 | Doctor | Dashboard, patient search, unified viewer, request consent, encounter, prescription writer, lab order | Vivek |
