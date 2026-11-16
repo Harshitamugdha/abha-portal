@@ -1,0 +1,209 @@
+// Data model for the ABHA portal. Readable copy: docs/CONTRACTS.md §2.
+// Columns match the contract exactly. The extra lines are relation fields: they add foreign keys
+// (so a record can't point at a patient that doesn't exist) and let queries use `include`.
+// They don't add any columns.
+
+generator client {
+  provider = "prisma-client" // Prisma 7 generator (not "prisma-client-js")
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql" // the URL lives in prisma.config.ts in Prisma 7
+}
+
+enum Role {
+  PATIENT
+  DOCTOR
+  PHARMACY
+  LAB
+  ADMIN
+}
+
+enum InstitutionType {
+  HOSPITAL
+  PHARMACY
+  LAB
+}
+
+enum RecordType {
+  ENCOUNTER
+  PRESCRIPTION
+  LAB_REPORT
+  DOCUMENT
+}
+
+// EXPIRED is not stored. A GRANTED consent is expired when validTo <= now (D9).
+enum ConsentStatus {
+  REQUESTED
+  GRANTED
+  DENIED
+  REVOKED
+}
+
+enum LabOrderStatus {
+  PENDING
+  COMPLETED
+  CANCELLED
+}
+
+enum AuditOutcome {
+  ALLOWED
+  DENIED
+}
+
+model User {
+  id           String   @id @default(cuid())
+  role         Role
+  name         String
+  email        String?  @unique // staff only
+  passwordHash String? // staff only, bcryptjs (D19)
+  hprId        String? // doctors only
+  verified     Boolean  @default(false) // staff: admin verifies; patients: true
+  createdAt    DateTime @default(now())
+
+  abha        AbhaProfile?
+  memberships Membership[]
+
+  // Back-relations (no columns)
+  recordsAsPatient   HealthRecord[] @relation("RecordPatient")
+  recordsAuthored    HealthRecord[] @relation("RecordAuthor")
+  labOrdersAsPatient LabOrder[]     @relation("LabOrderPatient")
+  labOrdersOrdered   LabOrder[]     @relation("LabOrderDoctor")
+  consentsAsPatient  ConsentGrant[] @relation("ConsentPatient")
+  consentsAsDoctor   ConsentGrant[] @relation("ConsentDoctor")
+}
+
+// Patients only.
+model AbhaProfile {
+  userId      String   @id
+  abhaNumber  String   @unique // 14 digits, no hyphens
+  abhaAddress String   @unique // lowercase, name@abdm
+  mobileLast4 String // shown on the OTP screen as ******4821
+  dob         DateTime
+  gender      String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Institution {
+  id   String          @id // seeded slugs like inst-citygen
+  name String
+  type InstitutionType
+  city String
+
+  memberships Membership[]
+  records     HealthRecord[]
+  labOrders   LabOrder[]
+  consents    ConsentGrant[]
+}
+
+// Which institutions a staff member works at. A doctor can have more than one.
+model Membership {
+  userId        String
+  institutionId String
+
+  user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  institution Institution @relation(fields: [institutionId], references: [id])
+
+  @@id([userId, institutionId])
+}
+
+model HealthRecord {
+  id            String     @id @default(cuid())
+  patientId     String
+  institutionId String
+  authorId      String? // doctor/lab user; null when the patient uploaded it
+  type          RecordType
+  title         String
+  summary       String?
+  occurredAt    DateTime
+  fileId        String?    @unique // FileObject, for LAB_REPORT / DOCUMENT
+  createdAt     DateTime   @default(now())
+
+  patient      User          @relation("RecordPatient", fields: [patientId], references: [id])
+  institution  Institution   @relation(fields: [institutionId], references: [id])
+  author       User?         @relation("RecordAuthor", fields: [authorId], references: [id])
+  file         FileObject?   @relation(fields: [fileId], references: [id])
+  prescription Prescription?
+  labOrder     LabOrder?     @relation("LabOrderResult")
+
+  @@index([patientId, type, occurredAt])
+}
+
+// 1:1 with a HealthRecord of type PRESCRIPTION.
+model Prescription {
+  recordId    String    @id
+  items       Json // [{ drug, dose, frequency, durationDays, notes? }]
+  shareCode   String    @unique // 6 chars from A-Z and 2-9, without 0/O/1/I
+  dispensedAt DateTime?
+  dispensedBy String? // pharmacy user id
+  expiresAt   DateTime // createdAt + 30 days
+
+  record HealthRecord @relation(fields: [recordId], references: [id], onDelete: Cascade)
+}
+
+model LabOrder {
+  id               String         @id @default(cuid())
+  patientId        String
+  orderedById      String // doctor
+  labInstitutionId String
+  tests            String[]
+  status           LabOrderStatus @default(PENDING)
+  resultRecordId   String?        @unique // the LAB_REPORT record, set on upload
+  createdAt        DateTime       @default(now())
+
+  patient        User          @relation("LabOrderPatient", fields: [patientId], references: [id])
+  orderedBy      User          @relation("LabOrderDoctor", fields: [orderedById], references: [id])
+  labInstitution Institution   @relation(fields: [labInstitutionId], references: [id])
+  resultRecord   HealthRecord? @relation("LabOrderResult", fields: [resultRecordId], references: [id])
+}
+
+model ConsentGrant {
+  id            String        @id @default(cuid())
+  patientId     String
+  doctorId      String
+  institutionId String // the doctor's institution when they asked
+  scopes        RecordType[]
+  purpose       String // 3-120 chars
+  status        ConsentStatus @default(REQUESTED)
+  requestedAt   DateTime      @default(now())
+  decidedAt     DateTime?
+  validFrom     DateTime? // set on GRANTED
+  validTo       DateTime? // validFrom + durationDays
+
+  patient     User        @relation("ConsentPatient", fields: [patientId], references: [id])
+  doctor      User        @relation("ConsentDoctor", fields: [doctorId], references: [id])
+  institution Institution @relation(fields: [institutionId], references: [id])
+
+  @@index([patientId, doctorId, status])
+}
+
+// Append-only. Deliberately no foreign keys: the log must keep every row even if the
+// thing it points at changes, and it must never block a write elsewhere.
+model AuditLog {
+  id           String       @id @default(cuid())
+  at           DateTime     @default(now())
+  actorId      String
+  actorRole    Role
+  action       String // an Action from CONTRACTS §3
+  resourceType String // "HealthRecord" | "ConsentGrant" | ...
+  resourceId   String?
+  patientId    String? // set whenever patient data is involved
+  consentId    String? // the grant that allowed it, if any
+  outcome      AuditOutcome
+  reason       String? // "NO_ACTIVE_CONSENT" | "SCOPE_EXCLUDED" | "AUTHOR" | ...
+
+  @@index([patientId, at])
+}
+
+model FileObject {
+  id         String   @id @default(cuid())
+  key        String // storage key, never a public URL
+  mimeType   String // application/pdf | image/png | image/jpeg
+  sizeBytes  Int // max 5 MB
+  uploadedBy String
+  createdAt  DateTime @default(now())
+
+  record HealthRecord?
+}
