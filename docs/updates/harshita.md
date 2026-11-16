@@ -3,6 +3,97 @@
 
 ---
 
+## [2026-11-16 20:10] Phase 1 — Mock ABHA provider
+
+**Done:** `AbhaProvider` interface and `MockAbhaProvider`: OTP transactions in memory with a
+5-minute lifetime (expired at exactly 5:00), 3 wrong OTPs delete the transaction, OTPs are single
+use, max 3 OTP requests per person per 10 minutes (number and address count as the same person),
+unknown ABHAs get the same-shaped reply but can never log in. `getAbhaProvider()` picks the provider
+from `ABHA_PROVIDER` and keeps it on `globalThis`; the mock's directory is the seeded `AbhaProfile`
+table. ABHA request/response shapes in `src/contracts/auth.ts`.
+
+**Files touched:** `src/server/auth/abha/{types,mock,index}.ts`, `mock.test.ts`,
+`src/contracts/auth.ts`, `auth.test.ts` (new) · `vitest.config.mts` (`server-only` alias),
+`.env.example` (modified)
+
+**Run command:**
+```bash
+npm run check
+```
+17 provider tests + 4 contract tests pass (49 total). No screen yet: login routes come in Phase 2.
+
+**Access check:** unknown ABHA `91-1000-0000-0099` → same reply shape, OTP `123456` refused
+(`OTP_INVALID`), no profile (`NOT_FOUND`). 4th OTP request in 10 min → `RATE_LIMITED`.
+
+**Demo steps enabled:** none yet (step 1 needs Phase 2 routes + Phase 5 screens)
+
+**Learned:** Unknown ABHAs must look identical to real ones, or the OTP form becomes a way to test
+which ABHA numbers exist (enumeration). Fake timers (`vi.useFakeTimers`) test a 5-minute expiry in
+milliseconds.
+
+**AI used:** code: provider, interface, contracts, tests · debugging: `server-only` throwing under
+Vitest (aliased to its empty file).
+
+**Open issues:**
+- The OTP is always `ABHA_DEV_OTP` (123456), also on the deployed site, because the mock sends no
+  SMS. Deliberate (D1); say so in the viva.
+- In-memory store: fine for one dev server. On Vercel each serverless instance has its own memory,
+  so an OTP requested on one instance may not verify on another. Acceptable for the demo; a real
+  provider keeps transactions on ABDM's side.
+
+**Next:** Phase 2 — JWT sessions (`jose`), ABHA + staff login routes, staff registration, `proxy.ts`.
+
+## [2026-11-16 19:50] Phase 0 (part 2) — database, seed, shared contracts, stubs · Vivek unblocked
+
+**Done:** Prisma 7 set up (`prisma.config.ts`, schema from CONTRACTS §2 with relations, `db.ts`
+singleton, `init` migration) on local Postgres 18. `seed.ts` creates every Master Part 3 persona with
+fixed ids (`user-asha`, `rec-asha-cbc`…) and fixed history dates; only ASHA7K's expiry, Meera's
+consent and the pending lab order are relative to today. `shared.ts` (enums, error codes + HTTP
+statuses, `ApiErrorBody`, `ActionResult<T>`, `SessionUser`, `PageQuery`, `Page<T>`) and `format.ts`
+(`formatIST`, `formatAbha`, `maskAbha`, `parseAbhaInput`) with 28 tests. Stubs: `getSession()` reads
+`DEV_FAKE_USER` (dev only), `requireSession()`, `authorize()` with the final CONTRACTS §3 signature
+(allows everything, writes the audit row first), `writeAudit()`, `apiError()` / `actionError()` /
+`ApiError`, and `GET /api/v1/auth/me`. Plan: staff self-registration added (`registerStaff`,
+CONTRACTS §4.1, Phase 2 + 5).
+
+**Files touched:** `prisma.config.ts`, `prisma/schema.prisma`, `prisma/migrations/…_init`,
+`prisma/seed.ts`, `src/server/db.ts`, `src/server/http.ts`, `src/server/auth/session.ts`,
+`src/server/auth/authorize.ts`, `src/server/audit/write.ts`, `src/app/api/v1/auth/me/route.ts`,
+`src/contracts/shared.ts`, `src/contracts/format.ts` + tests, `vitest.config.mts` (new) ·
+`package.json`, `.gitignore`, `QUICKSTART.md`, `CHANGELOG.md`, `docs/CONTRACTS.md`,
+`docs/00_MASTER_PLAN.md`, `docs/team/harshita.md` (modified)
+
+**Run command:**
+```bash
+npm run db:reset && npm run dev
+```
+`.env` has `DEV_FAKE_USER="kavya"` → `curl http://localhost:3000/api/v1/auth/me` →
+`{"user":{"id":"user-kavya","role":"DOCTOR","name":"Dr Kavya Iyer",…,"institutionIds":["inst-citygen"]}}`
+
+**Access check:** `DEV_FAKE_USER` unset → `/auth/me` → `401 UNAUTHENTICATED`. Stub `authorize()` as
+Kavya on Asha's records → allowed (`STUB`) **and** an `AuditLog` row written (`user-kavya`,
+`record:list`, patient `user-asha`, `ALLOWED`, `STUB`). Real denials come in Phase 3.
+
+**Demo steps enabled:** none yet (foundations only)
+
+**Learned:** Prisma 7 no longer seeds on `migrate reset` or generates on `migrate dev`, so
+`db:reset` runs `prisma db seed` explicitly and `postinstall` runs `prisma generate`. Seeded history
+must not have Kavya as author, or author access (D5) would hide "Consent required" in demo step 2.
+
+**AI used:** code: Prisma setup, seed, contracts, stubs, tests · debugging: Vitest 5.1.0 crashing
+on every test (fixed with `pool: "vmThreads"`), an npm resolver bug, Node 24 shadowing nvm's Node 22.
+
+**Open issues:**
+- 0.8 hosted Postgres: **done.** Neon project (Singapore), `prisma migrate deploy` + `prisma db seed`
+  applied. The first network blocked outbound port 5432 (443 was open); worked from a phone hotspot.
+  Remember for Phase 8/9: run migrations from Vercel/CI, not from a firewalled network.
+- Vitest runs with `pool: "vmThreads"` as a workaround; retry the default pool after the next Vitest update.
+- Vivek to review: `registerStaff` contract, `@unique` on `HealthRecord.fileId` and
+  `LabOrder.resultRecordId`, `authorId = null` for imported history, ids validated as plain strings.
+- Seeded lab reports and the document have no file attached until Vivek's `storage.ts` exists.
+
+**Next:** 0.8 hosted Postgres (Neon), then Phase 1: mock ABHA provider.
+
 ## [2026-11-16 19:00] Phase 0 (part 1) — Next.js scaffold, folder skeleton, AI policy change
 
 **Done:** Next.js 16.4 app scaffolded at the repo root (TypeScript, Tailwind 4, App Router, `src/`,

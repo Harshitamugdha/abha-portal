@@ -4,7 +4,12 @@ import { defineConfig } from "vitest/config";
 export default defineConfig({
   resolve: {
     // Same "@/..." shortcut as tsconfig.json, so tests can import "@/contracts/shared".
-    alias: { "@": path.resolve("src") }, // npm runs tests from the project root
+    alias: {
+      "@": path.resolve("src"), // npm runs tests from the project root
+      // `import "server-only"` throws everywhere except inside Next.js's server. Tests run outside
+      // Next.js, so point it at the package's own empty file (what Next.js itself uses on the server).
+      "server-only": path.resolve("node_modules/server-only/empty.js"),
+    },
   },
   test: {
     environment: "node",
