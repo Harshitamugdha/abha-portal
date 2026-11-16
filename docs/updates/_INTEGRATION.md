@@ -22,6 +22,24 @@ in one file, not scattered across two personal logs and a chat.
 
 ---
 
+## [2026-11-16 19:50] Stubs published — Phase 0 (Harshita → Vivek)
+
+**Received / changed:** Harshita's Phase 0 is in `main`: Prisma schema + `init` migration, seed with
+fixed ids, `src/contracts/shared.ts` + `format.ts`, stub `getSession()` (`DEV_FAKE_USER`), stub
+`authorize()` (final signature, allows all, writes audit), `http.ts` helpers, `GET /api/v1/auth/me`.
+Contract changes for Vivek to review: `registerStaff` (§4.1, new); ids are plain strings, never
+`.cuid()` (§0); `@unique` on `HealthRecord.fileId` and `LabOrder.resultRecordId` (§2).
+
+**Gates:** `npm run check` PASS (typecheck, lint, 28 tests) · access gate: `/auth/me` as Kavya →
+200 Kavya; no fake user → 401 `UNAUTHENTICATED`; stub `authorize()` writes the audit row.
+
+**Broke:** nothing yet on the seam.
+
+**State:** no demo steps yet; Vivek can build against real seeded data and real signatures.
+
+**Next:** Vivek pulls, runs `db:reset`, builds Phase 0–1 against the stubs. Harshita: hosted
+Postgres (0.8), then Phase 1 (mock ABHA).
+
 ## [2026-11-15 18:45] Correction — team and scope
 
 **Received / changed:** Correcting the 18:30 entry. The team is still four (Harshita, Vivek, Madhav,

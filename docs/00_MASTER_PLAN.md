@@ -372,7 +372,8 @@ If anything in rows 1–3 is at risk, say so the same day.
 # PART 13 — OPEN ITEMS
 
 - [ ] Fill start and demo dates in the header.
-- [ ] Hosting: Vercel (app) + Neon or Supabase (Postgres). Harshita confirms in her Phase 0.
+- [x] Hosting: Vercel (app) + **Neon** (Postgres), decided 16 Nov 2026 in Harshita's Phase 0. Neon is
+  plain Postgres with a Vercel integration; Supabase's extras (auth, storage) aren't needed.
 - [ ] Tell the INT257 teacher the console is gone and the project is pure Next.js (D20).
 
 ## Deliberately not building
