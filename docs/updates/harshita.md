@@ -3,6 +3,50 @@
 
 ---
 
+## [2026-11-16 19:00] Phase 0 (part 1) — Next.js scaffold, folder skeleton, AI policy change
+
+**Done:** Next.js 16.4 app scaffolded at the repo root (TypeScript, Tailwind 4, App Router, `src/`,
+`@/*` alias) and the Master §4.3 folder skeleton created (`.gitkeep` in each empty folder). Removed
+`cacheComponents` and `partialPrefetching` from `next.config.ts` so caching matches TRAPS §3 and
+Vivek's ISR plan. Fixed `.gitignore` (`src/generated/`, `next-env.d.ts`, `*.tsbuildinfo`). Docs:
+removed `ai-usage.md` and `syllabus-coverage.md`; D16 changed to "AI writes the code, we review,
+own and commit it"; `CLAUDE.md` now tells AI to write simple code and explain why / what / what was
+used after every file; every commit is made by hand, never by an agent.
+
+**Files touched:** `package.json`, `package-lock.json`, `tsconfig.json`, `next.config.ts`,
+`eslint.config.mjs`, `public/`, `src/app/{layout,page}.tsx`, `src/app/globals.css` (new) ·
+skeleton folders under `src/app/`, `src/server/`, `src/components/ui/`, `prisma/` (new) ·
+`.gitignore`, `CLAUDE.md`, `CONTRIBUTING.md`, `docs/00_MASTER_PLAN.md`, `docs/CONTRACTS.md`,
+`docs/README.md`, `docs/LEARNING.md`, `docs/team/*`, `docs/updates/TEMPLATE.md`,
+`src/contracts/README.md`, `.github/PULL_REQUEST_TEMPLATE.md` (modified) ·
+`docs/operations/ai-usage.md`, `docs/evaluation/syllabus-coverage.md` (deleted)
+
+**Run command:**
+```bash
+npm install && npm run dev
+```
+Open http://localhost:3000 → Next.js starter page.
+
+**Access check:** n/a (no auth yet)
+
+**Demo steps enabled:** none yet
+
+**Learned:** `create-next-app` refuses a non-empty folder, so scaffold in a temp folder and copy in;
+and Next 16's `cacheComponents` flag bans `export const revalidate`, which would have broken the ISR plan.
+
+**AI used:** code: folder skeleton and config fixes · review: checked the scaffold and flagged
+`cacheComponents`, Node version and `.gitignore` gaps · docs: AI-policy and commit-rule edits.
+
+**Open issues:**
+- Node is still v24.22; project requires 22. `nvm use 22`, delete `node_modules` +
+  `package-lock.json`, `npm install` again so the lockfile matches CI/Vercel.
+- Starter `src/app/page.tsx` will clash with Vivek's `(public)/page.tsx`; he deletes it in Phase 7.
+- Tell Vivek about the D16 change (AI writes code) and that he can clone now.
+- Confirm INT257 allows AI-written code in project work.
+
+**Next:** Phase 0 step 0.4 — Prisma 7 install, `prisma.config.ts`, `schema.prisma` from
+CONTRACTS §2, `db.ts`, first migration.
+
 ## [2026-11-15 18:45] Phase −1 (v2.1) — correction: team of four, full scope
 
 **Done:** Corrected v2. The team is still Harshita, Vivek, Madhav and Ravuri; Harshita and Vivek

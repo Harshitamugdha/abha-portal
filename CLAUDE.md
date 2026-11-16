@@ -12,8 +12,18 @@ plan in `docs/` and the rules below. Students review what you write and present 
 - **Build:** implement the phase or feature asked for, end to end, in the files the plan names
   (`docs/team/<person>.md`, Master §4.3 layout). Match `docs/CONTRACTS.md` exactly.
 - **Test:** write the tests the phase lists (Vitest) and run `npm run check` before saying done.
-- **Explain briefly:** after writing a file, summarise what it does and the non-obvious decisions
-  (why it's built that way, which TRAPS item it avoids), so the owner can explain it in the viva.
+- **Write simple, human-like code.** The plainest version that works: clear names, small
+  functions, straightforward control flow, short comments only where the *why* isn't obvious. No
+  clever one-liners, needless abstractions, or generic helpers nobody asked for. Simplicity never
+  overrides the protocols: `authorize()`, session + Zod checks, field-by-field DTOs, error codes,
+  tests and the rules below stay in.
+- **Explain after every component or file.** Once it's written, explain it in three parts:
+  1. **Why** it exists: which phase/feature needs it and what breaks without it.
+  2. **What** you did: walk through how it works, step by step, in plain language.
+  3. **What was used:** the APIs, libraries, Next.js/React features and patterns (e.g. Server
+     Action, `useEffect` cleanup, Prisma transaction, Zod schema), and which TRAPS item it avoids.
+
+  Keep it short enough that the owner can repeat it in the viva.
 - **Debug and review:** find the cause of failures and fix them; check code against the rules
   below and `docs/TRAPS.md`.
 
