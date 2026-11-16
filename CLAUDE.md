@@ -16,7 +16,9 @@ plan in `docs/` and the rules below. Students review what you write and present 
   functions, straightforward control flow, short comments only where the *why* isn't obvious. No
   clever one-liners, needless abstractions, or generic helpers nobody asked for. Simplicity never
   overrides the protocols: `authorize()`, session + Zod checks, field-by-field DTOs, error codes,
-  tests and the rules below stay in.
+  tests and the rules below stay in. **Test:** could a student explain every line in the viva?
+  If a line needs more than a sentence to explain (type tricks, inline conditional spreads,
+  chained one-liners), rewrite it in plain steps, even if it gets longer.
 - **Explain after every component or file.** Once it's written, explain it in three parts:
   1. **Why** it exists: which phase/feature needs it and what breaks without it.
   2. **What** you did: walk through how it works, step by step, in plain language.

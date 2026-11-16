@@ -95,17 +95,25 @@ type StaffSeed = {
 };
 
 async function createStaff(s: StaffSeed, passwordHash: string) {
-  return db.user.create({
+  const user = await db.user.create({
     data: {
       role: s.role,
       name: s.name,
       email: s.email,
-      passwordHash,
+      passwordHash: passwordHash,
       verified: s.verified,
       hprId: s.hprId,
-      memberships: s.institutionId ? { create: { institutionId: s.institutionId } } : undefined,
     },
   });
+
+  // Link the staff member to their institution. Admin has none, so we skip it.
+  if (s.institutionId) {
+    await db.membership.create({
+      data: { userId: user.id, institutionId: s.institutionId },
+    });
+  }
+
+  return user;
 }
 
 async function main() {
@@ -296,9 +304,15 @@ async function main() {
   );
 }
 
-main()
-  .catch((error) => {
+async function run() {
+  try {
+    await main();
+  } catch (error) {
     console.error(error);
-    process.exitCode = 1;
-  })
-  .finally(() => db.$disconnect());
+    process.exitCode = 1; // tells `npm run db:reset` the seed failed
+  } finally {
+    await db.$disconnect();
+  }
+}
+
+run();
