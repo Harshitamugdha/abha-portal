@@ -22,6 +22,27 @@ in one file, not scattered across two personal logs and a chat.
 
 ---
 
+## [2026-11-16 20:30] Stub replaced — real authorize() (Harshita → Vivek)
+
+**Received / changed:** `authorize()` now enforces the CONTRACTS §3 matrix (same signature, no
+caller changes). Real login exists (Phase 2): `/auth/abha/otp` + `/verify`, `/auth/staff/login`,
+`/auth/logout`, cookie `portal_session`. CONTRACTS §3 gained "How the cells are applied":
+`record:list` needs consent even for the doctor's own records; `types: []` = all types; which
+resource kind each action takes.
+
+**Gates:** `npm run check` PASS (187 tests, 90 matrix cells) · access gate: Kavya → Asha
+`CONSENT_REQUIRED`; Kavya → Meera (expired) `CONSENT_REQUIRED`; admin → record `NOT_FOUND`; Asha → own
+records allowed; one audit row per call.
+
+**Broke:** nothing known yet. Vivek: anything that worked only because the stub allowed everything
+will now be refused; that's a real hole, not a regression. Kavya has no consent for Asha until
+Phase 4 (approve) lands.
+
+**State:** policy for demo steps 2 and 11 in place; no screens yet.
+
+**Next:** Harshita Phase 4 (consent engine), so Vivek's request-consent form has a real action.
+`DEV_FAKE_USER` stays until the Phase 5 login screens exist.
+
 ## [2026-11-16 19:50] Stubs published — Phase 0 (Harshita → Vivek)
 
 **Received / changed:** Harshita's Phase 0 is in `main`: Prisma schema + `init` migration, seed with

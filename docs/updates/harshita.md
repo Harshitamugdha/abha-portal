@@ -3,6 +3,48 @@
 
 ---
 
+## [2026-11-16 20:30] Phase 3 — Real authorize() + policy matrix tests
+
+**Done:** `authorize()` split into a pure `decide(user, action, resource, grant, now)` (the CONTRACTS §3
+matrix) and a thin wrapper that loads the doctor's active consent, calls `decide`, writes the audit
+row first and returns the decision (never throws on deny). `activeGrant()` in `consent/engine.ts`
+checks `status = GRANTED AND validFrom <= now < validTo` in the query (D9, no cron).
+`isGrantActive()` applies the same rule in `decide`. Deny codes: doctor → `CONSENT_REQUIRED`; others
+reading patient data → `NOT_FOUND`; impossible role/action → `FORBIDDEN`. Clarifications added to
+CONTRACTS §3 ("How the cells are applied").
+
+**Files touched:** `src/server/auth/authorize.ts` (rewritten), `authorize.test.ts`,
+`src/server/consent/engine.ts` (new) · `docs/CONTRACTS.md` (modified)
+
+**Run command:**
+```bash
+npm run check     # 187 tests: 90 matrix cells + 28 edge cases + earlier phases
+```
+
+**Access check (live, real login, DEV_FAKE_USER unset):** Kavya → Asha's list and record:
+`CONSENT_REQUIRED / NO_ACTIVE_CONSENT`; Kavya → Meera (expired yesterday): `CONSENT_REQUIRED`;
+admin → any record: `NOT_FOUND / WRONG_ROLE`; Asha → own: `ALLOWED / OWNER`, Meera's:
+`NOT_FOUND / NOT_OWNER`. One audit row per call, denied ones included.
+
+**Demo steps enabled:** step 2's rule ("Consent required", not empty) and step 11's admin 404, at
+the policy level.
+
+**Learned:** At `validTo` itself the consent is already expired (`now < validTo`). A list needs
+consent even for records the doctor wrote, or a revoke would show a partial list instead of
+"Consent required".
+
+**AI used:** code: authorize, engine, tests · review: matrix interpretation written into CONTRACTS §3.
+
+**Open issues:**
+- **`DEV_FAKE_USER` not deleted yet** (brief says Phase 3). Kept until the Phase 5 login screens
+  exist, because without them Vivek can't log in from a browser. It's dev-only, used only when there's
+  no cookie, and the fake user now goes through the REAL `authorize()`, so Vivek already tests as real
+  roles. Two marked `STUB — DELETE` blocks (`session.ts`, `proxy.ts`).
+- Vivek to review the CONTRACTS §3 clarifications (list needs consent even as author; `types: []`).
+
+**Next:** Phase 4 — consent engine: request (no duplicates), approve (narrow only), deny, revoke,
+Server Actions, `/consents/latest`.
+
 ## [2026-11-16 20:20] Phase 2 — Sessions (JWT), login routes, staff registration, proxy
 
 **Done:** Signed HS256 JWT (`jose`) carrying `SessionUser` in the httpOnly cookie `portal_session`

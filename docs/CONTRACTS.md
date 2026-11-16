@@ -230,6 +230,22 @@ function authorize(user: SessionUser, action: Action, resource: Resource): Promi
 \* Writing clinical records needs an active consent of **any** scope for that patient (the doctor
 is treating them). The record written is then readable by the doctor as author (D5).
 
+**How the cells are applied** (as implemented in `authorize.ts`, Phase 3):
+- **Deny codes.** Doctor without a usable consent → `CONSENT_REQUIRED`. Reads of records, files and
+  prescriptions by anyone else who isn't allowed → `NOT_FOUND` (D10, TRAPS §11). An action the role
+  can never do (e.g. a patient requesting consent) → `FORBIDDEN`.
+- **`record:list` needs consent even for records the doctor wrote.** Author access (D5) applies to
+  `record:read` of one record. So after a revoke the viewer shows "Consent required", not a partial list.
+- **`patientRecords.types: []` means all types.** `allowedTypes` = requested ∩ consented scopes; may be
+  `[]` (then the data function returns an empty page).
+- **Resources per action:** `record:create:self`, `record:create:clinical`, `labOrder:create`,
+  `consent:request`, `patient:lookup`, `audit:read:self` and `consent:list` take
+  `{ kind: 'patient', patientId }`; `file:read` takes the owning `record`; `labOrder:list:lab`,
+  `institution:manage`, `staff:verify`, `audit:read:all` take `{ kind: 'none' }`. A wrong kind is denied
+  (`FORBIDDEN`, reason `BAD_RESOURCE`).
+- **Audit reasons:** `OWNER`, `ROLE`, `AUTHOR`, `CONSENT`, `NO_ACTIVE_CONSENT`, `SCOPE_EXCLUDED`,
+  `NOT_OWNER`, `WRONG_ROLE`, `UNVERIFIED`, `BAD_RESOURCE`.
+
 Unverified staff: every action → `STAFF_UNVERIFIED`. The policy matrix is tested as a table in
 `authorize.test.ts`. **Every cell above has a test.**
 
