@@ -1,7 +1,6 @@
 import "server-only";
 import { cookies } from "next/headers";
 import type { Role, SessionUser } from "@/contracts/shared";
-import { db } from "@/server/db";
 import { ApiError } from "@/server/http";
 import { SESSION_COOKIE, createSessionToken, readSessionToken, sessionHours } from "./token";
 
@@ -9,11 +8,10 @@ export async function getSession(): Promise<SessionUser | null> {
   const cookieStore = await cookies();
   const token = cookieStore.get(SESSION_COOKIE)?.value;
 
-  if (token) {
-    return readSessionToken(token);
+  if (!token) {
+    return null;
   }
-
-  return getDevFakeUser();
+  return readSessionToken(token);
 }
 
 export async function requireSession(): Promise<SessionUser> {
@@ -68,20 +66,4 @@ export function toSessionUser(user: UserRow): SessionUser {
   }
 
   return sessionUser;
-}
-
-async function getDevFakeUser(): Promise<SessionUser | null> {
-  const name = process.env.DEV_FAKE_USER;
-  if (process.env.NODE_ENV !== "development" || !name) {
-    return null;
-  }
-
-  const user = await db.user.findUnique({
-    where: { id: `user-${name}` },
-    include: { memberships: true },
-  });
-  if (!user) {
-    return null;
-  }
-  return toSessionUser(user);
 }

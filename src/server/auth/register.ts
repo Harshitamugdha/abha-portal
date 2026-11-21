@@ -47,3 +47,10 @@ export async function createStaffAccount(input: StaffRegisterRequest) {
 
   return { userId: user.id };
 }
+
+export async function listInstitutionsForRegistration() {
+  return db.institution.findMany({
+    select: { id: true, name: true, type: true },
+    orderBy: { name: "asc" },
+  });
+}

@@ -271,6 +271,20 @@ async function main() {
     },
   });
 
+  await db.consentGrant.create({
+    data: {
+      id: "consent-asha-arjun",
+      patientId: "user-asha",
+      doctorId: "user-arjun",
+      institutionId: "inst-sunrise",
+      scopes: ["ENCOUNTER", "LAB_REPORT"],
+      purpose: "Cardiology follow-up",
+      durationDays: 14,
+      status: "REQUESTED",
+      requestedAt: daysAgo(1),
+    },
+  });
+
   await db.labOrder.create({
     data: {
       id: "laborder-asha-1",
@@ -293,7 +307,7 @@ async function main() {
   console.log(
     `Seeded ${institutions} institutions, ${patients} patients, ${staff} staff, ${records} records, ` +
       `${pendingLabOrders} pending lab order, ${prescriptions} prescriptions (ASHA7K undispensed), ` +
-      `1 expired consent (Meera)`,
+      `1 expired consent (Meera), 1 pending request (Arjun to Asha)`,
   );
 }
 

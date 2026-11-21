@@ -10,10 +10,6 @@ export async function proxy(request: NextRequest) {
     user = await readSessionToken(token);
   }
 
-  if (!user && process.env.NODE_ENV === "development" && process.env.DEV_FAKE_USER) {
-    return NextResponse.next();
-  }
-
   const redirectTo = whereToRedirect(request.nextUrl.pathname, user);
   if (redirectTo) {
     return NextResponse.redirect(new URL(redirectTo, request.url));

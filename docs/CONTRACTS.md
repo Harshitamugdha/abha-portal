@@ -343,9 +343,8 @@ type SessionUser = {
 ```
 - Signed JWT (HS256, `jose`) in cookie `portal_session`, `httpOnly; Secure; SameSite=Lax; Path=/`, 8 h.
   That's the only session carrier (D20).
-- `getSession()` reads the cookie. `requireSession()` throws `UNAUTHENTICATED`. In dev with
-  `DEV_FAKE_USER` set, `getSession()` returns the seeded user (stub phase only; deleted before the
-  integration gate).
+- `getSession()` reads the cookie. `requireSession()` throws `UNAUTHENTICATED`. (The `DEV_FAKE_USER`
+  stub was deleted on 21 Nov 2026.)
 
 ---
 

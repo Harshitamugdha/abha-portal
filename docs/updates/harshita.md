@@ -3,6 +3,50 @@
 
 ---
 
+## [2026-11-21 20:25] Phase 5 (minimum for a deploy link) — screens + stub removed
+
+**Done:** Screens: `/login` (ABHA), `/login/otp` (30 s resend via `useCountdown` with cleanup),
+`/staff/login` (redirect by role), `/staff/register` (institutions filtered by role),
+`/patient/consents` (Waiting / Active / Past, approve with requested scopes pre-ticked and untickable,
+deny, revoke with a confirm that says what stops), `/patient/access-log` (who / what / when in IST,
+denied rows muted with "No consent at the time", paging). `listMyAccessLog` data function +
+`src/contracts/audit.ts`. Placeholder homes for `/patient`, `/doctor`, `/lab`, `/pharmacy`, `/admin` and a
+simple landing page so logins don't land on 404s (Vivek and Ravuri replace theirs). **`DEV_FAKE_USER`
+deleted** (session, proxy, `.env.example`, QUICKSTART, CONTRACTS §5). Seed: added a pending
+Arjun → Asha request so the Consent Center can be demoed before Vivek's request form exists.
+
+**Files touched:** `src/app/(auth)/login/**`, `src/app/(auth)/staff/{login,register}/**`,
+`src/app/patient/**`, `src/app/{doctor,lab,pharmacy,admin}/page.tsx`, `src/components/ui/*`,
+`src/contracts/audit.ts`, `src/server/audit/queries.ts` (new) · `page.tsx`, `layout.tsx`,
+`globals.css`, `session.ts`, `proxy.ts`, `register.ts`, `seed.ts`, `.env.example`, QUICKSTART, CONTRACTS (modified)
+
+**Run command:**
+```bash
+npm run build && npm run start
+```
+Log in as Asha at `/login` (OTP `123456`) → Consents → approve Arjun's request (untick Visits) → revoke.
+
+**Access check (production build, real browser):** Asha OTP login → `/patient`. Approve with Visits
+unticked → Active with Lab reports only, ends in 14 days. Revoke → confirm text names the doctor and
+scopes → Past, "revoked". Kavya's consent lookup appears in Asha's access log. Neel → "not verified".
+Kavya → `/doctor`; Kavya opening `/patient/consents` → bounced to `/doctor`. `npm run build` passes;
+every private route is dynamic (ƒ). 200 tests pass.
+
+**Demo steps enabled:** 1 (login), 4 (approve), 9 (access log), 10 (revoke, patient side).
+
+**Learned:** Reading `searchParams` in a Server Component page and passing plain props to a client
+form avoids `useSearchParams` and its Suspense requirement.
+
+**AI used:** code: all screens · review: drove the production build in a browser.
+
+**Open issues:**
+- OTP transactions are in memory. On Vercel, OTP request and verify can land on different instances
+  → occasional `OTP_INVALID`. If it happens on the demo link, move transactions to a table (schema change).
+- Production shows no OTP hint, by design: tell testers the OTP is `123456`.
+- Placeholder pages (`/patient` home, `/doctor`, `/lab`, `/pharmacy`, `/admin`, `/`) belong to Vivek/Ravuri.
+
+**Next:** deploy (with Ravuri), then Phase 6 integration: full demo story on the deployed build.
+
 ## [2026-11-21 20:05] Phase 4 — Consent engine
 
 **Done:** `requestConsent`, `approveConsent`, `denyConsent`, `revokeConsent` Server Actions

@@ -28,7 +28,7 @@ Edit `.env`:
 npm run db:reset                 # drop, migrate, seed — safe to run any time
 npm run db:studio                # optional: browse tables
 ```
-Expected: `Seeded 5 institutions, 3 patients, 6 staff, 11 records, 1 pending lab order, 2 prescriptions (ASHA7K undispensed), 1 expired consent (Meera)`.
+Expected: `Seeded 5 institutions, 3 patients, 6 staff, 11 records, 1 pending lab order, 2 prescriptions (ASHA7K undispensed), 1 expired consent (Meera), 1 pending request (Arjun to Asha)`.
 
 ## 4. Run
 ```bash
@@ -53,9 +53,9 @@ npm run check                    # typecheck + lint + tests; must pass before an
 npm run test                     # just the tests (authorize matrix, consent, contracts)
 ```
 
-## Stub mode (days 1–2 only)
-Before real login exists, set `DEV_FAKE_USER=asha` (or `kavya`, `arjun`, `lab`, `pharmacy`, `admin`)
-in `.env` and every request runs as that seeded user. **Remove it before the integration gate.**
+## Stub mode (removed)
+`DEV_FAKE_USER` was removed on 21 Nov 2026 once the login screens existed. Log in through `/login`
+(patients, OTP `123456`) or `/staff/login`.
 
 ## Common failures
 | Symptom | Cause | Fix |
