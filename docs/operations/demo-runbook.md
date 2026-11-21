@@ -4,7 +4,7 @@ How to run the demo, and what to do when something breaks in front of the examin
 
 ## 1. The night before
 - [ ] `main` deployed; the URL opens on a phone (different network from the laptop)
-- [ ] Production database re-seeded: `npm run db:reset` against the prod `DATABASE_URL` (Harshita)
+- [ ] Production database re-seeded: `npm run db:reset` against the prod `DATABASE_URL` (Ravuri)
 - [ ] Every persona logs in on the deployed build
 - [ ] Section 3 checks pass on the deployed build
 - [ ] Local fallback works: `npm run db:reset && npm run dev` on the demo laptop, **with wifi off**
@@ -45,7 +45,7 @@ Target: 6 minutes. Rehearse with a timer at least twice.
 | Login loops back to `/login` | Cookie not set: check you're on HTTPS in prod (Secure cookie); check `JWT_SECRET` set in prod |
 | Doctor sees records with no consent | **Stop the demo.** Say so. That's a real access bug, and pretending it isn't is worse. |
 | Viewer didn't update after approve | Click into the window (refetch on focus) or reload: data is never cached, so a reload is honest |
-| Seed state wrong mid-demo | `npm run db:reset` (local) / the prod reseed script (Harshita). 20 seconds. |
+| Seed state wrong mid-demo | `npm run db:reset` (local) / the prod reseed script (Ravuri). 20 seconds. |
 
 ## 5. After the demo
 Log what broke in [`../updates/_INTEGRATION.md`](../updates/_INTEGRATION.md), even if you recovered.

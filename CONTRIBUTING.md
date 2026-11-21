@@ -11,7 +11,7 @@ code folder.
 row. Pages, Route Handlers and Server Actions call data functions in
 `src/server/<domain>/`, never `prisma` directly for clinical tables.
 
-It exists so Harshita and Vivek can build in parallel, and so one person's shortcut can't
+It exists so Harshita, Vivek and Ravuri can build in parallel, and so one person's shortcut can't
 open a hole in another person's feature.
 
 ---
@@ -23,7 +23,7 @@ open a hole in another person's feature.
 3. UTC in the database, ISO 8601 with `Z` in the API, `formatIST()` on screen.
 4. ABHA number stored as 14 digits, shown via `formatAbha()`. Fake range `91-1000-0000-xxxx` only.
 5. One error shape: `{ error: { code, message, details? } }`.
-6. Shapes come from `src/contracts/`. Changing one is its own PR, approved by the other person.
+6. Shapes come from `src/contracts/`. Changing one is its own PR, approved by Harshita and by anyone whose code uses it.
 7. No tokens in browser storage.
 8. Node 22, Next.js 16, Prisma 7. New dependency = pinned + justified in the PR + announced.
 
@@ -32,7 +32,7 @@ open a hole in another person's feature.
 ## Branches and PRs
 - One branch per person per phase: `harshita/p3-authorize`, `vivek/p2-upload`.
 - Push daily, even unfinished (draft PR). A laptop failure should cost hours, not days.
-- PR to `main`, **reviewed by the other person**. Harshita merges. PRs touching `prisma/` or
+- PR to `main`, **reviewed by another builder**. Harshita merges. PRs touching `prisma/` or
   `src/contracts/` are reviewed before either of you builds on them.
 - Fill in the PR template. Every box is there because skipping it broke something.
 - Rebase on `main` before asking for review; don't merge `main` into your branch repeatedly.

@@ -25,7 +25,7 @@ access is decided.
 - **Check:** delete `proxy.ts` locally and run the access tests. Nothing should leak. Pages would
   redirect less nicely, and that is the only change you should see.
 
-## 2. A Server Action with no auth check · Vivek, Harshita
+## 2. A Server Action with no auth check · everyone
 A Server Action is a **public HTTP endpoint**. Anyone who finds its id can call it with any
 arguments. Rendering the form only for doctors protects nothing.
 - **Symptom:** none, until someone calls `createPrescription` as a patient.
@@ -73,11 +73,11 @@ security-minded examiner asks about.
 - **Rule:** the session is the httpOnly `portal_session` cookie and nothing else (D20). No token
   ever reaches JavaScript, so there's nothing to store.
 
-## 9. `NEXT_PUBLIC_` on a secret · Harshita, everyone
+## 9. `NEXT_PUBLIC_` on a secret · Ravuri, everyone
 Any env var prefixed `NEXT_PUBLIC_` is **baked into the browser
 bundle**. `NEXT_PUBLIC_JWT_SECRET` is a published secret.
 - **Rule:** only the app name is public. `JWT_SECRET`, `DATABASE_URL` and storage keys never get a
-  public prefix. Harshita checks the built `.next/` output for the secret's value before every deploy.
+  public prefix. Ravuri checks the built `.next/` output for the secret's value before every deploy.
 
 ## 10. Many Prisma clients in dev · Harshita
 Next.js dev hot-reload re-imports modules. `new PrismaClient()` in a module creates a new
@@ -87,7 +87,7 @@ connection pool every save until Postgres refuses connections.
   config in `prisma.config.ts`, a driver adapter (`@prisma/adapter-pg`), and `.env` is **not**
   auto-loaded, so import `dotenv/config` in the config. Old tutorials show `prisma-client-js`. Don't mix.
 
-## 11. Leaking existence through 403 vs 404 · Harshita, Vivek
+## 11. Leaking existence through 403 vs 404 · Ravuri, Vivek, Harshita
 If the pharmacy endpoint returns `403` for a real record id and `404` for a fake one, a pharmacy
 can enumerate which record ids exist.
 - **Rule:** D10. Non-doctors get `404 NOT_FOUND` for anything they can't see, real or not.
@@ -123,7 +123,7 @@ Every screen works for Asha because Asha was the only one you clicked. Rohan has
 institution and no consents. Meera's consent is expired. Dr Neel is unverified.
 - **Rule:** before calling a phase done, run your screen as **every** persona that can reach it.
 
-## 17. Date of birth and other "harmless" fields to the pharmacy · Harshita
+## 17. Date of birth and other "harmless" fields to the pharmacy · Ravuri
 `PharmacyPrescriptionDTO` has patient **name** and nothing else about the patient. Spreading the
 Prisma object into the response (`...patient`) ships DOB, ABHA number and gender.
 - **Rule:** DTOs are built field by field from an explicit `select`. Never return a Prisma row as-is.
@@ -146,5 +146,5 @@ Editing a row in Prisma Studio to make your screen work means the bug returns on
 ---
 
 ## Escalation
-Stuck 45 minutes on any of these, or on tooling/deploy? Message the other person: what you tried, the
+Stuck 45 minutes on any of these, or on tooling/deploy? Message the group: what you tried, the
 exact error text, the smallest reproduction. That's the protocol, not a failure.

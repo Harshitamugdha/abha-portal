@@ -28,7 +28,7 @@ Actions + file upload, image optimization + metadata + lazy loading, and the Uni
 intercepting routes.
 
 **What you don't build:** the consent engine (you call Harshita's `requestConsent` action from your
-form), login, pharmacy, admin.
+form), login, and Ravuri's pharmacy and admin screens.
 
 ---
 
@@ -60,7 +60,7 @@ form), login, pharmacy, admin.
 
 ## Phase 2 — Uploads and files
 - `storage.ts`: `put(buffer, mime) → key`, `stream(key)`. Local dir (`FILE_STORAGE_DIR`) in dev; a
-  blob store in prod (agree it with Harshita, who deploys). **Never `public/`** (TRAPS §12).
+  blob store in prod (agree it with Ravuri, who deploys). **Never `public/`** (TRAPS §12).
 - `uploadDocument` Server Action: `requireSession` → `authorize('record:create:self')` → Zod → size
   ≤ 5 MB and MIME ∈ {pdf, png, jpeg} **checked from the file bytes**, not the extension → `FileObject`
   + `HealthRecord(DOCUMENT)` in one transaction → `revalidatePath('/patient/records')`.
@@ -93,7 +93,7 @@ form), login, pharmacy, admin.
 - `createEncounter` + form (`…/encounter`): title, summary, date; same session → Zod → `authorize` pattern.
 - Optimistic prescription with rollback (`useOptimistic`, TRAPS §15): the new prescription appears
   instantly; on failure (e.g. consent revoked) it's removed and the reason is shown.
-- **Checkpoint:** demo step 6; Harshita's pharmacy finds your new share code.
+- **Checkpoint:** demo step 6; Ravuri's pharmacy finds your new share code.
 
 ## Phase 5 — Lab · seeded pending order unblocks you
 - `listLabOrders`: only orders where `labInstitutionId` is in `user.institutionIds`; patient **name** +

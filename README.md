@@ -61,5 +61,6 @@ Start at [`docs/README.md`](docs/README.md). The master plan is
 ## Team
 | | Area |
 |---|---|
-| Harshita | Identity, access control, consent, audit, pharmacy, admin, deployment |
+| Harshita | Identity, access control, consent, audit |
 | Vivek | Health records, patient portal, doctor portal, lab |
+| Ravuri | Pharmacy, admin, deployment, CI |

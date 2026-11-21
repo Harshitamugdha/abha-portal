@@ -5,10 +5,11 @@
 > same PR.
 >
 > Changing anything here: a PR that touches only `src/contracts/` + this file (+ `prisma/` if the
-> database changes), approved by the other person before any code relies on it.
+> database changes), approved by Harshita and by anyone whose code uses it, before any code relies on it.
 >
 > **v2:** one Next.js app (Master D20), cookie sessions only, entry points split into Server
-> Components, Server Actions and Route Handlers (D22), Harshita and Vivek as owners (D21).
+> Components, Server Actions and Route Handlers (D22). Owners per section below: Harshita, Vivek,
+> Ravuri (D21, D23).
 
 ---
 
@@ -303,13 +304,13 @@ Every entry point calls a data function in `src/server/<domain>/`, which calls `
 | Data function | `listLabOrders(user, { status, page })` | → `Page<LabOrderDTO>`: own institution's orders; patient **name** + tests + ordering doctor only |
 | Server Action | `uploadLabResult` | `FormData`: `orderId` + `file` + `LabResultUpload { summary }` → `RecordDTO`; `409` if already completed |
 
-### 4.6 Pharmacy — Harshita · `src/contracts/pharmacy.ts`
+### 4.6 Pharmacy — Ravuri · `src/contracts/pharmacy.ts`
 | Kind | Path / name | Input → Output |
 |---|---|---|
 | Data function | `lookupPrescription(user, shareCode)` | → `PharmacyPrescriptionDTO { recordId, patientName, items, issuedBy, issuedAt, dispensedAt }`. Nothing else about the patient. Unknown/expired → `NOT_FOUND` |
 | Server Action | `dispensePrescription` | `{ recordId }` → `PharmacyPrescriptionDTO`; `CONFLICT` if already dispensed or expired |
 
-### 4.7 Admin + platform — Harshita · `src/contracts/admin.ts`
+### 4.7 Admin + platform — Ravuri · `src/contracts/admin.ts`
 | Kind | Path / name | Input → Output |
 |---|---|---|
 | Data function | `listStaff(user, { verified })` | → `Page<StaffDTO>` |

@@ -1,12 +1,12 @@
 # The team
 
-**Team:** Harshita, Vivek, Madhav, Ravuri. **Build owners:** Harshita and Vivek, one Next.js app,
-each owning backend **and** frontend for their area (Master D21). Since v2 (15 Nov 2026), the doctor
-portal planned for Madhav is Vivek's, and the pharmacy, admin and deployment planned for Ravuri are
-Harshita's. Full scope, nothing cut (Master Part 12).
+**Team:** Harshita, Vivek, Madhav, Ravuri. **Builders:** Harshita, Vivek and Ravuri, one Next.js
+app, each owning backend **and** frontend for their area (Master D21, D23). Since v3 (21 Nov 2026),
+Ravuri builds pharmacy, admin, deployment and CI again; the doctor portal planned for Madhav stays
+with Vivek. Full scope, nothing cut (Master Part 12).
 
-Check Master Part 8 before saying you're blocked: seeded rows and stubs cover most of what looks
-like a dependency.
+Check Master Part 8 before saying you're blocked: seeded rows and the real `authorize()` cover most
+of what looks like a dependency.
 
 ---
 
@@ -14,17 +14,19 @@ like a dependency.
 
 | Person | Owns | Brief | Work log |
 |---|---|---|---|
-| **Harshita** | Access + staff side: mock ABHA, sessions, `proxy.ts`, **`authorize()`**, consent engine, audit, Prisma schema + seed, shared contracts; login, Consent Center, access log, pharmacy, admin; deployment | [`harshita.md`](harshita.md) | [`../updates/harshita.md`](../updates/harshita.md) · [`../updates/_INTEGRATION.md`](../updates/_INTEGRATION.md) |
-| **Vivek** | Records + clinical side: records API, uploads, files, patient portal, doctor portal (lookup, viewer, consent request form, prescriptions, lab orders), lab, public pages | [`vivek.md`](vivek.md) | [`../updates/vivek.md`](../updates/vivek.md) |
+| **Harshita** | Identity + access: mock ABHA, sessions, staff login + registration, `proxy.ts`, **`authorize()`**, consent engine, audit, Prisma schema + seed, shared contracts + contract review; login screens, Consent Center, access log; integration | [`harshita.md`](harshita.md) | [`../updates/harshita.md`](../updates/harshita.md) · [`../updates/_INTEGRATION.md`](../updates/_INTEGRATION.md) |
+| **Vivek** | Records + clinical: records API, uploads, files, patient portal, doctor portal (lookup, viewer, consent request form, encounters, prescriptions, lab orders), lab, public pages | [`vivek.md`](vivek.md) | [`../updates/vivek.md`](../updates/vivek.md) |
+| **Ravuri** | Staff side + platform: pharmacy, admin (staff verification, audit log, institutions), Edge health route, `logError`, deployment (Vercel + Neon), CI | [`ravuri.md`](ravuri.md) | [`../updates/ravuri.md`](../updates/ravuri.md) |
 
 ## Where your code is
 
 | | `src/app/` | `src/server/` | `src/contracts/` | Other |
 |---|---|---|---|---|
-| **Harshita** | `(auth)/`, `patient/consents/`, `patient/access-log/`, `pharmacy/`, `admin/`, `api/v1/auth/`, `api/v1/consents/`, `api/v1/health/` | `auth/`, `consent/`, `audit/`, `pharmacy/`, `admin/`, `db.ts`, `http.ts` | `shared`, `format`, `auth`, `consent`, `audit`, `pharmacy`, `admin` | `prisma/`, `src/proxy.ts`, deploy |
+| **Harshita** | `(auth)/`, `patient/consents/`, `patient/access-log/`, `api/v1/auth/`, `api/v1/consents/` | `auth/`, `consent/`, `audit/`, `db.ts`, `http.ts` | `shared`, `format`, `auth`, `consent`, `audit` | `prisma/`, `src/proxy.ts` |
 | **Vivek** | `(public)/`, `patient/` (rest), `doctor/`, `lab/`, `api/v1/patients/`, `api/v1/records/`, `api/v1/files/` | `records/`, `clinical/`, `lab/` | `records`, `clinical`, `lab` | — |
+| **Ravuri** | `pharmacy/`, `admin/`, `api/v1/health/` | `pharmacy/`, `admin/`, `log.ts` | `pharmacy`, `admin` | `.github/workflows/`, Vercel + Neon |
 
-`src/components/ui/` is shared; whoever adds a component tells the other.
+`src/components/ui/` is shared; whoever adds a component tells the others.
 
 ## Demo steps by owner (Master §2.1)
 | Step | Owner |
@@ -36,16 +38,20 @@ like a dependency.
 | 5 Kavya sees scoped records by institution | Vivek |
 | 6 Prescription + lab order | Vivek |
 | 7 Lab uploads result | Vivek |
-| 8 Pharmacy dispenses | Harshita |
+| 8 Pharmacy dispenses | Ravuri |
 | 9 Asha sees access log | Harshita |
 | 10 Revoke → consent required again | Harshita + Vivek |
-| 11 Admin sees denied read, can't open record | Harshita |
+| 11 Admin sees denied read, can't open record | Ravuri (+ Harshita's audit) |
 
-## Working as the two builders
-- **Review each other's PRs.** Harshita merges.
-- **Contracts:** each writes their own schemas in `src/contracts/`; the other reviews before use.
-- **One seam to watch:** the consent request form (Vivek) calls `requestConsent` (Harshita). Agree the
-  `ConsentRequest` schema on day 1.
+## Working as three builders
+- **Another builder reviews each PR.** Harshita merges and reviews every contract change.
+- **Contracts:** each writes their own schemas in `src/contracts/`; Harshita reviews before use.
+- **Seams to watch:**
+  - Vivek's consent request form calls Harshita's `requestConsent`.
+  - Ravuri's pharmacy reads prescriptions Vivek's `createPrescription` writes (share code format).
+  - Ravuri's admin audit reads the rows Harshita's `authorize()` writes; Ravuri's staff verification
+    is the other half of Harshita's staff registration.
+  - Ravuri's `logError` hooks into Harshita's `http.ts` wrappers.
 - **A short daily message:** what you finished, what's next, what's blocking. Two lines is enough.
 
 ## Keeping a log

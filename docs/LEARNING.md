@@ -32,10 +32,6 @@ Course text (INT257 syllabus): *Modern Web Applications with Next.js*, Shubham J
 | 3 Tests | Vitest basics, `test.each` for table tests | [vitest.dev/guide](https://vitest.dev/guide/) |
 | 4 Consent | Server Actions + returning errors to forms; Prisma transactions, date comparisons in `where` | Next.js docs: search "updating data" · Prisma docs: search "transactions", "filtering" |
 | 5 Screens | `useEffect` cleanup; custom hooks; `useActionState` for form errors | [react.dev: useEffect](https://react.dev/reference/react/useEffect) · [react.dev: custom hooks](https://react.dev/learn/reusing-logic-with-custom-hooks) · [react.dev: useActionState](https://react.dev/reference/react/useActionState) |
-| 6 Pharmacy | Dynamic segments (`[code]`); `notFound()` | Next.js docs: search "dynamic routes", "notFound" |
-| 7 Admin | `searchParams` for URL-driven filters and paging | Next.js docs: search "searchParams" |
-| 8 Deploy | Deploying Next.js; environment variables; Edge runtime limits | Next.js docs: search "deploying", "environment variables", "edge runtime" |
-| 9 CI | GitHub Actions workflows, service containers for Postgres | [GitHub Actions docs](https://docs.github.com/actions) |
 
 ## Vivek
 | Phase | Read | Where |
@@ -49,6 +45,17 @@ Course text (INT257 syllabus): *Modern Web Applications with Next.js*, Shubham J
 | 6 Routing extras | `loading.tsx`, `error.tsx`, parallel routes (`@slot`), intercepting routes (`(.)`) | Next.js docs: search "error handling", "parallel routes", "intercepting routes" |
 | 7 Public pages | ISR / `revalidate`, `generateStaticParams`, `generateMetadata`, `next/image` | Next.js docs: search "ISR", "metadata", "image" |
 | 8 i18n + Lighthouse | Internationalization in the App Router; reading a cookie on the server; Lighthouse audits | Next.js docs: search "internationalization" · [Chrome: Lighthouse](https://developer.chrome.com/docs/lighthouse/overview) |
+
+## Ravuri
+| Phase | Read | Where |
+|---|---|---|
+| 0 Schemas + first deploy | Zod objects and enums; deploying Next.js to Vercel; environment variables | [zod.dev](https://zod.dev) · Next.js docs: search "deploying", "environment variables" |
+| 1 Pharmacy | Dynamic segments (`[code]`); `notFound()` | Next.js docs: search "dynamic routes", "notFound" |
+| 2 Admin | `searchParams` for URL-driven filters and paging | Next.js docs: search "searchParams" |
+| 2 Admin forms | Server Actions with `useActionState`; Prisma `create` / `update` | [react.dev: useActionState](https://react.dev/reference/react/useActionState) · Prisma docs: search "CRUD" |
+| 3 Platform | Edge runtime limits; logging in route handlers | Next.js docs: search "edge runtime", "route handlers" |
+| 4 CI | GitHub Actions workflows, service containers for Postgres | [GitHub Actions docs](https://docs.github.com/actions) |
+| 5 Production | Prisma `migrate deploy` in production; Vercel logs and analytics | Prisma docs: search "deploy migrations" · Vercel docs: search "logs" |
 
 ---
 

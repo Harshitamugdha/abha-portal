@@ -31,7 +31,7 @@ plan in `docs/` and the rules below. Students review what you write and present 
 
 ### What you don't do
 - Don't change a contract in `src/contracts/` or `docs/CONTRACTS.md`, or the Prisma schema's shape,
-  without saying so first. Both Harshita and Vivek depend on them.
+  without saying so first. Harshita, Vivek and Ravuri all depend on them.
 - Don't add dependencies beyond what the plan names without asking.
 - Don't "fix" a failing check by loosening it (`z.any()`, removing an `authorize()` call,
   catching and ignoring an error).
@@ -43,8 +43,8 @@ Unified health-record portal (problem statement G4). Patients log in with ABHA (
 doctors read a patient's records from every participating institution **only under an active,
 scoped, time-bound consent**; pharmacy, lab and admin each get a narrow slice. **One Next.js 16 app
 at the repo root** holds every screen and the whole backend (no separate React app). Team of four;
-Harshita (access, consent, pharmacy, admin) and Vivek (records, patient and doctor portals, lab)
-write the code.
+Harshita (identity, access, consent, audit), Vivek (records, patient and doctor portals, lab) and
+Ravuri (pharmacy, admin, deployment, CI) write the code.
 Full context: `docs/00_MASTER_PLAN.md`.
 
 ## Rules every line of code follows

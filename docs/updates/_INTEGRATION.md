@@ -1,9 +1,9 @@
 # INTEGRATION LOG — every seam event in one place
-*Kept by Harshita (contract keeper). Newest first. One entry whenever Harshita's and Vivek's code meets:
+*Kept by Harshita (contract keeper). Newest first. One entry whenever two builders' code meets:
 a stub replaced by the real thing, a contract changed, an access-gate run, a deploy.*
 
 The point: when something breaks between components, the history of what already broke there is
-in one file, not scattered across two personal logs and a chat.
+in one file, not scattered across three personal logs and a chat.
 
 ## Entry format
 ```markdown
@@ -21,6 +21,25 @@ in one file, not scattered across two personal logs and a chat.
 ```
 
 ---
+
+## [2026-11-21 19:45] Ravuri joins the build — pharmacy, admin, platform, deployment, CI
+
+**Received / changed:** Ravuri is building again (Master D23). Pharmacy, admin (staff verification,
+audit log, institutions), the Edge health route, `logError`, deployment (Vercel + Neon) and CI move
+from Harshita's brief to his new brief `team/ravuri.md`. Vivek's brief unchanged apart from pointing
+pharmacy and deploy questions at Ravuri. Contracts `pharmacy.ts` and `admin.ts` are now Ravuri's to
+write; Harshita reviews.
+
+**Gates:** no code changed.
+
+**Broke:** nothing. Seams added: Ravuri's admin audit reads `authorize()`'s rows; his staff
+verification completes Harshita's `registerStaff`; his `logError` hooks into `http.ts`; his pharmacy
+reads Vivek's share codes.
+
+**State:** Harshita phases 0–3 done; Ravuri starts at his Phase 0 unblocked (real `authorize()`,
+seeded `ASHA7K`, unverified Dr Neel, Neon already migrated + seeded).
+
+**Next:** Ravuri Phase 0: schemas + hello-world deploy. Harshita: give him Neon access.
 
 ## [2026-11-16 20:30] Stub replaced — real authorize() (Harshita → Vivek)
 

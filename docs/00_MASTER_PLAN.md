@@ -1,14 +1,16 @@
-# ABHA PORTAL — MASTER PLAN v2.1
+# ABHA PORTAL — MASTER PLAN v3
 ## INT257 (Next.js) project · Problem statement G4 · Team: Harshita, Vivek, Madhav, Ravuri
 
-> **v2 (15 Nov 2026) replaces v1.1.** Two changes drive everything in it: the React/Vite console
-> app is gone (the project is **pure Next.js**, D20), and **Harshita and Vivek build the whole app**
-> (D21). Madhav's and Ravuri's planned work is split between them. **Nothing is cut**: the full
-> v1 scope stays, in the build order in Part 12.
+> **v3 (21 Nov 2026):** Ravuri is back on the build (D23). Pharmacy, admin, the Edge health route,
+> deployment and CI are his again; Harshita keeps identity, access control, consent and audit;
+> Vivek keeps records and the clinical side. Three builders: Harshita, Vivek, Ravuri.
+>
+> **v2 (15 Nov 2026):** the React/Vite console app is gone; the project is **pure Next.js** (D20).
+> **Nothing is cut**: the full v1 scope stays, in the build order in Part 12.
 >
 > **This is the single source of truth** for scope, architecture, ownership, dependencies and
 > decisions. If your brief conflicts with this file, this file wins. If this file conflicts with
-> reality, tell the other person. Never improvise a schema or an endpoint.
+> reality, say so in the group. Never improvise a schema or an endpoint.
 >
 > **How to use it.** Read Parts 1–5 once, fully. Keep Part 6 and [`CONTRACTS.md`](CONTRACTS.md)
 > open while you code. Check Part 8 before you say you are blocked.
@@ -73,12 +75,12 @@ consent**.
 | 5 | Dr Kavya | Sees prescriptions + lab reports from both hospitals, **grouped by institution**; does **not** see the excluded scope (documents) | Scope filtering, cross-institution | V |
 | 6 | Dr Kavya | Writes a prescription and a lab order (and can record an encounter) | Clinical write | V |
 | 7 | Lab (Precision Diagnostics) | Sees the pending order, uploads the result PDF | Lab sees orders, not history | V |
-| 8 | Pharmacy (Green Cross) | Enters the prescription's share code, marks it dispensed | Pharmacy sees one prescription only | H |
+| 8 | Pharmacy (Green Cross) | Enters the prescription's share code, marks it dispensed | Pharmacy sees one prescription only | R |
 | 9 | Asha | Opens "Who viewed my records": Kavya's reads are there, with times | Audit visible to patient | H |
 | 10 | Asha | Revokes consent → Dr Kavya's next view returns **"Consent required"** | Revocation is immediate | H + V |
-| 11 | Admin | Sees the audit trail including the **denied** read; opens a record URL and is refused | Admin ≠ clinical access | H |
+| 11 | Admin | Sees the audit trail including the **denied** read; opens a record URL and is refused | Admin ≠ clinical access | R (+ H's audit) |
 
-H = Harshita, V = Vivek. Steps 10 and 11 are the ones examiners remember. Rehearse them.
+H = Harshita, V = Vivek, R = Ravuri. Steps 10 and 11 are the ones examiners remember. Rehearse them.
 
 ## 2.2 Screens (all in one Next.js app)
 | Area | Screens | Owner |
@@ -89,8 +91,8 @@ H = Harshita, V = Vivek. Steps 10 and 11 are the ones examiners remember. Rehear
 | Patient | Consent Center, "Who viewed my records" | Harshita |
 | Doctor | Dashboard, patient search, unified viewer, request consent, encounter, prescription writer, lab order | Vivek |
 | Lab | Pending orders, result upload | Vivek |
-| Pharmacy | Share-code lookup, prescription + dispense | Harshita |
-| Admin | Staff verification, audit log, institutions (create/edit) | Harshita |
+| Pharmacy | Share-code lookup, prescription + dispense | Ravuri |
+| Admin | Staff verification, audit log, institutions (create/edit) | Ravuri |
 
 ---
 
@@ -123,10 +125,10 @@ All fictional. `npm run db:reset` must produce exactly this, every time, from no
 Asha has at least 2 encounters, 2 prescriptions, 2 lab reports and 1 uploaded document across the
 two hospitals, so scope filtering in step 5 is visible.
 
-Seeded so neither of you waits for the other's write path:
+Seeded so nobody waits for someone else's write path:
 - A **pending lab order** for Asha at Precision, ordered by Dr Arjun (Vivek's lab upload works
   before his own `createLabOrder` does).
-- An **undispensed prescription** for Asha with share code `ASHA7K` (Harshita's pharmacy screens
+- An **undispensed prescription** for Asha with share code `ASHA7K` (Ravuri's pharmacy screens
   work before Vivek's `createPrescription` does).
 
 ABHA numbers starting `91-1000-0000-` are our fake range. Never seed a number outside it.
@@ -171,7 +173,7 @@ abha-portal/                  one Next.js 16 app at the repo root (D20)
 ├─ src/
 │  ├─ proxy.ts                coarse session + role gate                               H
 │  ├─ contracts/              Zod schemas + types + formatters, shared by server and client
-│  ├─ components/ui/          shared Button, Card, Badge, EmptyState, ConsentRequired   both
+│  ├─ components/ui/          shared Button, Card, Badge, EmptyState, ConsentRequired   all
 │  ├─ app/
 │  │  ├─ (public)/            landing, institution directory (ISR)                     V
 │  │  ├─ (auth)/              ABHA login, OTP, staff login                             H
@@ -180,12 +182,14 @@ abha-portal/                  one Next.js 16 app at the repo root (D20)
 │  │  │  └─ access-log/       who viewed my records                                    H
 │  │  ├─ doctor/              dashboard, search, viewer, consent request, prescribe    V
 │  │  ├─ lab/                 pending orders, result upload                            V
-│  │  ├─ pharmacy/            share-code lookup, dispense                              H
-│  │  ├─ admin/               staff verification, audit log                            H
-│  │  └─ api/v1/              Route Handlers                                           both
+│  │  ├─ pharmacy/            share-code lookup, dispense                              R
+│  │  ├─ admin/               staff verification, audit log, institutions              R
+│  │  └─ api/v1/              Route Handlers (health/ is R)                            all
 │  └─ server/
-│     ├─ auth/  consent/  audit/  pharmacy/  admin/  db.ts  http.ts                     H
-│     └─ records/  clinical/  lab/                                                     V
+│     ├─ auth/  consent/  audit/  db.ts  http.ts                                        H
+│     ├─ records/  clinical/  lab/                                                     V
+│     └─ pharmacy/  admin/  log.ts                                                     R
+├─ .github/workflows/         CI                                                       R
 └─ docs/
 ```
 
@@ -216,43 +220,43 @@ Everything else is denied and logged. Expiry is evaluated **at read time** (D9).
 7. **No tokens in `localStorage` or `sessionStorage`.** The session is an httpOnly cookie, nothing else.
 8. **Every input and response is validated with the Zod schema from `src/contracts/`**, on the
    server always and on the client for forms.
-9. **Node 22 LTS. Pinned dependencies.** A new one is pinned, justified in the PR, and agreed by both.
+9. **Node 22 LTS. Pinned dependencies.** A new one is pinned, justified in the PR, and agreed in the group.
 10. **Mock data only.** ABHA numbers in the `91-1000-0000-` range.
 
 ---
 
 # PART 6 — THE FROZEN CONTRACTS
 
-Full contract in [`CONTRACTS.md`](CONTRACTS.md). The executable copy is `src/contracts/`: each of
-you owns the schemas for your own domain (D18).
+Full contract in [`CONTRACTS.md`](CONTRACTS.md). The executable copy is `src/contracts/`: each
+builder owns the schemas for their own domain (D18).
 
 Frozen: §1 error shape + codes · §2 data model · §3 `authorize()` + policy matrix · §4 entry points
 · §5 session shape.
 
 **Changing a contract:** a PR that touches only `src/contracts/` + `CONTRACTS.md` (+ `prisma/` if the
-DB changes), approved by the other person before any code uses it.
+DB changes), approved by Harshita and by anyone whose code uses it, before any code relies on it.
 
 ---
 
 # PART 7 — OWNERSHIP
 
-Harshita and Vivek build the app; each owns backend **and** frontend for their area (D21). The team
-is Harshita, Vivek, Madhav and Ravuri.
+The team is Harshita, Vivek, Madhav and Ravuri. **Harshita, Vivek and Ravuri build the app** (D21,
+D23); each owns backend **and** frontend for their area.
 
-| | **Harshita**: access + staff side | **Vivek**: records + clinical side |
-|---|---|---|
-| **Backend** | Mock ABHA OTP (`AbhaProvider`), sessions, staff login, `proxy.ts`, **`authorize()`** + policy tests, consent engine, audit writer + queries, Prisma schema + seed, shared contracts, pharmacy (lookup, dispense), admin (staff verify, audit query, institution create/edit), Edge health route | Records list/detail, uploads, file serving, patient lookup, cross-institution summary, encounters, prescriptions (+ share code), lab orders, lab result upload |
-| **Frontend** | ABHA login + OTP, staff login, Consent Center, access log, pharmacy screens, admin screens | Patient dashboard + timeline + record detail + upload, doctor dashboard + search + viewer + consent request + encounter form + prescription writer + lab order, lab screens, public pages, Hindi/English toggle |
-| **Also** | Deployment, CI, `_INTEGRATION.md`, merges | Lighthouse pass |
-| **Takes on Ravuri's / Madhav's planned work** | Ravuri's: pharmacy, admin, health route, deploy | Madhav's: the whole doctor portal |
-| **Demo steps** | 1 (login), 3 (engine), 4, 8, 9, 10, 11 | 1 (timeline), 2, 3 (form), 5, 6, 7, 10 (viewer) |
+| | **Harshita**: identity + access | **Vivek**: records + clinical | **Ravuri**: staff side + platform |
+|---|---|---|---|
+| **Backend** | Mock ABHA OTP (`AbhaProvider`), sessions, staff login + registration, `proxy.ts`, **`authorize()`** + policy tests, consent engine, audit writer + queries, Prisma schema + seed, shared contracts | Records list/detail, uploads, file serving, patient lookup, cross-institution summary, encounters, prescriptions (+ share code), lab orders, lab result upload | Pharmacy (lookup, dispense), admin (staff verify, audit query, institution create/edit), `logError`, Edge health route |
+| **Frontend** | ABHA login + OTP, staff login + registration, Consent Center, access log | Patient dashboard + timeline + record detail + upload, doctor dashboard + search + viewer + consent request + encounter + prescription writer + lab order, lab screens, public pages, Hindi/English toggle | Pharmacy screens, admin screens |
+| **Also** | Contract review, `_INTEGRATION.md`, merges | Lighthouse pass | Deployment (Vercel + Neon), CI, production reseed |
+| **Demo steps** | 1 (login), 3 (engine), 4, 9, 10 | 1 (timeline), 2, 3 (form), 5, 6, 7, 10 (viewer) | 8, 11 |
 
 **Why this split:** Harshita's side is the hardest logic (everything depends on `authorize()` and
-consent) plus the narrow staff screens. Vivek's side is the most screens, but they all sit on one
-data path (records), so one person owns the doctor viewer from query to UI. Nobody edits the other's
-page to finish their own feature.
+consent). Vivek's side is the most screens, all on one data path (records). Ravuri's side is the
+staff roles that prove the rules hold for staff, plus everything that makes the app run in
+production. No page has two owners.
 
-Briefs: [`team/harshita.md`](team/harshita.md) · [`team/vivek.md`](team/vivek.md).
+Briefs: [`team/harshita.md`](team/harshita.md) · [`team/vivek.md`](team/vivek.md) ·
+[`team/ravuri.md`](team/ravuri.md).
 
 ---
 
@@ -263,6 +267,8 @@ Briefs: [`team/harshita.md`](team/harshita.md) · [`team/vivek.md`](team/vivek.m
   `authorize()` **stubs**
 - **Vivek:** patient and doctor UI shells against fixture JSON, timeline and viewer components,
   his own contract files
+- **Ravuri** (joined after Harshita's Phase 3): his contract files, pharmacy against the seeded
+  `ASHA7K`, admin against the real audit log and unverified Dr Neel, a hello-world deploy
 
 ## 8.2 The real dependencies
 ```
@@ -270,9 +276,11 @@ Harshita: schema + shared contracts + auth stubs  (END OF DAY 2)
    └──▶ Vivek: records, lookup, clinical data functions against real tables
 
 Harshita: consent engine (real)  ──▶ Vivek: consent request form + viewer's "Consent required" state
-Vivek: createPrescription        ──▶ Harshita: pharmacy works on any new prescription (seeded ASHA7K until then)
+Vivek: createPrescription        ──▶ Ravuri: pharmacy works on any new prescription (seeded ASHA7K until then)
 Vivek: createLabOrder            ──▶ Vivek: lab upload works on new orders (seeded order until then)
-Harshita: audit writer           ──▶ Harshita: access log + admin audit
+Harshita: audit writer           ──▶ Harshita: access log · Ravuri: admin audit
+Harshita: registerStaff          ──▶ Ravuri: staff verification queue (seeded Dr Neel until then)
+Ravuri: deployed build           ──▶ everyone: the access gate on the real URL
 ```
 
 ## 8.3 Stub first
@@ -282,8 +290,8 @@ By the end of day 2 Harshita merges:
 - the final Prisma schema, migrated, seeded
 - `src/contracts/shared.ts` + `format.ts`
 
-Vivek builds against those. When the real `authorize()` lands (Harshita Phase 3), Vivek's code
-doesn't change. **If either of you is about to wait for real auth, re-read this section.**
+Vivek and Ravuri build against those. When the real `authorize()` lands (Harshita Phase 3), Vivek's code
+doesn't change. **Real `authorize()` has landed (Harshita Phase 3); nobody should be waiting on auth now.**
 
 ## 8.4 The integration gate
 A feature is "done" only when:
@@ -316,11 +324,12 @@ Settled. Superseded rows are kept, struck through by a later decision, so the hi
 | D15 | ~~npm workspaces~~ **Superseded by D20**: single app, no workspaces | |
 | D16 | **AI writes the code; we review, own and commit it** | Faster build; we still explain every line in the viva. Every commit is made by hand, never by an AI agent. |
 | D17 | **Offset pagination (`page`, `pageSize`, `total`)** | Simple to implement, fine at demo scale. |
-| D18 | **Each person writes their own domain's Zod schemas in `src/contracts/`; Harshita writes the shared ones; each reviews the other's** | You learn Zod by writing real shapes. (Amended for two people.) |
+| D18 | **Each builder writes their own domain's Zod schemas in `src/contracts/`; Harshita writes the shared ones and reviews everyone's** | You learn Zod by writing real shapes. (Amended for three builders, D23.) |
 | D19 | **`bcryptjs` for staff passwords** | Pure JavaScript, installs identically on every laptop. |
 | D20 | **Pure Next.js: one app at the repo root; React/Vite console removed (Nov 2026)** | INT252 is now a separate solo project. Pharmacy, lab and admin become route groups in the same app, behind the same `authorize()`. Removes bearer tokens, CORS and a second deploy. |
-| D21 | **Harshita and Vivek build the whole app. Harshita: access + staff side. Vivek: records + clinical side** | The team is four, but two people do the build. Madhav's and Ravuri's planned work is split by data path, so no page has two owners (Part 7). Full scope kept (Part 12). |
+| D21 | ~~Harshita and Vivek build the whole app~~ **Amended by D23.** Originally: Harshita: access + staff side. Vivek: records + clinical side** | The team is four, but two people do the build. Madhav's and Ravuri's planned work is split by data path, so no page has two owners (Part 7). Full scope kept (Part 12). |
 | D22 | **Server Components read, Server Actions write, Route Handlers for auth + client-side reads + files** | One rule for where code goes, and it still covers the INT257 Route Handler practical (Part 4.2). |
+| D23 | **Ravuri builds again (21 Nov 2026): pharmacy, admin, Edge health route, deployment, CI** | He asked to work. His original v1 area maps cleanly onto the Next.js app, and none of it was built yet, so nothing moves twice. Harshita and Vivek keep everything else. |
 
 ---
 
@@ -335,9 +344,9 @@ Every INT257 practical maps to a real feature and an owner (see each brief in
 
 1. **Stub first.** First commit renders/returns the right shape with fake data.
 2. **Every handover includes one pasteable command** and the demo step it enables.
-3. **45-minute rule.** Stuck that long on tooling, auth or deploy? Message the other person with what
+3. **45-minute rule.** Stuck that long on tooling, auth or deploy? Message the group with what
    you tried, the exact error and a minimal repro.
-4. **Branch per person, PR to `main`, the other person reviews.** Harshita merges.
+4. **Branch per person, PR to `main`, another builder reviews.** Harshita merges.
 5. **Log after every phase** in `docs/updates/<you>.md` ([template](updates/TEMPLATE.md)).
 6. **Fix the cause, not the symptom.** Never hand-edit seed data or a response to make a screen work.
 7. **You review and can explain every line you commit**, including AI-written code (D16).
@@ -353,14 +362,17 @@ runs short the demo still works and the late items are polish, not holes. Work t
 | Order | What | Owner |
 |---|---|---|
 | 1 | Schema, seed, shared contracts, auth stubs (Master §8.3) | H |
-| 2 | Demo steps 1–11 (Part 2.1) working end to end with real `authorize()` | both |
-| 3 | `authorize()` policy-matrix tests; every INT257 practical demonstrable | both |
-| 4 | Staff verification (Dr Neel), audit log with all filters (outcome, patient, actor, date range), access-log display of denied attempts | H |
+| 1 | Hello-world deploy on Vercel + Neon | R |
+| 2 | Demo steps 1–11 (Part 2.1) working end to end with real `authorize()` | all |
+| 3 | `authorize()` policy-matrix tests; every INT257 practical demonstrable | all |
+| 4 | Staff verification (Dr Neel), audit log with all filters (outcome, patient, actor, date range) | R |
+| 4 | Access-log display of denied attempts | H |
 | 5 | Encounter create form; optimistic prescription with rollback | V |
 | 6 | Intercepting-route record modal; parallel-route doctor dashboard | V |
-| 7 | Institution create/edit in admin; OTP rate limiting; duplicate consent-request handling; Edge health route | H |
+| 7 | Institution create/edit in admin; Edge health route | R |
+| 7 | OTP rate limiting; duplicate consent-request handling | H |
 | 8 | Hindi/English toggle (landing + patient nav); Lighthouse pass on public pages | V |
-| 9 | GitHub Actions CI (`npm run check` + build on every PR) | H |
+| 9 | GitHub Actions CI (`npm run check` + build on every PR) | R |
 
 **Removed by D20 (stack, not scope):** the console app, bearer tokens, CORS, React Router, Vite,
 Zustand, Axios. Every screen they served now lives in the Next.js app.

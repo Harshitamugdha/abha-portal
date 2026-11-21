@@ -1,11 +1,11 @@
-# HARSHITA — Access control, consent, audit, and the staff side (pharmacy, admin)
-*v2. Read with [`00_MASTER_PLAN.md`](../00_MASTER_PLAN.md). Organised in phases, not days.
+# HARSHITA — Access control, consent, audit
+*v3. Read with [`00_MASTER_PLAN.md`](../00_MASTER_PLAN.md). Organised in phases, not days.
 AI writes the code, you own it (D16): reading list per phase in [`LEARNING.md`](../LEARNING.md#harshita).*
 
 > **You own the one thing everything depends on, and the one place where a bug is a data leak.**
-> Vivek builds most of the screens; you decide who is allowed to see them. Since v2 you also own
-> the staff side Ravuri had (pharmacy, admin, deployment). Those screens are small. The hard part
-> is still `authorize()` and consent.
+> Vivek and Ravuri build most of the screens; you decide who is allowed to see them. Since v3 the
+> pharmacy, admin and deployment work is Ravuri's again. Yours is `authorize()`, consent, identity and
+> the seams between everyone's code.
 
 ---
 
@@ -13,9 +13,9 @@ AI writes the code, you own it (D16): reading list per phase in [`LEARNING.md`](
 
 | Area | Backend (`src/server/…`) | Frontend (`src/app/…`) |
 |---|---|---|
-| Repo + platform | Next.js app, `db.ts` (Prisma singleton), `http.ts` (`apiError`, `actionError`), Edge `/api/v1/health` | Root layout, `components/ui/` basics (with Vivek) |
+| Repo | Next.js app, `db.ts` (Prisma singleton), `http.ts` (`apiError`, `actionError`) | Root layout, `components/ui/` basics (with Vivek and Ravuri) |
 | Database | `prisma/schema.prisma`, migrations, `seed.ts` | — |
-| Contracts | `src/contracts/shared.ts`, `format.ts`, `auth.ts`, `consent.ts`, `audit.ts`, `pharmacy.ts`, `admin.ts`; review Vivek's | — |
+| Contracts | `src/contracts/shared.ts`, `format.ts`, `auth.ts`, `consent.ts`, `audit.ts`; review Vivek's and Ravuri's | — |
 | ABHA identity | `auth/abha/`: `AbhaProvider` + `MockAbhaProvider` | `(auth)/login`, `(auth)/login/otp` |
 | Staff registration | `auth/register.ts` (`registerStaff`) | `(auth)/staff/register` |
 | Sessions | `auth/session.ts` (`getSession`, `requireSession`), staff login (`bcryptjs`) | `(auth)/staff/login` (redirects by role) |
@@ -23,13 +23,11 @@ AI writes the code, you own it (D16): reading list per phase in [`LEARNING.md`](
 | **Access control** | **`auth/authorize.ts` + `authorize.test.ts` (policy matrix)** | — |
 | Consent | `consent/engine.ts`: request, approve (narrow only), deny, revoke, `activeGrant()`; Server Actions | `patient/consents/` Consent Center |
 | Audit | `audit/write.ts` (called only by `authorize`), `audit/queries.ts` | `patient/access-log/` |
-| Pharmacy *(from Ravuri)* | `pharmacy/`: `lookupPrescription`, `dispensePrescription` | `pharmacy/`, `pharmacy/rx/[code]` |
-| Admin *(from Ravuri)* | `admin/`: `listStaff`, `verifyStaff`, `queryAudit`, `listInstitutions` | `admin/staff`, `admin/audit`, `admin/institutions` |
-| Deployment + CI *(from Ravuri)* | Vercel + hosted Postgres, env per environment, error logging helper, GitHub Actions | — |
+| Integration | `docs/updates/_INTEGRATION.md`, merges to `main` | — |
 
 **Why it's the hardest:**
-1. **Vivek depends on it.** If `authorize()` and the schema don't exist on day 2, he stalls. That's
-   why Phase 0 is stubs, not features.
+1. **Vivek and Ravuri depend on it.** If `authorize()` and the schema don't exist, they stall. That's
+   why Phase 0 was stubs, not features.
 2. **Its bugs are silent.** An over-permissive check looks like a working feature.
 3. **The edge cases cluster here:** expiry at the boundary second, narrowing on approve, revoked then
    re-requested, doctor at two institutions, unverified staff, author access after consent lapses.
@@ -86,7 +84,7 @@ interface AbhaProvider {
   wrong role → their own home. **No DB calls.**
 - **Checkpoint:** log in as Asha, Kavya, lab, pharmacy, admin with `DEV_FAKE_USER` unset; a patient
   visiting `/doctor` or `/admin` is redirected; a tampered cookie → 401. Register a new doctor →
-  login refused with `STAFF_UNVERIFIED` until admin verifies (Phase 7).
+  login refused with `STAFF_UNVERIFIED` until an admin verifies them (Ravuri's admin screen).
 
 ## Phase 3 — `authorize()` for real + audit · THE CORE
 - The policy matrix in [`CONTRACTS.md`](../CONTRACTS.md) §3 as a pure function
@@ -97,7 +95,7 @@ interface AbhaProvider {
 - **`authorize.test.ts`: one test per matrix cell**, plus: expired grant (validTo = now − 1 s),
   grant starting in the future, revoked grant, author access with no grant, lab staff asking for
   another lab's orders, unverified doctor.
-- **Checkpoint:** delete the stub. Tell Vivek to unset `DEV_FAKE_USER` and run his screens as real
+- **Checkpoint:** delete the stub. Tell Vivek and Ravuri to unset `DEV_FAKE_USER` and run their screens as real
   users. Anything that breaks now was a real hole.
 
 ## Phase 4 — Consent engine
@@ -124,44 +122,19 @@ interface AbhaProvider {
   attempts shown muted with "No consent at the time".
 - **Checkpoint:** demo steps 1 (login), 4, 9, 10.
 
-## Phase 6 — Pharmacy *(from Ravuri)* · seeded `ASHA7K` unblocks you
-- `lookupPrescription`: `authorize('prescription:lookup')`; DTO built **field by field** (TRAPS §17):
-  patient name only, items, issuing doctor + institution, issued/dispensed times. Unknown or expired →
-  `NOT_FOUND`, same as a code that never existed (TRAPS §11).
-- `dispensePrescription` Server Action: transaction; `CONFLICT` if already dispensed.
-- Screens: `/pharmacy` (code input) → `/pharmacy/rx/[code]` (dynamic route, Server Component) with a
-  confirm-then-dispense form; `CONFLICT` shows "Already dispensed at …".
-- **Checkpoint:** demo step 8.
-
-## Phase 7 — Admin *(from Ravuri)*
-- **Staff verification** (`/admin/staff`): unverified list, `verifyStaff` action. Test: Dr Neel can't
-  log in, gets verified, now can.
-- **Audit log** (`/admin/audit`): Server Component reading `queryAudit` with filters in `searchParams`
-  (outcome, patient, actor, date range), page numbers in the URL, DENIED rows
-  visually distinct. No record titles or content.
-- **Institutions** (`/admin/institutions`): list + create/edit form (`createInstitution`,
-  `updateInstitution`, Zod `InstitutionCreate`).
-- **Checkpoint:** demo step 11: admin sees Kavya's denied read after revocation; opening
-  `/api/v1/records/<id>` as admin → 404.
-
-## Phase 8 — Deploy + integration
-- Vercel project, env vars per environment (TRAPS §9: no secret gets a `NEXT_PUBLIC_` prefix), prod
-  database migrated and seeded, Edge `/api/v1/health`, `logError()` helper used by the
-  handler and action wrappers.
-- Run the full demo story (Master §2.1) on the deployed build as each persona.
-- Run the seven checks in [`operations/demo-runbook.md`](../operations/demo-runbook.md) §3.
+## Phase 6 — Integration (you hold the seams)
+- Review every contract PR (Vivek's and Ravuri's schemas) before code relies on it.
+- Run the full demo story (Master §2.1) as each persona with `DEV_FAKE_USER` unset, first locally,
+  then on Ravuri's deployed build.
+- Run the seven checks in [`operations/demo-runbook.md`](../operations/demo-runbook.md) §3 with Ravuri.
 - Log every seam event in [`updates/_INTEGRATION.md`](../updates/_INTEGRATION.md).
-
-## Phase 9 — CI
-- GitHub Actions workflow: on every PR, `npm ci`, `npm run check`, `npm run build`, with a throwaway
-  Postgres service for the tests. A red check blocks the merge.
 
 ---
 
 # PART C — YOUR TRAPS
 TRAPS §1 (proxy ≠ security), §2 (your Server Actions are public too), §6 (expiry), §7 (approve
-widening), §9 (public env prefixes), §10 (Prisma client), §11 (403 vs 404), §13 (double OTP),
-§17 (DTO field by field), §18 (server code imported into client components). Plus:
+widening), §10 (Prisma client), §11 (403 vs 404), §13 (double OTP), §18 (server code imported into
+client components). Plus:
 - **`authorize()` that throws on deny** makes every caller wrap it in try/catch, and one will forget.
   Return the decision.
 - **Audit written after the query** loses the row when the query throws. Write it first.
@@ -170,8 +143,8 @@ widening), §9 (public env prefixes), §10 (Prisma client), §11 (403 vs 404), �
 # PART D — DONE MEANS
 - [ ] `npm run check` green; `authorize.test.ts` covers every matrix cell
 - [ ] `DEV_FAKE_USER` code path deleted
-- [ ] Demo steps 1, 4, 8, 9, 10, 11 work on the deployed build
-- [ ] Institution create/edit, OTP rate limit, Edge health route and CI all working
+- [ ] Demo steps 1, 4, 9, 10 work on the deployed build; the denied read in step 11 is in the audit log
+- [ ] OTP rate limit and duplicate consent-request handling working
 - [ ] Meera's expired consent refuses; Dr Neel can't log in until verified
 - [ ] [`architecture/identity-and-consent.md`](../architecture/identity-and-consent.md) matches the code
 
@@ -183,4 +156,3 @@ widening), §9 (public env prefixes), §10 (Prisma client), §11 (403 vs 404), �
 5. How would you swap the mock for real ABDM? What changes, what doesn't?
 6. What stops a patient approving a scope the doctor never asked for?
 7. Why log denied requests?
-8. Why does the pharmacy look up by share code instead of by patient?

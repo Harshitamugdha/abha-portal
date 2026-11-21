@@ -60,7 +60,7 @@ Domain design for records, clinical, lab, pharmacy and admin lives in the briefs
 
 ## The team
 [`team/README.md`](team/README.md) maps each person to their brief, code, log and demo steps.
-Briefs: [`harshita.md`](team/harshita.md) · [`vivek.md`](team/vivek.md).
+Briefs: [`harshita.md`](team/harshita.md) · [`vivek.md`](team/vivek.md) · [`ravuri.md`](team/ravuri.md).
 
 ## Work logs
 [`updates/`](updates/): one file per person, newest entry at the top, appended after every phase
