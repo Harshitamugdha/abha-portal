@@ -27,13 +27,14 @@ Callers are thin:
 |---|---|---|
 | `auth/` | Harshita | `session.ts` (`getSession`, `requireSession`), `abha/` (`AbhaProvider`, `MockAbhaProvider`), `authorize.ts`, `authorize.test.ts`, `password.ts` |
 | `consent/` | Harshita | `engine.ts` (request/approve/deny/revoke, `activeGrant()`), `actions.ts`, `consent.test.ts` |
-| `audit/` | Harshita | `write.ts` (called only by `authorize`), `queries.ts` (access log, admin audit) |
-| `pharmacy/` | Harshita | `lookupPrescription`, `dispensePrescription` |
-| `admin/` | Harshita | `listStaff`, `verifyStaff`, `queryAudit`, `listInstitutions` |
+| `audit/` | Harshita | `write.ts` (called only by `authorize`), `queries.ts` (patient access log) |
+| `pharmacy/` | Ravuri | `lookupPrescription`, `dispensePrescription` |
+| `admin/` | Ravuri | `listStaff`, `verifyStaff`, `queryAudit`, `listInstitutions`, `createInstitution`, `updateInstitution` |
 | `records/` | Vivek | record list/get, `uploadDocument`, `storage.ts` (file adapter), file stream |
 | `clinical/` | Vivek | patient lookup, summary, `createPrescription` (+ share code), `createLabOrder` |
 | `lab/` | Vivek | `listLabOrders`, `uploadLabResult` |
-| `db.ts`, `http.ts` | Harshita | Prisma singleton (TRAPS §10), `apiError`, `actionError`, `ApiError`, `logError` |
+| `db.ts`, `http.ts` | Harshita | Prisma singleton (TRAPS §10), `apiError`, `actionError`, `ApiError` |
+| `log.ts` | Ravuri | `logError(err, context)`, called from the `http.ts` wrappers |
 
 ## Rules
 - `authorize()` is called **once per decision**, before the query, and its `allowedTypes` /

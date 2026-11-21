@@ -4,7 +4,6 @@ import { loginStaff } from "@/server/auth/login";
 import { setSessionCookie } from "@/server/auth/session";
 import { apiError, handleRouteError, readJsonBody } from "@/server/http";
 
-// POST /api/v1/auth/staff/login   { email, password } -> sets the session cookie; { user, redirectTo }
 export async function POST(request: Request) {
   try {
     const body = await readJsonBody(request);
@@ -17,6 +16,6 @@ export async function POST(request: Request) {
     await setSessionCookie(result.user);
     return Response.json({ user: result.user, redirectTo: result.redirectTo });
   } catch (error) {
-    return handleRouteError(error); // UNAUTHENTICATED, STAFF_UNVERIFIED, or a 500
+    return handleRouteError(error);
   }
 }

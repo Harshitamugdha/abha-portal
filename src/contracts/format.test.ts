@@ -3,12 +3,10 @@ import { formatAbha, formatIST, maskAbha, parseAbhaInput } from "./format";
 
 describe("formatIST", () => {
   it("shows a UTC time in Indian time", () => {
-    // 04:30 UTC + 5:30 = 10:00 in India
     expect(formatIST("2026-09-17T04:30:00.000Z")).toBe("17 Sep 2026, 10:00 AM");
   });
 
   it("moves to the next day when UTC is late evening", () => {
-    // 18:45 UTC on the 17th is 00:15 on the 18th in India
     expect(formatIST("2026-09-17T18:45:00.000Z")).toBe("18 Sep 2026, 12:15 AM");
   });
 

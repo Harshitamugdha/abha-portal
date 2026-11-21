@@ -30,7 +30,6 @@ describe("session token", () => {
     const token = await createSessionToken(kavya);
     const [header, payload, signature] = token.split(".");
 
-    // Decode the middle part, change the role, put it back. The signature no longer matches.
     const data = JSON.parse(Buffer.from(payload, "base64url").toString());
     data.user.role = "ADMIN";
     const forgedPayload = Buffer.from(JSON.stringify(data)).toString("base64url");
@@ -53,10 +52,10 @@ describe("session token", () => {
     vi.setSystemTime(new Date("2026-11-16T10:00:00Z"));
     const token = await createSessionToken(kavya);
 
-    vi.setSystemTime(new Date("2026-11-16T17:59:00Z")); // 7h59m later
+    vi.setSystemTime(new Date("2026-11-16T17:59:00Z"));
     expect(await readSessionToken(token)).toEqual(kavya);
 
-    vi.setSystemTime(new Date("2026-11-16T18:00:01Z")); // just over 8h later
+    vi.setSystemTime(new Date("2026-11-16T18:00:01Z"));
     expect(await readSessionToken(token)).toBeNull();
   });
 

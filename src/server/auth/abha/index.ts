@@ -1,14 +1,10 @@
 import "server-only";
 import type { AbhaInput } from "@/contracts/format";
 import { db } from "@/server/db";
-import { MockAbhaProvider, type AbhaDirectoryEntry } from "./mock";
+import { MockAbhaProvider } from "./mock";
 import type { AbhaProvider } from "./types";
 
-// Gives the rest of the app THE ABHA provider. Login code calls getAbhaProvider() and never
-// knows (or cares) that it's the mock. Swapping in real ABDM later means changing only this file.
-
-// The mock's "directory" of people is our seeded AbhaProfile table.
-async function findInDatabase(input: AbhaInput): Promise<AbhaDirectoryEntry | null> {
+async function findInDatabase(input: AbhaInput) {
   let profile;
   if (input.kind === "number") {
     profile = await db.abhaProfile.findUnique({ where: { abhaNumber: input.value }, include: { user: true } });
@@ -30,14 +26,11 @@ async function findInDatabase(input: AbhaInput): Promise<AbhaDirectoryEntry | nu
   };
 }
 
-// The mock keeps OTP transactions in memory. In dev, Next.js re-runs files on every save, which
-// would wipe them, so we keep the provider on globalThis (same idea as db.ts, TRAPS §10).
 const globalStore = globalThis as unknown as { abhaProvider: AbhaProvider | undefined };
 
 export function getAbhaProvider(): AbhaProvider {
-  const providerName = process.env.ABHA_PROVIDER || "mock";
-  if (providerName !== "mock") {
-    throw new Error(`Unknown ABHA_PROVIDER "${providerName}". Only "mock" exists.`);
+  if (process.env.ABHA_PROVIDER && process.env.ABHA_PROVIDER !== "mock") {
+    throw new Error("Only ABHA_PROVIDER=mock exists.");
   }
 
   if (!globalStore.abhaProvider) {

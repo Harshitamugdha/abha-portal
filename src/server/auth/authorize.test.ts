@@ -3,10 +3,6 @@ import type { Role, SessionUser } from "@/contracts/shared";
 import type { ConsentGrant, LabOrder, Prescription } from "@/generated/prisma/client";
 import { decide, type Action, type Decision, type Grant, type Resource } from "./authorize";
 
-// Tests for the policy matrix in CONTRACTS §3. decide() is pure, so no database is needed.
-
-// ---------- People ----------
-
 const asha: SessionUser = { id: "user-asha", role: "PATIENT", name: "Asha", verified: true, institutionIds: [], patientId: "user-asha" };
 const kavya: SessionUser = { id: "user-kavya", role: "DOCTOR", name: "Kavya", verified: true, institutionIds: ["inst-citygen"] };
 const pharmacy: SessionUser = { id: "user-pharmacy", role: "PHARMACY", name: "Pharmacy", verified: true, institutionIds: ["inst-greencross"] };
@@ -14,8 +10,6 @@ const lab: SessionUser = { id: "user-lab", role: "LAB", name: "Lab", verified: t
 const admin: SessionUser = { id: "user-admin", role: "ADMIN", name: "Admin", verified: true, institutionIds: [] };
 
 const userForRole: Record<Role, SessionUser> = { PATIENT: asha, DOCTOR: kavya, PHARMACY: pharmacy, LAB: lab, ADMIN: admin };
-
-// ---------- Time and consent ----------
 
 const NOW = new Date("2026-11-16T10:00:00Z");
 const HOUR = 60 * 60 * 1000;
@@ -26,14 +20,12 @@ function grant(changes: Partial<Grant> = {}): Grant {
     patientId: "user-asha",
     doctorId: "user-kavya",
     status: "GRANTED",
-    scopes: ["PRESCRIPTION", "LAB_REPORT"], // demo step 3: prescriptions + lab reports
+    scopes: ["PRESCRIPTION", "LAB_REPORT"],
     validFrom: new Date(NOW.getTime() - 24 * HOUR),
     validTo: new Date(NOW.getTime() + 6 * 24 * HOUR),
     ...changes,
   };
 }
-
-// ---------- Resources ----------
 
 const ashaLabReport: Resource = {
   kind: "record",
@@ -80,15 +72,11 @@ const asha7k: Resource = {
   } as Prescription & { patientId: string },
 };
 
-// ---------- Helpers ----------
-
-// "ALLOW" or the error code, so the table below reads like the matrix in CONTRACTS §3.
 function outcome(decision: Decision): string {
   if (decision.allowed) return "ALLOW";
   return decision.code;
 }
 
-// Doctors get their active consent; nobody else has one (authorize() only loads it for doctors).
 function check(user: SessionUser, action: Action, resource: Resource): Decision {
   let doctorGrant: Grant | null = null;
   if (user.role === "DOCTOR") {
@@ -96,8 +84,6 @@ function check(user: SessionUser, action: Action, resource: Resource): Decision 
   }
   return decide(user, action, resource, doctorGrant, NOW);
 }
-
-// ---------- The matrix: one row per action, one column per role ----------
 
 const NF = "NOT_FOUND";
 const FB = "FORBIDDEN";
@@ -136,8 +122,6 @@ describe("policy matrix (CONTRACTS §3): every cell", () => {
     }
   }
 });
-
-// ---------- Consent edge cases (the bugs that look like working features) ----------
 
 describe("doctor without a usable consent", () => {
   function doctorWith(g: Grant | null, action: Action = "record:read", resource: Resource = ashaLabReport) {

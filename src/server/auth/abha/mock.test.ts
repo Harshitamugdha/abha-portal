@@ -1,7 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MockAbhaProvider, type AbhaDirectoryEntry, type FindInDirectory } from "./mock";
 
-// A tiny fake directory with one person, so these tests don't need a database.
 const asha: AbhaDirectoryEntry = {
   abhaNumber: "91100000000001",
   abhaAddress: "asha.verma@abdm",
@@ -23,7 +22,7 @@ let provider: MockAbhaProvider;
 
 beforeEach(() => {
   provider = new MockAbhaProvider(findInFakeDirectory);
-  vi.useFakeTimers(); // lets us move the clock forward instead of waiting
+  vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-11-16T10:00:00Z"));
 });
 
@@ -32,7 +31,6 @@ afterEach(() => {
   vi.unstubAllEnvs();
 });
 
-// Helper: run something that should fail and return the ApiError code it failed with.
 async function errorCodeOf(promise: Promise<unknown>) {
   try {
     await promise;

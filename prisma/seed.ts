@@ -1,27 +1,8 @@
-// Seed data from Master Plan Part 3. All fictional.
-// Run with `npm run db:reset` (drop + migrate + seed) or `npm run db:seed`.
-// Every run produces the same data, from nothing.
-//
-// Ids are FIXED (user-asha, rec-asha-cbc, ...), so URLs, tests and DEV_FAKE_USER keep working
-// after every reset.
-//
-// Dates:
-// - Medical history uses FIXED dates, so the timeline looks the same in every screenshot.
-// - Three things use dates RELATIVE to today, because they must be on the right side of "now":
-//     ASHA7K must not be expired, Meera's consent must be expired, the lab order should be recent.
-//
-// Important for the demo:
-// - Asha has NO consent with anyone, so Dr Kavya sees "Consent required" (demo step 2).
-// - Seeded hospital history has authorId = null (imported from the hospital's own system).
-//   If Kavya were the author, she could read those records without consent (author access, D5),
-//   and step 2 would not show "Consent required".
-
 import "dotenv/config";
 import bcrypt from "bcryptjs";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
 
-// The seed runs outside Next.js, so it makes its own client instead of importing src/server/db.ts.
 const db = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
@@ -36,7 +17,6 @@ function daysFromNow(days: number) {
   return new Date(Date.now() + days * DAY);
 }
 
-// Delete children before parents so foreign keys don't block us.
 async function clearDatabase() {
   await db.auditLog.deleteMany();
   await db.consentGrant.deleteMany();
@@ -99,7 +79,7 @@ type StaffSeed = {
   email: string;
   verified: boolean;
   hprId?: string;
-  institutionId?: string; // admin works for the portal, not an institution
+  institutionId?: string;
 };
 
 async function createStaff(s: StaffSeed, passwordHash: string) {
@@ -115,7 +95,6 @@ async function createStaff(s: StaffSeed, passwordHash: string) {
     },
   });
 
-  // Link the staff member to their institution. Admin has none, so we skip it.
   if (s.institutionId) {
     await db.membership.create({
       data: { userId: s.id, institutionId: s.institutionId },
@@ -127,7 +106,6 @@ async function main() {
   await clearDatabase();
   await createInstitutions();
 
-  // ---------- Patients (dev OTP 123456 for all) ----------
   await createPatient({
     id: "user-asha",
     name: "Asha Verma",
@@ -156,7 +134,6 @@ async function main() {
     gender: "F",
   });
 
-  // ---------- Staff (password Demo@1234 for all) ----------
   const passwordHash = await bcrypt.hash("Demo@1234", 10);
 
   await createStaff(
@@ -189,8 +166,6 @@ async function main() {
     passwordHash,
   );
 
-  // ---------- Asha's history: two hospitals, every type (so scope filtering is visible) ----------
-  // Fixed dates. Times are in UTC (the "Z"); 04:30Z is 10:00 in India.
   await db.healthRecord.createMany({
     data: [
       { id: "rec-asha-opd", patientId: "user-asha", institutionId: "inst-citygen", type: "ENCOUNTER",
@@ -205,15 +180,12 @@ async function main() {
       { id: "rec-asha-lipid", patientId: "user-asha", institutionId: "inst-sunrise", type: "LAB_REPORT",
         title: "Lipid profile", summary: "LDL slightly raised.",
         occurredAt: new Date("2026-10-23T03:30:00Z"), createdAt: new Date("2026-10-23T03:30:00Z") },
-      // Uploaded by Asha herself, so no author.
       { id: "rec-asha-discharge", patientId: "user-asha", institutionId: "inst-sunrise", type: "DOCUMENT",
         title: "Discharge summary (uploaded)", summary: "Scanned copy of a 2024 discharge summary.",
         occurredAt: new Date("2026-10-28T12:00:00Z"), createdAt: new Date("2026-10-28T12:00:00Z") },
     ],
   });
 
-  // Prescriptions are a HealthRecord plus a Prescription row (1:1), created together.
-  // Old one: fixed dates, dispensed long ago, expired.
   await db.healthRecord.create({
     data: {
       id: "rec-asha-rx-fever",
@@ -231,14 +203,12 @@ async function main() {
           ],
           dispensedAt: new Date("2026-09-15T09:00:00Z"),
           dispensedBy: "user-pharmacy",
-          expiresAt: new Date("2026-10-15T04:45:00Z"), // created + 30 days
+          expiresAt: new Date("2026-10-15T04:45:00Z"),
         },
       },
     },
   });
 
-  // ASHA7K: RELATIVE dates. Written 3 days ago, valid for 30 days, so it never goes stale.
-  // The pharmacy demo (step 8) uses this one.
   await db.healthRecord.create({
     data: {
       id: "rec-asha-rx-bp",
@@ -256,13 +226,12 @@ async function main() {
             { drug: "Atorvastatin 10 mg", dose: "1 tablet", frequency: "At night", durationDays: 30,
               notes: "Recheck lipid profile after 6 weeks" },
           ],
-          expiresAt: daysFromNow(27), // created 3 days ago + 30 days
+          expiresAt: daysFromNow(27),
         },
       },
     },
   });
 
-  // ---------- Rohan: Lakeside only, no consent to anyone ----------
   await db.healthRecord.createMany({
     data: [
       { id: "rec-rohan-checkup", patientId: "user-rohan", institutionId: "inst-lakeside", type: "ENCOUNTER",
@@ -274,7 +243,6 @@ async function main() {
     ],
   });
 
-  // ---------- Meera: records at City General + a consent to Kavya that ended yesterday ----------
   await db.healthRecord.createMany({
     data: [
       { id: "rec-meera-review", patientId: "user-meera", institutionId: "inst-citygen", type: "ENCOUNTER",
@@ -286,7 +254,6 @@ async function main() {
     ],
   });
 
-  // RELATIVE dates: granted 8 days ago, ended yesterday, so it is always expired.
   await db.consentGrant.create({
     data: {
       id: "consent-meera-kavya",
@@ -295,7 +262,7 @@ async function main() {
       institutionId: "inst-citygen",
       scopes: ["ENCOUNTER", "PRESCRIPTION", "LAB_REPORT", "DOCUMENT"],
       purpose: "Diabetes follow-up",
-      status: "GRANTED", // still GRANTED in the table; expired because validTo is in the past (D9)
+      status: "GRANTED",
       requestedAt: daysAgo(9),
       decidedAt: daysAgo(8),
       validFrom: daysAgo(8),
@@ -303,8 +270,6 @@ async function main() {
     },
   });
 
-  // ---------- Pending lab order: Asha, ordered by Dr Arjun, at Precision ----------
-  // RELATIVE date so it always looks like a fresh order on the lab's list.
   await db.labOrder.create({
     data: {
       id: "laborder-asha-1",
@@ -317,7 +282,6 @@ async function main() {
     },
   });
 
-  // ---------- Summary line (QUICKSTART §3 expects this) ----------
   const institutions = await db.institution.count();
   const patients = await db.user.count({ where: { role: "PATIENT" } });
   const staff = await db.user.count({ where: { role: { not: "PATIENT" } } });
@@ -337,7 +301,7 @@ async function run() {
     await main();
   } catch (error) {
     console.error(error);
-    process.exitCode = 1; // tells `npm run db:reset` the seed failed
+    process.exitCode = 1;
   } finally {
     await db.$disconnect();
   }

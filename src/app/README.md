@@ -1,6 +1,6 @@
 # src/app — every screen, plus the Route Handlers
 
-Owners per route below (H = Harshita, V = Vivek). Backend rules live in
+Owners per route below (H = Harshita, V = Vivek, R = Ravuri). Backend rules live in
 [`../server/README.md`](../server/README.md). Where code goes (Master D22): **Server Components
 read, Server Actions write, Route Handlers** for auth, client-side React Query reads, files and health.
 
@@ -34,9 +34,10 @@ src/app/
 │  ├─ patients/              search by ABHA                                                         V
 │  └─ patients/[patientId]/  viewer (React Query) · request-consent/ · encounter/ · prescribe/ · lab-order/  V
 ├─ lab/                      pending orders · orders/[orderId]/ (upload result)                     V
-├─ pharmacy/                 share-code form · rx/[code]/ (prescription + dispense)                 H
-├─ admin/                    staff/ (verify) · audit/ (filters in searchParams) · institutions/ (create/edit)  H
-└─ api/v1/                   auth/ · consents/latest · health/ (Edge)                               H
+├─ pharmacy/                 share-code form · rx/[code]/ (prescription + dispense)                 R
+├─ admin/                    staff/ (verify) · audit/ (filters in searchParams) · institutions/ (create/edit)  R
+└─ api/v1/                   auth/ · consents/latest                                                H
+                             health/ (Edge)                                                         R
                              patients/[patientId]/records · patients/lookup · patients/[id]/summary
                              records/[id] · files/[id]                                              V
 ```
@@ -46,7 +47,7 @@ Every segment that fetches gets a `loading.tsx` and an `error.tsx`. `error.tsx` 
 ## UI conventions
 - Tailwind only; tokens in `app/globals.css`. No raw hex in components.
 - Shared components in `src/components/ui/` (Button, Card, Badge, EmptyState, ConsentRequired,
-  RecordCard). Check there first; tell the other person when you add one.
+  RecordCard). Check there first; tell the others when you add one.
 - Forms: Zod schema from `@/contracts`, field errors under the field, submit disabled while pending.
 - Accessibility: every input has a `<label>`, every icon button an `aria-label`, focus visible.
 

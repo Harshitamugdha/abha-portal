@@ -11,10 +11,11 @@ Each of you owns **your own** schemas (AI-written, D16), and the other reviews.
 |---|---|
 | `shared.ts`: enums, error codes, `ApiErrorBody`, `ActionResult<T>`, `SessionUser`, `Page<T>` | Harshita |
 | `format.ts`: `formatIST`, `formatAbha`, `maskAbha`, `parseAbhaInput` | Harshita |
-| `auth.ts`, `consent.ts`, `audit.ts`, `pharmacy.ts`, `admin.ts` | Harshita |
+| `auth.ts`, `consent.ts`, `audit.ts` | Harshita |
 | `records.ts`, `clinical.ts`, `lab.ts` | Vivek |
+| `pharmacy.ts`, `admin.ts` | Ravuri |
 
-Day 2: Harshita merges `shared.ts` + `format.ts`. Vivek adds his three files in his Phase 0. Agree
+Day 2: Harshita merges `shared.ts` + `format.ts`. Vivek adds his three files in his Phase 0; Ravuri adds his two in his Phase 0. Agree
 `ConsentRequest` (in `consent.ts`) together on day 1, since Vivek's form sends it.
 
 ## What lives here
@@ -30,7 +31,7 @@ Day 2: Harshita merges `shared.ts` + `format.ts`. Vivek adds his three files in 
 
 ## Changing a schema after it's merged
 1. A PR that touches only this folder + `docs/CONTRACTS.md` (+ `prisma/schema.prisma` if the DB changes).
-2. The other person approves before any code relies on it.
+2. Harshita (contract keeper) and anyone whose code uses the shape approve before any code relies on it.
 3. A line in `CHANGELOG.md` marked **[contract]**.
 4. **Never** loosen a schema (`.passthrough()`, `z.any()`, optional-everything) to make a failing
    response pass. The failure is telling you the producer is wrong.

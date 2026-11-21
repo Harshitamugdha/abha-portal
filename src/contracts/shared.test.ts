@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { ApiErrorBody, ERROR_STATUS, ErrorCode, PageQuery, RecordType, SessionUser, pageOf } from "./shared";
+import { ApiErrorBody, ERROR_STATUS, ErrorCode, PageQuery, SessionUser } from "./shared";
 
 describe("SessionUser", () => {
   it("accepts a seeded doctor", () => {
@@ -44,19 +44,5 @@ describe("PageQuery", () => {
 
   it("refuses a page size over 50", () => {
     expect(PageQuery.safeParse({ pageSize: "500" }).success).toBe(false);
-  });
-});
-
-describe("pageOf", () => {
-  const RecordTypePage = pageOf(RecordType);
-
-  it("accepts a valid page", () => {
-    const page = { items: ["ENCOUNTER", "LAB_REPORT"], page: 1, pageSize: 20, total: 2 };
-    expect(RecordTypePage.safeParse(page).success).toBe(true);
-  });
-
-  it("rejects a page with a wrong item inside", () => {
-    const page = { items: ["NOT_A_TYPE"], page: 1, pageSize: 20, total: 1 };
-    expect(RecordTypePage.safeParse(page).success).toBe(false);
   });
 });

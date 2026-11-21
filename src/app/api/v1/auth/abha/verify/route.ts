@@ -4,8 +4,6 @@ import { loginWithAbha } from "@/server/auth/login";
 import { setSessionCookie } from "@/server/auth/session";
 import { apiError, handleRouteError, readJsonBody } from "@/server/http";
 
-// POST /api/v1/auth/abha/verify   { txnId, otp } -> sets the session cookie; { user }
-// Step 2 of patient login.
 export async function POST(request: Request) {
   try {
     const body = await readJsonBody(request);
@@ -18,6 +16,6 @@ export async function POST(request: Request) {
     await setSessionCookie(user);
     return Response.json({ user: user });
   } catch (error) {
-    return handleRouteError(error); // OTP_INVALID, or a 500
+    return handleRouteError(error);
   }
 }
