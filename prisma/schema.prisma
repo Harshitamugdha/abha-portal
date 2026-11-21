@@ -156,6 +156,7 @@ model ConsentGrant {
   institutionId String
   scopes        RecordType[]
   purpose       String
+  durationDays  Int           @default(7)
   status        ConsentStatus @default(REQUESTED)
   requestedAt   DateTime      @default(now())
   decidedAt     DateTime?

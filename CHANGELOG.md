@@ -4,6 +4,7 @@ Newest first. One entry per merged phase that changes what a user can do, or wha
 Contract changes are marked **[contract]**.
 
 ## Unreleased
+- **[contract]** (21 Nov 2026) `ConsentGrant.durationDays` (schema, default 7) so approve can set `validTo`; `ConsentRequest.institutionId?` for doctors at two institutions.
 - **v3 (21 Nov 2026):** Ravuri builds again (D23): pharmacy, admin, Edge health route, `logError`, deployment, CI. New brief `docs/team/ravuri.md` and log `docs/updates/ravuri.md`; Harshita's brief drops that work. **[contract]** owner of `pharmacy.ts` and `admin.ts` is now Ravuri (shapes unchanged).
 - **[contract]** (16 Nov 2026) Staff self-registration: `registerStaff` Server Action + `StaffRegisterRequest` (CONTRACTS §4.1); new users are unverified until an admin verifies them. Ids validated as plain strings, not `.cuid()` (seeded ids are readable, e.g. `user-asha`).
 - **v2.1 (15 Nov 2026):** team is four (Harshita, Vivek, Madhav, Ravuri), Harshita and Vivek build; full scope restored, Master Part 12 is a build order, not a cut line. **[contract]** `createEncounter`, `createInstitution`, `updateInstitution` back in.

@@ -41,6 +41,22 @@ seeded `ASHA7K`, unverified Dr Neel, Neon already migrated + seeded).
 
 **Next:** Ravuri Phase 0: schemas + hello-world deploy. Harshita: give him Neon access.
 
+## [2026-11-21 20:05] Consent engine live — Phase 4 (Harshita → Vivek)
+
+**Received / changed:** `requestConsent` / `approveConsent` / `denyConsent` / `revokeConsent` in
+`src/app/actions/consent.ts` (plain object input, return `ActionResult<ConsentDTO>`),
+`GET /api/v1/consents/latest?patientId=`. **[contract]** `ConsentGrant.durationDays` (new migration:
+run `npx prisma migrate dev`), `ConsentRequest.institutionId?`, `ConsentDTO` fields in CONTRACTS §4.2.
+
+**Gates:** `npm run check` PASS (200 tests) · access gate: demo steps 2 → 3 → 4 → 5 → 10 at the action
+level as real users: request, no duplicate, widening blocked, scopes limited, revoke immediate.
+
+**Broke:** nothing on the seam yet.
+
+**State:** Vivek's request form can call the real action; Kavya gets real `allowedTypes` after Asha approves.
+
+**Next:** Harshita Phase 5 screens (login, Consent Center). Neon needs `prisma migrate deploy`.
+
 ## [2026-11-16 20:30] Stub replaced — real authorize() (Harshita → Vivek)
 
 **Received / changed:** `authorize()` now enforces the CONTRACTS §3 matrix (same signature, no

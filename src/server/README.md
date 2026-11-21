@@ -26,7 +26,7 @@ Callers are thin:
 | Folder | Owner | Holds |
 |---|---|---|
 | `auth/` | Harshita | `session.ts` (`getSession`, `requireSession`), `abha/` (`AbhaProvider`, `MockAbhaProvider`), `authorize.ts`, `authorize.test.ts`, `password.ts` |
-| `consent/` | Harshita | `engine.ts` (request/approve/deny/revoke, `activeGrant()`), `actions.ts`, `consent.test.ts` |
+| `consent/` | Harshita | `engine.ts` (request/approve/deny/revoke, `activeGrant()`), `rules.ts`, `consent.test.ts`; its Server Actions are in `src/app/actions/consent.ts` |
 | `audit/` | Harshita | `write.ts` (called only by `authorize`), `queries.ts` (patient access log) |
 | `pharmacy/` | Ravuri | `lookupPrescription`, `dispensePrescription` |
 | `admin/` | Ravuri | `listStaff`, `verifyStaff`, `queryAudit`, `listInstitutions`, `createInstitution`, `updateInstitution` |

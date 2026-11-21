@@ -143,6 +143,7 @@ model ConsentGrant {
   institutionId     String                // the doctor's institution at request time
   scopes            RecordType[]
   purpose           String                // 3–120 chars
+  durationDays      Int @default(7)       // 1–30, chosen by the doctor; used on approve
   status            ConsentStatus @default(REQUESTED)
   requestedAt       DateTime      @default(now())
   decidedAt         DateTime?
@@ -271,7 +272,7 @@ Every entry point calls a data function in `src/server/<domain>/`, which calls `
 ### 4.2 Consent + audit — Harshita · `src/contracts/consent.ts`, `audit.ts`
 | Kind | Path / name | Input → Output |
 |---|---|---|
-| Server Action | `requestConsent` | `ConsentRequest { patientId, scopes: RecordType[], purpose, durationDays: 1..30 }` → `ConsentDTO` (`REQUESTED`). **Called from Vivek's form** |
+| Server Action | `requestConsent` | `ConsentRequest { patientId, scopes: RecordType[], purpose, durationDays: 1..30, institutionId? }` (`institutionId` required only when the doctor works at more than one institution) → `ConsentDTO` (`REQUESTED`). **Called from Vivek's form** |
 | Server Action | `approveConsent` | `{ consentId, scopes?: RecordType[] }` (narrow only, never widen) → `ConsentDTO` |
 | Server Action | `denyConsent` / `revokeConsent` | `{ consentId }` → `ConsentDTO` (revoke only from `GRANTED`) |
 | Data function | `listConsents(user, { status?, page })` | → `Page<ConsentDTO>` (patient: theirs; doctor: their requests). Used by Server Components |
@@ -279,6 +280,13 @@ Every entry point calls a data function in `src/server/<domain>/`, which calls `
 | Data function | `listMyAccessLog(user, { page })` | → `Page<AccessLogEntryDTO>`: who read my data, when, under which consent |
 
 `ConsentDTO.displayStatus`: `REQUESTED | GRANTED | DENIED | REVOKED | EXPIRED` (`EXPIRED` derived).
+
+`ConsentDTO { id, patientId, patientName, doctorId, doctorName, institutionId, institutionName, scopes,
+purpose, durationDays, status, displayStatus, requestedAt, decidedAt|null, validFrom|null, validTo|null }`
+(timestamps ISO `Z`). The four Server Actions live in `src/app/actions/consent.ts` (not `src/server/`,
+so client forms can import them, rule 11) and take a plain object, not `FormData`. Asking again while a
+`REQUESTED` one is open returns that one. Approve/deny only from `REQUESTED`, revoke only from `GRANTED`,
+otherwise `CONFLICT`.
 
 ### 4.3 Records + files — Vivek · `src/contracts/records.ts`
 | Kind | Path / name | Input → Output |

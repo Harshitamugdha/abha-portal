@@ -3,6 +3,52 @@
 
 ---
 
+## [2026-11-21 20:05] Phase 4 — Consent engine
+
+**Done:** `requestConsent`, `approveConsent`, `denyConsent`, `revokeConsent` Server Actions
+(`src/app/actions/consent.ts`) over engine functions in `consent/engine.ts`; `listConsents` and
+`latestConsent` data functions; `GET /api/v1/consents/latest?patientId=`. Request: doctor only, patient
+must exist, an open `REQUESTED` for the same pair is returned (no duplicate), institution chosen safely
+for doctors at two institutions. Approve: owner only, from `REQUESTED` only, scopes = requested ∩
+submitted (TRAPS §7), `validFrom = now`, `validTo = now + durationDays`. Deny from `REQUESTED`, revoke
+from `GRANTED`, otherwise `CONFLICT`; status changes use `updateMany … where status` so two clicks can't
+both win. Also: code simplified everywhere and all comments removed (same behaviour).
+
+**Schema / contract (said first, then done):** `ConsentGrant.durationDays Int @default(7)` (migration
+`consent_duration`; the default keeps it safe on Neon's existing row); `ConsentRequest.institutionId?`;
+`ConsentDTO` shape written into CONTRACTS §4.2.
+
+**Files touched:** `src/contracts/consent.ts`, `src/server/consent/rules.ts`, `consent.test.ts`,
+`src/app/actions/consent.ts`, `src/app/api/v1/consents/latest/route.ts`, migration (new) ·
+`consent/engine.ts`, `prisma/schema.prisma`, `prisma/seed.ts`, `docs/CONTRACTS.md`, `CHANGELOG.md`,
+`src/server/README.md` (modified)
+
+**Run command:**
+```bash
+npx prisma migrate dev && npm run db:seed && npm run check
+```
+
+**Access check (live, real logins):** Kavya → Asha before: `CONSENT_REQUIRED`. Kavya requests
+(prescriptions + lab reports, 7 days, "Follow-up") → `REQUESTED`; asks again → same id. Kavya tries to
+approve → `FORBIDDEN`. Asha approves while also ticking DOCUMENT → `GRANTED` with only PRESCRIPTION +
+LAB_REPORT; approve again → `CONFLICT`. Kavya → Asha: allowed, `allowedTypes` = PRESCRIPTION, LAB_REPORT.
+Asha revokes → Kavya's next list `CONSENT_REQUIRED`; revoke again → `CONFLICT`. Pharmacy requesting →
+`FORBIDDEN`; logged out → `UNAUTHENTICATED`; 60 days → `VALIDATION_FAILED`; deny works. 200 tests pass.
+
+**Demo steps enabled:** 3, 4, 5 (policy), 10 at the action level; screens in Phase 5.
+
+**Learned:** Narrowing must be an intersection with what was REQUESTED, not just "what the patient
+ticked", or a crafted request can approve a scope nobody asked for.
+
+**AI used:** code: everything above · review: schema/contract additions announced before changing.
+
+**Open issues:**
+- Run `npx prisma migrate deploy` against Neon (from a network that allows port 5432) for the new column.
+- Vivek: his request form calls `requestConsent` with a plain object; doctors with two institutions must send `institutionId`.
+- `DEV_FAKE_USER` blocks in `session.ts` / `proxy.ts` still to delete once Phase 5 login screens exist.
+
+**Next:** Phase 5 — login, OTP, staff login + registration, Consent Center, access log screens.
+
 ## [2026-11-16 20:30] Phase 3 — Real authorize() + policy matrix tests
 
 **Done:** `authorize()` split into a pure `decide(user, action, resource, grant, now)` (the CONTRACTS §3

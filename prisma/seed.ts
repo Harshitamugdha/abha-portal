@@ -262,6 +262,7 @@ async function main() {
       institutionId: "inst-citygen",
       scopes: ["ENCOUNTER", "PRESCRIPTION", "LAB_REPORT", "DOCUMENT"],
       purpose: "Diabetes follow-up",
+      durationDays: 7,
       status: "GRANTED",
       requestedAt: daysAgo(9),
       decidedAt: daysAgo(8),
