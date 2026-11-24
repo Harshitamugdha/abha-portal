@@ -6,7 +6,7 @@ vi.mock("@/server/db", () => ({
   db: {
     prescription: {
       findUnique: vi.fn(),
-      update: vi.fn(),
+      updateMany: vi.fn(),
     },
   },
 }));
@@ -77,16 +77,18 @@ describe("pharmacy server functions", () => {
     });
   });
 
-  it("throws NOT_FOUND for expired prescription (TRAPS §11)", async () => {
+  it("throws NOT_FOUND for expired prescription and still audits it (TRAPS §11)", async () => {
     const expiredRow = {
       ...mockPrescriptionRow,
       expiresAt: new Date(Date.now() - 10000),
     };
     vi.mocked(db.prescription.findUnique).mockResolvedValueOnce(expiredRow as never);
+    vi.mocked(authorize).mockResolvedValueOnce({ allowed: true, reason: "ROLE" });
 
     await expect(lookupPrescription(pharmacyUser, "ASHA7K")).rejects.toMatchObject({
       code: "NOT_FOUND",
     });
+    expect(authorize).toHaveBeenCalledTimes(1);
   });
 
   it("refuses lookup from unauthorized user with deny code", async () => {
@@ -101,13 +103,13 @@ describe("pharmacy server functions", () => {
   it("dispenses prescription and updates record", async () => {
     vi.mocked(db.prescription.findUnique).mockResolvedValueOnce(mockPrescriptionRow as never);
     vi.mocked(authorize).mockResolvedValueOnce({ allowed: true, reason: "ROLE" });
-    vi.mocked(db.prescription.update).mockResolvedValueOnce({} as never);
+    vi.mocked(db.prescription.updateMany).mockResolvedValueOnce({ count: 1 });
 
     const dispensed = await dispensePrescription(pharmacyUser, "rec-asha-rx");
     expect(dispensed.dispensedAt).not.toBeNull();
-    expect(db.prescription.update).toHaveBeenCalledWith(
+    expect(db.prescription.updateMany).toHaveBeenCalledWith(
       expect.objectContaining({
-        where: { recordId: "rec-asha-rx" },
+        where: { recordId: "rec-asha-rx", dispensedAt: null },
       }),
     );
   });
@@ -118,9 +120,36 @@ describe("pharmacy server functions", () => {
       dispensedAt: new Date("2026-11-20T10:00:00Z"),
     };
     vi.mocked(db.prescription.findUnique).mockResolvedValueOnce(alreadyDispensedRow as never);
+    vi.mocked(authorize).mockResolvedValueOnce({ allowed: true, reason: "ROLE" });
 
     await expect(dispensePrescription(pharmacyUser, "rec-asha-rx")).rejects.toMatchObject({
       code: "CONFLICT",
     });
   });
+
+  it("rejects the second of two dispenses at the same moment with CONFLICT", async () => {
+    vi.mocked(db.prescription.findUnique).mockResolvedValueOnce(mockPrescriptionRow as never);
+    vi.mocked(authorize).mockResolvedValueOnce({ allowed: true, reason: "ROLE" });
+    vi.mocked(db.prescription.updateMany).mockResolvedValueOnce({ count: 0 });
+
+    await expect(dispensePrescription(pharmacyUser, "rec-asha-rx")).rejects.toMatchObject({
+      code: "CONFLICT",
+    });
+  });
+
+  it("gives a non-pharmacy user NOT_FOUND, not the dispense time (D10)", async () => {
+    const alreadyDispensedRow = {
+      ...mockPrescriptionRow,
+      dispensedAt: new Date("2026-11-20T10:00:00Z"),
+    };
+    vi.mocked(db.prescription.findUnique).mockResolvedValueOnce(alreadyDispensedRow as never);
+    vi.mocked(authorize).mockResolvedValueOnce({ allowed: false, code: "NOT_FOUND", reason: "WRONG_ROLE" });
+
+    await expect(dispensePrescription(doctorUser, "rec-asha-rx")).rejects.toMatchObject({
+      code: "NOT_FOUND",
+    });
+    expect(authorize).toHaveBeenCalledTimes(1);
+    expect(db.prescription.updateMany).not.toHaveBeenCalled();
+  });
+
 });

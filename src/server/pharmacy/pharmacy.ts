@@ -25,11 +25,6 @@ export async function lookupPrescription(user: SessionUser, rawShareCode: string
     throw new ApiError("NOT_FOUND", "Prescription not found");
   }
 
-  const now = new Date();
-  if (rx.expiresAt < now) {
-    throw new ApiError("NOT_FOUND", "Prescription not found or expired");
-  }
-
   const decision = await authorize(user, "prescription:lookup", {
     kind: "prescription",
     prescription: {
@@ -45,6 +40,11 @@ export async function lookupPrescription(user: SessionUser, rawShareCode: string
 
   if (!decision.allowed) {
     throw new ApiError(decision.code, "Prescription not found");
+  }
+
+  const now = new Date();
+  if (rx.expiresAt < now) {
+    throw new ApiError("NOT_FOUND", "Prescription not found or expired");
   }
 
   const items = Array.isArray(rx.items) ? (rx.items as unknown as PrescriptionItem[]) : [];
@@ -80,15 +80,6 @@ export async function dispensePrescription(user: SessionUser, recordId: string):
     throw new ApiError("NOT_FOUND", "Prescription not found");
   }
 
-  const now = new Date();
-  if (rx.expiresAt < now) {
-    throw new ApiError("CONFLICT", "Prescription has expired");
-  }
-
-  if (rx.dispensedAt) {
-    throw new ApiError("CONFLICT", `Already dispensed at ${rx.dispensedAt.toISOString()}`);
-  }
-
   const decision = await authorize(user, "prescription:dispense", {
     kind: "prescription",
     prescription: {
@@ -106,13 +97,25 @@ export async function dispensePrescription(user: SessionUser, recordId: string):
     throw new ApiError(decision.code, "You cannot dispense this prescription");
   }
 
-  await db.prescription.update({
-    where: { recordId },
+  const now = new Date();
+  if (rx.expiresAt < now) {
+    throw new ApiError("CONFLICT", "Prescription has expired");
+  }
+
+  if (rx.dispensedAt) {
+    throw new ApiError("CONFLICT", `Already dispensed at ${rx.dispensedAt.toISOString()}`);
+  }
+
+  const result = await db.prescription.updateMany({
+    where: { recordId: recordId, dispensedAt: null },
     data: {
       dispensedAt: now,
       dispensedBy: user.name,
     },
   });
+  if (result.count === 0) {
+    throw new ApiError("CONFLICT", "Already dispensed");
+  }
 
   const items = Array.isArray(rx.items) ? (rx.items as unknown as PrescriptionItem[]) : [];
   const issuedBy = rx.record.author?.name

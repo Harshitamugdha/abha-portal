@@ -37,14 +37,15 @@ staff are refused with `STAFF_UNVERIFIED` until an admin verifies them.
 ## 2. Sessions
 | | |
 |---|---|
-| Carrier | Cookie `portal_session`, httpOnly, Secure, SameSite=Lax. The only carrier (D20) |
+| Carrier | Cookie `portal_session`, httpOnly, SameSite=Lax, Secure in production. The only carrier (D20) |
 | Lifetime | 8 h |
 | Readable by JavaScript | No |
 | Read by | `getSession()` / `requireSession()` |
 
 The JWT carries `SessionUser` (CONTRACTS §5). `verified` and `institutionIds` are in the token so
-`proxy.ts` can make coarse decisions without a DB call. `authorize()` re-reads the user for
-anything that matters (e.g. a doctor un-verified mid-session).
+`proxy.ts` can make coarse decisions without a DB call. `authorize()` trusts the token's `verified`
+flag; that is safe because verification only goes one way (admins verify, nobody un-verifies), so a
+token can only be out of date in the safe direction (says unverified, user logs in again).
 
 ## 3. Consent lifecycle
 ```mermaid
@@ -74,10 +75,12 @@ decide(user, action, resource, grant):
   doctor:   record.authorId == user.id               → allow (AUTHOR)
             grant active and record.type ∈ scopes    → allow (CONSENT, consentId)
             list: grant active                       → allow, allowedTypes = scopes ∩ requested types
+                  (author access does NOT apply to lists, so a revoke shows "Consent required")
             otherwise                                → deny CONSENT_REQUIRED (NO_ACTIVE_CONSENT | SCOPE_EXCLUDED)
   lab:      order.labInstitutionId ∈ institutionIds  → allow, else NOT_FOUND
-  pharmacy: prescription found by share code,
-            not expired                              → allow, else NOT_FOUND
+  pharmacy: role is PHARMACY                         → allow, else NOT_FOUND
+            (unknown or expired share code → NOT_FOUND, checked in the pharmacy data function
+             after authorize(), so the attempt is still audited)
   admin:    institution/staff/audit actions only     → allow; anything clinical → NOT_FOUND
 ```
 `decide` is pure (no DB) and tested as a table. `authorize` = load grant → `decide` → write audit → return.
@@ -85,8 +88,8 @@ decide(user, action, resource, grant):
 ## 5. Audit
 Every `authorize()` call writes one `AuditLog` row: actor, role, action, resource, patient,
 consent used, outcome, reason. Two readers:
-- **Patient** (`/audit/me`): reads concerning their `patientId`, shown as "who viewed my records",
-  including denied attempts.
+- **Patient** (`/patient/access-log`, data function `listMyAccessLog`): reads concerning their
+  `patientId`, shown as "who viewed my records", including denied attempts (muted, "No consent at the time").
 - **Admin** (`/admin/audit`): everything, filterable, with no clinical content in the view.
 
 ## 6. What would change for real ABDM

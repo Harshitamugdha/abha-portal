@@ -22,6 +22,32 @@ in one file, not scattered across three personal logs and a chat.
 
 ---
 
+## [2026-11-24 22:45] Review — Ravuri's pharmacy + admin (e161297) against authorize()
+
+**Received / changed:** Ravuri's `pharmacy.ts`, `admin.ts` contracts, data functions, Server Actions,
+screens, Edge `/health`, `logError`, CI. Every data function calls `authorize()` first; DTOs are built
+field by field; no `src/server/` import in a client file; nothing private is cached.
+
+**Gates:** `npm run check` PASS (233 tests).
+
+**Broke:** `dispensePrescription` checked "expired" / "already dispensed" **before** `authorize()`, so a
+patient or doctor sending any `recordId` got `CONFLICT "Already dispensed at …"` instead of `NOT_FOUND`
+(D10), with no audit row. The update had no `dispensedAt: null` guard, so two counters could both
+dispense. `lookupPrescription` skipped the audit row for expired codes. → **Fixed by:** Harshita,
+`src/server/pharmacy/pharmacy.ts`: `authorize()` right after the existence check, state checks after
+it, `updateMany … where dispensedAt: null` + `count === 0 → CONFLICT` (same pattern as the consent
+engine). 3 tests added in `pharmacy.test.ts`.
+
+**Still for Ravuri (not changed, his files / contract):**
+- `ListStaffQuery.verified` uses `z.coerce.boolean()`: the string `"false"` becomes `true`. Fine for
+  today's callers (they pass real booleans) but wrong the day it's read from a URL. Contract change.
+- `updateInstitution` with an unknown id → Prisma throws → `INTERNAL`. Should be `NOT_FOUND`.
+- Inline conditional spreads in `listStaff`, `queryAudit` and `logError` (CLAUDE.md: rewrite in plain steps).
+
+**State:** demo steps 6–7 (pharmacy) and 11 (admin audit) now safe at the policy level.
+
+**Next:** Vivek's records + doctor portal (nothing landed yet), then the full demo story.
+
 ## [2026-11-21 19:45] Ravuri joins the build — pharmacy, admin, platform, deployment, CI
 
 **Received / changed:** Ravuri is building again (Master D23). Pharmacy, admin (staff verification,
