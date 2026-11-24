@@ -285,7 +285,8 @@ Every entry point calls a data function in `src/server/<domain>/`, which calls `
 purpose, durationDays, status, displayStatus, requestedAt, decidedAt|null, validFrom|null, validTo|null }`
 (timestamps ISO `Z`). The four Server Actions live in `src/app/actions/consent.ts` (not `src/server/`,
 so client forms can import them, rule 11) and take a plain object, not `FormData`. Asking again while a
-`REQUESTED` one is open returns that one. Approve/deny only from `REQUESTED`, revoke only from `GRANTED`,
+`REQUESTED` one is open returns that one; asking while an **active** grant exists (D9 rule) → `CONFLICT`
+(one active consent per doctor + patient, so a revoke always ends access). Approve/deny only from `REQUESTED`, revoke only from `GRANTED`,
 otherwise `CONFLICT`.
 
 ### 4.3 Records + files — Vivek · `src/contracts/records.ts`

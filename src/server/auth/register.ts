@@ -33,19 +33,37 @@ export async function createStaffAccount(input: StaffRegisterRequest) {
 
   const passwordHash = await bcrypt.hash(input.password, 10);
 
-  const user = await db.user.create({
-    data: {
-      role: input.role,
-      name: input.name,
-      email: email,
-      passwordHash: passwordHash,
-      hprId: hprId,
-      verified: false,
-      memberships: { create: { institutionId: institution.id } },
-    },
-  });
+  let user;
+  try {
+    user = await db.user.create({
+      data: {
+        role: input.role,
+        name: input.name,
+        email: email,
+        passwordHash: passwordHash,
+        hprId: hprId,
+        verified: false,
+        memberships: { create: { institutionId: institution.id } },
+      },
+    });
+  } catch (error) {
+    if (isEmailTaken(error)) {
+      throw new ApiError("CONFLICT", "An account with this email already exists.");
+    }
+    throw error;
+  }
 
   return { userId: user.id };
+}
+
+function isEmailTaken(error: unknown) {
+  if (typeof error !== "object" || error === null) {
+    return false;
+  }
+  if (!("code" in error)) {
+    return false;
+  }
+  return error.code === "P2002";
 }
 
 export async function listInstitutionsForRegistration() {

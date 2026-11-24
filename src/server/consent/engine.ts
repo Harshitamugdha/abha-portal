@@ -103,6 +103,11 @@ export async function createRequest(user: SessionUser, input: ConsentRequest): P
     return toConsentDTO(open, new Date());
   }
 
+  const active = await activeGrant(input.patientId, user.id, new Date());
+  if (active) {
+    throw new ApiError("CONFLICT", "You already have access to this patient. Ask again after it ends or is revoked.");
+  }
+
   const created = await db.consentGrant.create({
     data: {
       patientId: input.patientId,

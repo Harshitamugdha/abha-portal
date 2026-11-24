@@ -42,7 +42,11 @@ export default async function AccessLogPage(props: PageProps<"/patient/access-lo
   }
 
   const searchParams = await props.searchParams;
-  const query = AccessLogQuery.parse({ page: searchParams.page });
+  let query = AccessLogQuery.parse({});
+  const parsed = AccessLogQuery.safeParse({ page: searchParams.page });
+  if (parsed.success) {
+    query = parsed.data;
+  }
   const log = await listMyAccessLog(user, query);
   const lastPage = Math.max(1, Math.ceil(log.total / log.pageSize));
 

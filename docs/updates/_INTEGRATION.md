@@ -22,6 +22,22 @@ in one file, not scattered across three personal logs and a chat.
 
 ---
 
+## [2026-11-24 22:55] Contract change — one active consent per doctor + patient (Harshita → Vivek)
+
+**Received / changed:** **[contract]** CONTRACTS §4.2: `requestConsent` while the doctor already has an
+active grant for that patient → `CONFLICT` ("You already have access to this patient…"). Before, a
+second request could be approved, leaving two active grants; revoking the newer one silently
+re-enabled the older one.
+
+**Gates:** `npm run check` PASS (262 tests).
+
+**Broke:** nothing yet. **Vivek:** your request form must show the `CONFLICT` message (or hide the
+button when `/consents/latest` shows `GRANTED`), not treat it as an error page.
+
+**State:** a revoke always ends the doctor's access (demo step 10).
+
+**Next:** Vivek's request form handles `CONFLICT`.
+
 ## [2026-11-24 22:45] Review — Ravuri's pharmacy + admin (e161297) against authorize()
 
 **Received / changed:** Ravuri's `pharmacy.ts`, `admin.ts` contracts, data functions, Server Actions,

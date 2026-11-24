@@ -3,6 +3,46 @@
 
 ---
 
+## [2026-11-24 22:50] Phase 6 — self-audit of phases 0–5 + review of Ravuri's pharmacy
+
+**Done:** Audited everything in Part A against the brief, CONTRACTS and TRAPS. Pure logic was well
+tested (90 matrix cells, expiry edges, OTP rules), but nothing that touches the database was. Added
+`consent/engine.test.ts` (no duplicate request, owner only, narrowing saved, `validTo`, state
+guards, two-click race), `auth/authorize.audit.test.ts` (one audit row per call incl. denied, consent
+id recorded, audit failure fails closed) and `auth/login.test.ts` (same error for unknown email /
+wrong password, `STAFF_UNVERIFIED` only after the right password, registration rules). Fixed:
+registering the same email twice at once → `CONFLICT` instead of `INTERNAL` (P2002); `/patient/access-log?page=abc`
+crashed with a 500, now falls back to page 1. Pharmacy: `authorize()` before state checks + guarded
+dispense (see `_INTEGRATION.md`). `identity-and-consent.md` corrected to match the code.
+
+**Files touched:** `engine.test.ts`, `authorize.audit.test.ts`, `login.test.ts` (new) · `register.ts`,
+`patient/access-log/page.tsx`, `pharmacy.ts` + test, `identity-and-consent.md`, `_INTEGRATION.md` (modified)
+
+**Run command:**
+```bash
+npm run check     # 260 tests
+```
+
+**Access check:** tests only (mocked database); no live run this time.
+
+**Demo steps enabled:** none new.
+
+**Learned:** A green matrix test proves `decide()`, not `authorize()`; the "audit first, never throw on
+deny" promise needed its own test.
+
+**AI used:** review: the audit · code: tests and fixes above.
+
+**Open issues:**
+- ~~Second request while a consent is active~~ **fixed:** `createRequest` now refuses with `CONFLICT`
+  while an active grant exists (CONTRACTS §4.2 updated, 2 tests).
+- Staff login: unknown email returns faster than a wrong password (no bcrypt run) → timing leak of which
+  emails exist. No attempt limit on staff passwords or on registration.
+- OTP txn / rate-limit `Map`s are never pruned (memory grows with abandoned logins); still in memory on Vercel.
+- Consent Center / OTP form: a network error leaves the buttons stuck on busy (no try/finally).
+- Phase 6 demo story blocked on Vivek's records + doctor portal.
+
+**Next:** full demo story once Vivek lands.
+
 ## [2026-11-21 20:25] Phase 5 (minimum for a deploy link) — screens + stub removed
 
 **Done:** Screens: `/login` (ABHA), `/login/otp` (30 s resend via `useCountdown` with cleanup),

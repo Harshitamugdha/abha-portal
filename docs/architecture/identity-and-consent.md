@@ -64,7 +64,8 @@ stateDiagram-v2
 - **Approve can only narrow:** `approved = requested ∩ submitted`, non-empty.
 - **Re-requesting** after DENIED/REVOKED/EXPIRED creates a new grant; history is kept.
 - **Duplicate requests:** an open `REQUESTED` grant for the same doctor + patient is returned
-  instead of creating a second one.
+  instead of creating a second one. Asking while an **active** grant exists → `CONFLICT`, so there is
+  never more than one active consent per doctor + patient, and revoking it always ends access.
 
 ## 4. The decision
 ```
