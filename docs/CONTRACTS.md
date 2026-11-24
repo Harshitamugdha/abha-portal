@@ -297,6 +297,11 @@ otherwise `CONFLICT`.
 | Server Action | `uploadDocument` | `FormData`: `file` + `DocumentUpload { title, occurredAt, institutionId }` → `RecordDTO` |
 | Route Handler GET | `/files/:id` | → file stream, `Content-Disposition: inline`. Authorized per request; never a public URL |
 
+`RecordDTO { id, patientId, institutionId, institutionName, authorId|null, authorName|null, type, title,
+summary|null, occurredAt, fileId|null, createdAt, prescription?: PrescriptionDetail|null }` (timestamps ISO `Z`).
+`PrescriptionDetail { items: PrescriptionItem[], shareCode, dispensedAt|null, expiresAt }`.
+`DocumentUpload { title, occurredAt, institutionId }`.
+
 ### 4.4 Clinical — Vivek · `src/contracts/clinical.ts`
 | Kind | Path / name | Input → Output |
 |---|---|---|
