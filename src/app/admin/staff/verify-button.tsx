@@ -21,23 +21,27 @@ export function VerifyButton({ userId, name }: VerifyButtonProps) {
       if (res.ok) {
         router.refresh();
       } else {
-        setErrorMsg(res.error.message || "Failed to verify staff");
+        setErrorMsg(res.error.message || "Could not verify this account.");
       }
     });
   }
 
   return (
     <div>
-      {errorMsg && <p className="error" style={{ marginBottom: "4px" }}>{errorMsg}</p>}
       <button
         type="button"
         onClick={handleVerify}
         disabled={isPending}
-        className="btn"
-        style={{ padding: "6px 12px", fontSize: "0.85rem" }}
+        className="btn btn-accent btn-small"
+        aria-label={"Verify " + name}
       >
-        {isPending ? "Verifying..." : `Verify ${name}`}
+        {isPending ? "Verifying…" : "Verify"}
       </button>
+      {errorMsg && (
+        <p className="error" role="alert">
+          {errorMsg}
+        </p>
+      )}
     </div>
   );
 }

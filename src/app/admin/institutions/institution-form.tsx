@@ -23,59 +23,53 @@ export function InstitutionForm() {
     startTransition(async () => {
       const res = await createInstitution({ name, type, city });
       if (res.ok) {
-        setSuccessMsg(`Successfully registered "${res.data.name}" (${res.data.id})`);
+        setSuccessMsg(res.data.name + " was added.");
         setName("");
         setCity("");
         router.refresh();
       } else {
-        setErrorMsg(res.error.message || "Failed to register institution");
+        setErrorMsg(res.error.message || "Could not add the institution.");
       }
     });
   }
 
   return (
-    <form onSubmit={handleSubmit} className="form" style={{ maxWidth: "480px" }}>
-      {errorMsg && <p className="error">{errorMsg}</p>}
-      {successMsg && <p className="success">{successMsg}</p>}
-
+    <form onSubmit={handleSubmit} className="form-card">
       <label className="label">
-        Institution Name
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="e.g. Care Diagnostic Center"
-          required
-          className="input"
-        />
+        Name
+        <input value={name} onChange={(e) => setName(e.target.value)} required className="input" />
       </label>
 
       <label className="label">
-        Institution Type
-        <select
-          value={type}
-          onChange={(e) => setType(e.target.value as InstitutionType)}
-          className="input"
-        >
-          <option value="HOSPITAL">HOSPITAL</option>
-          <option value="PHARMACY">PHARMACY</option>
-          <option value="LAB">LAB</option>
+        Type
+        <select value={type} onChange={(e) => setType(e.target.value as InstitutionType)} className="input">
+          <option value="HOSPITAL">Hospital</option>
+          <option value="PHARMACY">Pharmacy</option>
+          <option value="LAB">Lab</option>
         </select>
       </label>
 
       <label className="label">
         City
-        <input
-          value={city}
-          onChange={(e) => setCity(e.target.value)}
-          placeholder="e.g. Bengaluru"
-          required
-          className="input"
-        />
+        <input value={city} onChange={(e) => setCity(e.target.value)} required className="input" />
       </label>
 
-      <button type="submit" disabled={isPending} className="btn" style={{ alignSelf: "flex-start", marginTop: "4px" }}>
-        {isPending ? "Registering..." : "Add Institution"}
-      </button>
+      {errorMsg && (
+        <p className="error" role="alert">
+          {errorMsg}
+        </p>
+      )}
+      {successMsg && (
+        <p className="success" role="status">
+          {successMsg}
+        </p>
+      )}
+
+      <div className="form-actions">
+        <button type="submit" disabled={isPending} className="btn btn-accent">
+          {isPending ? "Adding…" : "Add institution"}
+        </button>
+      </div>
     </form>
   );
 }

@@ -22,6 +22,22 @@ in one file, not scattered across three personal logs and a chat.
 
 ---
 
+## [2026-11-24 23:55] UI — Ravuri's admin + pharmacy screens moved to the shared design (Harshita → Ravuri)
+
+**Received / changed:** Look only; no data functions, actions or contracts touched. `admin/page.tsx`
+(dashboard: waiting staff, institutions, refused attempts), `admin/staff/*`, `admin/audit/page.tsx`,
+`admin/institutions/*`, `pharmacy/page.tsx`, `pharmacy/rx/[code]/*`. Inline styles removed (shared
+classes in `globals.css`), sentence case, `ADMIN_LINKS` / `PHARMACY_LINKS` shared lists, new `PageHead`
+component. Pharmacy "Demo tip" removed (product look). Bug fixed on the way: audit paging dropped the
+Actor ID filter; `pageHref()` now keeps every filter.
+
+**Gates:** `npm run check` PASS (262 tests) · browser: admin home, audit log filtered, pharmacy lookup
+`asha7k` → `ASHA7K` page. Dispense not pressed (kept for manual testing).
+
+**Broke:** nothing.
+
+**Next:** Ravuri to review the diff of his files before merging.
+
 ## [2026-11-24 22:55] Contract change — one active consent per doctor + patient (Harshita → Vivek)
 
 **Received / changed:** **[contract]** CONTRACTS §4.2: `requestConsent` while the doctor already has an

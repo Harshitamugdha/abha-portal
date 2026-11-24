@@ -1,10 +1,24 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
+import { PageHead } from "@/components/ui/page-head";
 import { TopBar } from "@/components/ui/top-bar";
 import { formatIST } from "@/contracts/format";
 import { listStaff } from "@/server/admin/admin";
 import { getSession } from "@/server/auth/session";
+import { ADMIN_LINKS } from "../admin-links";
 import { VerifyButton } from "./verify-button";
+
+const ROLE_LABELS: Record<string, string> = {
+  DOCTOR: "Doctor",
+  PHARMACY: "Pharmacy",
+  LAB: "Lab",
+};
+
+function workplace(names: string[] | undefined) {
+  if (!names || names.length === 0) {
+    return "Not set";
+  }
+  return names.join(", ");
+}
 
 export default async function AdminStaffPage() {
   const user = await getSession();
@@ -12,93 +26,96 @@ export default async function AdminStaffPage() {
     redirect("/staff/login");
   }
 
-  const [pendingStaff, verifiedStaff] = await Promise.all([
-    listStaff(user, { verified: false, pageSize: 50 }),
-    listStaff(user, { verified: true, pageSize: 50 }),
-  ]);
-
-  const links = [
-    { href: "/admin", label: "Overview" },
-    { href: "/admin/staff", label: "Staff Verification" },
-    { href: "/admin/audit", label: "Audit Logs" },
-    { href: "/admin/institutions", label: "Institutions" },
-  ];
+  const pendingStaff = await listStaff(user, { verified: false, pageSize: 50 });
+  const verifiedStaff = await listStaff(user, { verified: true, pageSize: 50 });
 
   return (
     <>
-      <TopBar name={user.name} links={links} />
-      <main className="page">
-        <div style={{ marginBottom: "16px" }}>
-          <Link href="/admin" className="link">&larr; Back to Admin Panel</Link>
-        </div>
+      <TopBar name={user.name} links={ADMIN_LINKS} />
+      <main className="landing">
+        <PageHead kicker="Administration" title="Staff verification" />
 
-        <h1>Staff Verification Queue</h1>
-        <p className="muted" style={{ marginBottom: "20px" }}>
-          Newly registered healthcare professionals cannot log in until an administrator verifies their credentials.
-        </p>
+        <div className="container dashboard">
+          <p className="lead">
+            People who register as staff cannot log in until you verify them. For doctors, check the HPR ID first.
+          </p>
 
-        <h2>Pending Verification ({pendingStaff.total})</h2>
-        {pendingStaff.items.length === 0 ? (
-          <div className="card">
-            <p className="muted">No staff members currently awaiting verification.</p>
-          </div>
-        ) : (
-          <div className="card" style={{ padding: 0, overflowX: "auto" }}>
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Email</th>
-                  <th>HPR / Reg ID</th>
-                  <th>Affiliation</th>
-                  <th>Registered At</th>
-                  <th>Action</th>
-                </tr>
-              </thead>
-              <tbody>
-                {pendingStaff.items.map((staff) => (
-                  <tr key={staff.id}>
-                    <td><strong>{staff.name}</strong></td>
-                    <td><span style={{ fontSize: "0.8rem", background: "#fef3c7", padding: "2px 6px", borderRadius: "4px" }}>{staff.role}</span></td>
-                    <td>{staff.email}</td>
-                    <td>{staff.hprId || "-"}</td>
-                    <td>{staff.institutionNames?.join(", ") || "-"}</td>
-                    <td>{formatIST(staff.createdAt)}</td>
-                    <td>
-                      <VerifyButton userId={staff.id} name={staff.name} />
-                    </td>
+          <section aria-labelledby="pending">
+            <h2 id="pending" className="section-title">
+              Waiting for verification ({pendingStaff.total})
+            </h2>
+            {pendingStaff.items.length === 0 && <p className="empty">Nobody is waiting for verification.</p>}
+            {pendingStaff.items.length > 0 && (
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Role</th>
+                      <th>Email</th>
+                      <th>HPR ID</th>
+                      <th>Works at</th>
+                      <th>Registered</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {pendingStaff.items.map((staff) => (
+                      <tr key={staff.id}>
+                        <td>
+                          <strong>{staff.name}</strong>
+                        </td>
+                        <td>
+                          <span className="badge badge-amber">{ROLE_LABELS[staff.role] || staff.role}</span>
+                        </td>
+                        <td>{staff.email}</td>
+                        <td>{staff.hprId || "Not needed"}</td>
+                        <td>{workplace(staff.institutionNames)}</td>
+                        <td>{formatIST(staff.createdAt)}</td>
+                        <td>
+                          <VerifyButton userId={staff.id} name={staff.name} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </section>
+
+          <section aria-labelledby="verified">
+            <h2 id="verified" className="section-title">
+              Verified staff ({verifiedStaff.total})
+            </h2>
+            <div className="table-wrap">
+              <table className="table">
+                <thead>
+                  <tr>
+                    <th>Name</th>
+                    <th>Role</th>
+                    <th>Email</th>
+                    <th>Works at</th>
+                    <th>Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-
-        <h2>Verified Staff ({verifiedStaff.total})</h2>
-        <div className="card" style={{ padding: 0, overflowX: "auto" }}>
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Name</th>
-                <th>Role</th>
-                <th>Email</th>
-                <th>Affiliation</th>
-                <th>Status</th>
-              </tr>
-            </thead>
-            <tbody>
-              {verifiedStaff.items.map((staff) => (
-                <tr key={staff.id}>
-                  <td><strong>{staff.name}</strong></td>
-                  <td><span style={{ fontSize: "0.8rem", background: "#dcfce7", color: "#166534", padding: "2px 6px", borderRadius: "4px" }}>{staff.role}</span></td>
-                  <td>{staff.email}</td>
-                  <td>{staff.institutionNames?.join(", ") || "-"}</td>
-                  <td><span className="success" style={{ fontWeight: 600 }}>Active</span></td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {verifiedStaff.items.map((staff) => (
+                    <tr key={staff.id}>
+                      <td>
+                        <strong>{staff.name}</strong>
+                      </td>
+                      <td>{ROLE_LABELS[staff.role] || staff.role}</td>
+                      <td>{staff.email}</td>
+                      <td>{workplace(staff.institutionNames)}</td>
+                      <td>
+                        <span className="badge badge-green">Verified</span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
         </div>
       </main>
     </>

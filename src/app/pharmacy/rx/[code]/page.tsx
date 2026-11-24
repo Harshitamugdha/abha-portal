@@ -1,10 +1,12 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
+import { PageHead } from "@/components/ui/page-head";
 import { TopBar } from "@/components/ui/top-bar";
 import { formatIST } from "@/contracts/format";
 import { getSession } from "@/server/auth/session";
 import { ApiError } from "@/server/http";
 import { lookupPrescription } from "@/server/pharmacy/pharmacy";
+import { PHARMACY_LINKS } from "../../pharmacy-links";
 import { DispenseForm } from "./dispense-form";
 
 type PageProps = {
@@ -32,60 +34,58 @@ export default async function PharmacyRxPage({ params }: PageProps) {
 
   return (
     <>
-      <TopBar name={user.name} links={[{ href: "/pharmacy", label: "Lookup" }]} />
-      <main className="page">
-        <div style={{ marginBottom: "16px" }}>
-          <Link href="/pharmacy" className="link">
-            &larr; Back to Lookup
+      <TopBar name={user.name} links={PHARMACY_LINKS} />
+      <main className="landing">
+        <PageHead kicker={"Share code " + decodedCode} title="Prescription" />
+
+        <div className="container dashboard">
+          <Link href="/pharmacy" className="accent-link">
+            Find another prescription
           </Link>
+
+          <div className="auth-layout">
+            <div className="form-card">
+              <dl className="summary">
+                <dt>Patient</dt>
+                <dd>{rx.patientName}</dd>
+                <dt>Prescribed by</dt>
+                <dd>{rx.issuedBy}</dd>
+                <dt>Prescribed on</dt>
+                <dd>{formatIST(rx.issuedAt)}</dd>
+              </dl>
+
+              <h2 className="form-section">Medicines</h2>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Medicine</th>
+                      <th>Dose</th>
+                      <th>How often</th>
+                      <th>For</th>
+                      <th>Notes</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {rx.items.map((item, index) => (
+                      <tr key={index}>
+                        <td>
+                          <strong>{item.drug}</strong>
+                        </td>
+                        <td>{item.dose}</td>
+                        <td>{item.frequency}</td>
+                        <td>{item.durationDays} days</td>
+                        <td>{item.notes || "None"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            <DispenseForm recordId={rx.recordId} dispensedAt={rx.dispensedAt} />
+          </div>
         </div>
-
-        <h1>Prescription Details</h1>
-
-        <div className="card">
-          <p>
-            <strong>Share Code:</strong> <span style={{ letterSpacing: "1px" }}>{decodedCode}</span>
-          </p>
-          <p>
-            <strong>Patient Name:</strong> {rx.patientName}
-          </p>
-          <p>
-            <strong>Issued By:</strong> {rx.issuedBy}
-          </p>
-          <p>
-            <strong>Issued At:</strong> {formatIST(rx.issuedAt)}
-          </p>
-        </div>
-
-        <h2>Medications</h2>
-        <div className="card">
-          <table className="table">
-            <thead>
-              <tr>
-                <th>Drug</th>
-                <th>Dose</th>
-                <th>Frequency</th>
-                <th>Duration</th>
-                <th>Notes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rx.items.map((item, index) => (
-                <tr key={index}>
-                  <td>
-                    <strong>{item.drug}</strong>
-                  </td>
-                  <td>{item.dose}</td>
-                  <td>{item.frequency}</td>
-                  <td>{item.durationDays} days</td>
-                  <td>{item.notes || "-"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        <DispenseForm recordId={rx.recordId} dispensedAt={rx.dispensedAt} />
       </main>
     </>
   );

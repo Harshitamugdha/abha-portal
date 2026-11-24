@@ -5,13 +5,15 @@ import { usePathname } from "next/navigation";
 
 type NavLinksProps = {
   links: { href: string; label: string }[];
+  label?: string;
+  className?: string;
 };
 
 function isInside(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(href + "/");
 }
 
-export function NavLinks({ links }: NavLinksProps) {
+export function NavLinks({ links, label = "Main", className = "nav-links" }: NavLinksProps) {
   const pathname = usePathname();
 
   let currentHref = "";
@@ -22,7 +24,7 @@ export function NavLinks({ links }: NavLinksProps) {
   }
 
   return (
-    <nav aria-label="Main" className="nav-links">
+    <nav aria-label={label} className={className}>
       {links.map((link) => (
         <Link key={link.href} href={link.href} aria-current={link.href === currentHref ? "page" : undefined}>
           {link.label}

@@ -18,10 +18,9 @@ export function DispenseForm({ recordId, dispensedAt }: DispenseFormProps) {
 
   if (successDate) {
     return (
-      <div className="card" style={{ borderLeft: "4px solid #15803d" }}>
-        <p className="success" style={{ fontWeight: 600 }}>
-          Already dispensed at {formatIST(successDate)}
-        </p>
+      <div className="form-card success-card" role="status">
+        <h2>Dispensed</h2>
+        <p>This prescription was dispensed on {formatIST(successDate)}. It cannot be dispensed again.</p>
       </div>
     );
   }
@@ -34,27 +33,25 @@ export function DispenseForm({ recordId, dispensedAt }: DispenseFormProps) {
         setSuccessDate(res.data.dispensedAt);
         router.refresh();
       } else {
-        setErrorMsg(res.error.message || "Failed to dispense");
+        setErrorMsg(res.error.message || "Could not mark this prescription as dispensed.");
       }
     });
   }
 
   return (
-    <div className="card">
+    <div className="help-panel">
+      <h2>Ready to dispense</h2>
+      <p>Mark it as dispensed only after you have handed over the medicines. This cannot be undone.</p>
       {errorMsg && (
-        <p className="error" style={{ marginBottom: "12px" }}>
+        <p className="error tile-status" role="alert">
           {errorMsg}
         </p>
       )}
-      <button
-        type="button"
-        onClick={handleDispense}
-        disabled={isPending}
-        className="btn"
-        style={{ width: "100%", padding: "12px" }}
-      >
-        {isPending ? "Dispensing..." : "Confirm & Dispense Medication"}
-      </button>
+      <div className="form-actions tile-status">
+        <button type="button" onClick={handleDispense} disabled={isPending} className="btn btn-accent btn-large">
+          {isPending ? "Saving…" : "Mark as dispensed"}
+        </button>
+      </div>
     </div>
   );
 }
