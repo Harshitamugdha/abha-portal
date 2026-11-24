@@ -4,17 +4,28 @@ import { useState } from "react";
 import Link from "next/link";
 import { registerStaff } from "./actions";
 
+const NETWORK_ERROR = "Could not reach the server. Check your connection and try again.";
+
 type Institution = {
   id: string;
   name: string;
   type: string;
 };
 
-const INSTITUTION_TYPE_FOR_ROLE: Record<string, string> = {
-  DOCTOR: "HOSPITAL",
-  PHARMACY: "PHARMACY",
-  LAB: "LAB",
-};
+const ROLES = [
+  { value: "DOCTOR", label: "Doctor", detail: "Works at a hospital", institutionType: "HOSPITAL" },
+  { value: "PHARMACY", label: "Pharmacy", detail: "Dispenses prescriptions", institutionType: "PHARMACY" },
+  { value: "LAB", label: "Lab", detail: "Uploads test results", institutionType: "LAB" },
+];
+
+function institutionTypeFor(role: string) {
+  for (const item of ROLES) {
+    if (item.value === role) {
+      return item.institutionType;
+    }
+  }
+  return "";
+}
 
 export function RegisterForm({ institutions }: { institutions: Institution[] }) {
   const [name, setName] = useState("");
@@ -29,7 +40,7 @@ export function RegisterForm({ institutions }: { institutions: Institution[] }) 
 
   const choices: Institution[] = [];
   for (const institution of institutions) {
-    if (institution.type === INSTITUTION_TYPE_FOR_ROLE[role]) {
+    if (institution.type === institutionTypeFor(role)) {
       choices.push(institution);
     }
   }
@@ -44,85 +55,155 @@ export function RegisterForm({ institutions }: { institutions: Institution[] }) 
     setError("");
     setBusy(true);
 
-    const input = {
-      name: name,
-      email: email,
-      password: password,
-      role: role,
-      institutionId: institutionId,
-      hprId: role === "DOCTOR" ? hprId : undefined,
-    };
-    const result = await registerStaff(input);
-    setBusy(false);
-
-    if (!result.ok) {
-      setError(result.error.message);
-      return;
+    let doctorHprId = undefined;
+    if (role === "DOCTOR") {
+      doctorHprId = hprId;
     }
-    setDone(true);
+
+    try {
+      const result = await registerStaff({
+        name: name,
+        email: email,
+        password: password,
+        role: role,
+        institutionId: institutionId,
+        hprId: doctorHprId,
+      });
+      if (!result.ok) {
+        setError(result.error.message);
+        return;
+      }
+      setDone(true);
+    } catch {
+      setError(NETWORK_ERROR);
+    } finally {
+      setBusy(false);
+    }
   }
 
   if (done) {
     return (
-      <div className="card">
-        <p className="success">Registered. An admin must verify your account before you can log in.</p>
-        <Link className="link" href="/staff/login">
-          Go to staff login
-        </Link>
+      <div className="form-card success-card">
+        <h2>Registration received</h2>
+        <p>
+          Thank you, {name}. An administrator will check your details. You can log in once your account is verified.
+        </p>
+        <div>
+          <Link className="btn btn-accent" href="/staff/login">
+            Go to staff login
+          </Link>
+        </div>
       </div>
     );
   }
 
   return (
-    <form className="form card" onSubmit={handleSubmit}>
-      <label className="label">
-        Full name
-        <input className="input" value={name} onChange={(event) => setName(event.target.value)} required />
-      </label>
-      <label className="label">
-        Email
-        <input className="input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required />
-      </label>
-      <label className="label">
-        Password (8+ characters)
-        <input
-          className="input"
-          type="password"
-          value={password}
-          onChange={(event) => setPassword(event.target.value)}
-          minLength={8}
-          required
-        />
-      </label>
-      <label className="label">
-        Role
-        <select className="input" value={role} onChange={(event) => changeRole(event.target.value)}>
-          <option value="DOCTOR">Doctor</option>
-          <option value="PHARMACY">Pharmacy</option>
-          <option value="LAB">Lab</option>
-        </select>
-      </label>
-      <label className="label">
-        Institution
-        <select className="input" value={institutionId} onChange={(event) => setInstitutionId(event.target.value)} required>
-          <option value="">Choose…</option>
-          {choices.map((institution) => (
-            <option key={institution.id} value={institution.id}>
-              {institution.name}
-            </option>
+    <form className="form-card" onSubmit={handleSubmit}>
+      <fieldset>
+        <legend className="form-section">1. Your role</legend>
+        <div className="role-options">
+          {ROLES.map((item) => (
+            <label key={item.value} className="role-option">
+              <input
+                type="radio"
+                name="role"
+                value={item.value}
+                checked={role === item.value}
+                onChange={() => changeRole(item.value)}
+              />
+              <span>
+                <strong>{item.label}</strong>
+                <span className="field-hint">{item.detail}</span>
+              </span>
+            </label>
           ))}
-        </select>
-      </label>
-      {role === "DOCTOR" && (
+        </div>
+      </fieldset>
+
+      <fieldset className="form-fields">
+        <legend className="form-section">2. Your details</legend>
         <label className="label">
-          HPR id
-          <input className="input" value={hprId} onChange={(event) => setHprId(event.target.value)} required />
+          Full name
+          <input
+            className="input input-wide"
+            value={name}
+            onChange={(event) => setName(event.target.value)}
+            autoComplete="name"
+            required
+          />
         </label>
+        <label className="label">
+          Work email
+          <input
+            className="input input-wide"
+            type="email"
+            value={email}
+            onChange={(event) => setEmail(event.target.value)}
+            autoComplete="email"
+            required
+          />
+        </label>
+        <label className="label">
+          Password
+          <span className="field-hint">At least 8 characters</span>
+          <input
+            className="input input-wide"
+            type="password"
+            value={password}
+            onChange={(event) => setPassword(event.target.value)}
+            autoComplete="new-password"
+            minLength={8}
+            required
+          />
+        </label>
+        <label className="label">
+          Where you work
+          <select
+            className="input input-wide"
+            value={institutionId}
+            onChange={(event) => setInstitutionId(event.target.value)}
+            required
+          >
+            <option value="">Choose…</option>
+            {choices.map((institution) => (
+              <option key={institution.id} value={institution.id}>
+                {institution.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        {role === "DOCTOR" && (
+          <label className="label">
+            HPR ID
+            <span className="field-hint">Your Healthcare Professional Registry ID</span>
+            <input
+              className="input input-wide"
+              value={hprId}
+              onChange={(event) => setHprId(event.target.value)}
+              required
+            />
+          </label>
+        )}
+      </fieldset>
+
+      {error && (
+        <p className="error" role="alert">
+          {error}
+        </p>
       )}
-      <button className="btn" type="submit" disabled={busy}>
-        Register
-      </button>
-      {error && <p className="error">{error}</p>}
+
+      <div className="form-actions">
+        <button className="btn btn-accent btn-large" type="submit" disabled={busy}>
+          {busy ? "Registering…" : "Register"}
+        </button>
+      </div>
+
+      <p className="form-footer">
+        Already registered?{" "}
+        <Link className="accent-link" href="/staff/login">
+          Staff login
+        </Link>
+      </p>
     </form>
   );
 }

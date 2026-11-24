@@ -119,10 +119,10 @@ Plus four of your own:
 
 # PART D — DONE MEANS
 - [ ] Demo steps 8 and 11 work on the deployed build
-- [ ] A newly registered doctor can log in only after you verify them
-- [ ] Institution create/edit works; audit filters (outcome, patient, actor, date range) work
-- [ ] `/api/v1/health` answers from the Edge runtime; `logError` is wired in
-- [ ] CI runs on every PR and blocks a red build; the deployed build carries no secrets in its bundle
+- [x] A newly registered doctor can log in only after you verify them
+- [x] Institution create/edit works; audit filters (outcome, patient, actor, date range) work
+- [x] `/api/v1/health` answers from the Edge runtime; `logError` is wired in
+- [x] CI runs on every PR and blocks a red build; the deployed build carries no secrets in its bundle
 
 # PART E — VIVA QUESTIONS
 1. Why does the pharmacy look up by share code instead of by patient?

@@ -22,6 +22,64 @@ in one file, not scattered across three personal logs and a chat.
 
 ---
 
+## [2026-11-24 23:55] UI — Ravuri's admin + pharmacy screens moved to the shared design (Harshita → Ravuri)
+
+**Received / changed:** Look only; no data functions, actions or contracts touched. `admin/page.tsx`
+(dashboard: waiting staff, institutions, refused attempts), `admin/staff/*`, `admin/audit/page.tsx`,
+`admin/institutions/*`, `pharmacy/page.tsx`, `pharmacy/rx/[code]/*`. Inline styles removed (shared
+classes in `globals.css`), sentence case, `ADMIN_LINKS` / `PHARMACY_LINKS` shared lists, new `PageHead`
+component. Pharmacy "Demo tip" removed (product look). Bug fixed on the way: audit paging dropped the
+Actor ID filter; `pageHref()` now keeps every filter.
+
+**Gates:** `npm run check` PASS (262 tests) · browser: admin home, audit log filtered, pharmacy lookup
+`asha7k` → `ASHA7K` page. Dispense not pressed (kept for manual testing).
+
+**Broke:** nothing.
+
+**Next:** Ravuri to review the diff of his files before merging.
+
+## [2026-11-24 22:55] Contract change — one active consent per doctor + patient (Harshita → Vivek)
+
+**Received / changed:** **[contract]** CONTRACTS §4.2: `requestConsent` while the doctor already has an
+active grant for that patient → `CONFLICT` ("You already have access to this patient…"). Before, a
+second request could be approved, leaving two active grants; revoking the newer one silently
+re-enabled the older one.
+
+**Gates:** `npm run check` PASS (262 tests).
+
+**Broke:** nothing yet. **Vivek:** your request form must show the `CONFLICT` message (or hide the
+button when `/consents/latest` shows `GRANTED`), not treat it as an error page.
+
+**State:** a revoke always ends the doctor's access (demo step 10).
+
+**Next:** Vivek's request form handles `CONFLICT`.
+
+## [2026-11-24 22:45] Review — Ravuri's pharmacy + admin (e161297) against authorize()
+
+**Received / changed:** Ravuri's `pharmacy.ts`, `admin.ts` contracts, data functions, Server Actions,
+screens, Edge `/health`, `logError`, CI. Every data function calls `authorize()` first; DTOs are built
+field by field; no `src/server/` import in a client file; nothing private is cached.
+
+**Gates:** `npm run check` PASS (233 tests).
+
+**Broke:** `dispensePrescription` checked "expired" / "already dispensed" **before** `authorize()`, so a
+patient or doctor sending any `recordId` got `CONFLICT "Already dispensed at …"` instead of `NOT_FOUND`
+(D10), with no audit row. The update had no `dispensedAt: null` guard, so two counters could both
+dispense. `lookupPrescription` skipped the audit row for expired codes. → **Fixed by:** Harshita,
+`src/server/pharmacy/pharmacy.ts`: `authorize()` right after the existence check, state checks after
+it, `updateMany … where dispensedAt: null` + `count === 0 → CONFLICT` (same pattern as the consent
+engine). 3 tests added in `pharmacy.test.ts`.
+
+**Still for Ravuri (not changed, his files / contract):**
+- `ListStaffQuery.verified` uses `z.coerce.boolean()`: the string `"false"` becomes `true`. Fine for
+  today's callers (they pass real booleans) but wrong the day it's read from a URL. Contract change.
+- `updateInstitution` with an unknown id → Prisma throws → `INTERNAL`. Should be `NOT_FOUND`.
+- Inline conditional spreads in `listStaff`, `queryAudit` and `logError` (CLAUDE.md: rewrite in plain steps).
+
+**State:** demo steps 6–7 (pharmacy) and 11 (admin audit) now safe at the policy level.
+
+**Next:** Vivek's records + doctor portal (nothing landed yet), then the full demo story.
+
 ## [2026-11-21 19:45] Ravuri joins the build — pharmacy, admin, platform, deployment, CI
 
 **Received / changed:** Ravuri is building again (Master D23). Pharmacy, admin (staff verification,

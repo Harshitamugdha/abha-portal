@@ -3,6 +3,83 @@
 
 ---
 
+## [2026-11-24 23:10] Patient portal UI — government-style redesign
+
+**Done:** Design critique of every screen, then fixed the patient portal. Site frame on every page:
+skip link, "student demo, not official" strip, identity header, navy nav with the current page marked
+(`aria-current`), footer. Noto Sans (Latin + Devanagari) replaces the unused Geist. New shared styles
+(badges, tiles, summary lists, confirm panel, empty states, focus outline) in `globals.css`; old
+class names kept so Ravuri's pages pick up the look unchanged. Landing page explains consent in 3
+steps. Login/OTP: hint text, `autocomplete="one-time-code"`, buttons recover after a network error.
+Home: whole tile clickable, "Action needed" when a doctor is waiting. Consent Center: status badge,
+facts as a list, approve panel, in-page revoke confirmation instead of `window.confirm`. Access log:
+"Allowed/Refused" badges instead of grey text (was 2.5:1, failed WCAG), no paging when empty, table
+scrolls on phones.
+
+**Files touched:** `components/ui/{site-header,site-footer,nav-links}.tsx` (new) · `globals.css`,
+`layout.tsx`, `page.tsx`, `(auth)/login/**`, `patient/**`, `components/ui/top-bar.tsx`, `.gitignore` (modified)
+
+**Run command:**
+```bash
+npm run check && npm run build
+```
+
+**Access check (real browser, 1366 px and 390 px):** Asha OTP login → home shows "1 doctor is waiting"
+→ approve Arjun → Active → Revoke → confirm panel → Past "Revoked". Kavya's consent lookup appears in
+Asha's access log with an "Allowed" badge. Patient routes still dynamic (ƒ) in the build.
+
+**Learned:** Local `.env` was missing `JWT_SECRET` → OTP verify gave a 500. `.env.example` has it;
+copy it on every fresh clone.
+
+**AI used:** review: design critique · code: everything above.
+
+**Open issues:**
+- Staff and admin screens (Ravuri's) use inline styles and Title Case; they now get the new colours but
+  should move to the shared classes.
+- OTP page still carries the ABHA number and txn id in the URL (browser history).
+
+**Next:** staff login/register screens in the same style; push to main.
+
+## [2026-11-24 22:50] Phase 6 — self-audit of phases 0–5 + review of Ravuri's pharmacy
+
+**Done:** Audited everything in Part A against the brief, CONTRACTS and TRAPS. Pure logic was well
+tested (90 matrix cells, expiry edges, OTP rules), but nothing that touches the database was. Added
+`consent/engine.test.ts` (no duplicate request, owner only, narrowing saved, `validTo`, state
+guards, two-click race), `auth/authorize.audit.test.ts` (one audit row per call incl. denied, consent
+id recorded, audit failure fails closed) and `auth/login.test.ts` (same error for unknown email /
+wrong password, `STAFF_UNVERIFIED` only after the right password, registration rules). Fixed:
+registering the same email twice at once → `CONFLICT` instead of `INTERNAL` (P2002); `/patient/access-log?page=abc`
+crashed with a 500, now falls back to page 1. Pharmacy: `authorize()` before state checks + guarded
+dispense (see `_INTEGRATION.md`). `identity-and-consent.md` corrected to match the code.
+
+**Files touched:** `engine.test.ts`, `authorize.audit.test.ts`, `login.test.ts` (new) · `register.ts`,
+`patient/access-log/page.tsx`, `pharmacy.ts` + test, `identity-and-consent.md`, `_INTEGRATION.md` (modified)
+
+**Run command:**
+```bash
+npm run check     # 260 tests
+```
+
+**Access check:** tests only (mocked database); no live run this time.
+
+**Demo steps enabled:** none new.
+
+**Learned:** A green matrix test proves `decide()`, not `authorize()`; the "audit first, never throw on
+deny" promise needed its own test.
+
+**AI used:** review: the audit · code: tests and fixes above.
+
+**Open issues:**
+- ~~Second request while a consent is active~~ **fixed:** `createRequest` now refuses with `CONFLICT`
+  while an active grant exists (CONTRACTS §4.2 updated, 2 tests).
+- Staff login: unknown email returns faster than a wrong password (no bcrypt run) → timing leak of which
+  emails exist. No attempt limit on staff passwords or on registration.
+- OTP txn / rate-limit `Map`s are never pruned (memory grows with abandoned logins); still in memory on Vercel.
+- Consent Center / OTP form: a network error leaves the buttons stuck on busy (no try/finally).
+- Phase 6 demo story blocked on Vivek's records + doctor portal.
+
+**Next:** full demo story once Vivek lands.
+
 ## [2026-11-21 20:25] Phase 5 (minimum for a deploy link) — screens + stub removed
 
 **Done:** Screens: `/login` (ABHA), `/login/otp` (30 s resend via `useCountdown` with cleanup),
