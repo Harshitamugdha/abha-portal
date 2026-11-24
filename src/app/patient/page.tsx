@@ -16,6 +16,18 @@ export default async function PatientHomePage() {
       <main className="page">
         <h1>Welcome, {user.name}</h1>
         <div className="card">
+          <Link className="link" href="/patient/records">
+            Records
+          </Link>
+          <p className="muted">View your medical timeline from all hospitals, clinics, and labs.</p>
+        </div>
+        <div className="card">
+          <Link className="link" href="/patient/upload">
+            Upload document
+          </Link>
+          <p className="muted">Add your own past health records, discharge summaries, or prescriptions.</p>
+        </div>
+        <div className="card">
           <Link className="link" href="/patient/consents">
             Consents
           </Link>

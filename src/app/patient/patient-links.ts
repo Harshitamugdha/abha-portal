@@ -1,5 +1,7 @@
 export const PATIENT_LINKS = [
   { href: "/patient", label: "Home" },
+  { href: "/patient/records", label: "Records" },
+  { href: "/patient/upload", label: "Upload" },
   { href: "/patient/consents", label: "Consents" },
   { href: "/patient/access-log", label: "Who viewed my records" },
 ];
