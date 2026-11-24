@@ -16,8 +16,8 @@ export default async function OtpPage(props: PageProps<"/login/otp">) {
     return (
       <main className="page">
         <h1>Enter OTP</h1>
-        <p>
-          Start again from the{" "}
+        <p className="empty">
+          Your login has expired. Start again from the{" "}
           <Link className="link" href="/login">
             login page
           </Link>
@@ -29,13 +29,21 @@ export default async function OtpPage(props: PageProps<"/login/otp">) {
 
   return (
     <main className="page">
-      <h1>Enter OTP</h1>
-      <OtpForm
-        firstTxnId={txnId}
-        maskedMobile={text(searchParams.mobile)}
-        abha={text(searchParams.abha)}
-        firstDevOtp={text(searchParams.dev)}
-      />
+      <div className="auth-box">
+        <h1>Enter OTP</h1>
+        <OtpForm
+          firstTxnId={txnId}
+          maskedMobile={text(searchParams.mobile)}
+          abha={text(searchParams.abha)}
+          firstDevOtp={text(searchParams.dev)}
+        />
+        <p className="muted">
+          Wrong ABHA?{" "}
+          <Link className="link" href="/login">
+            Use a different one
+          </Link>
+        </p>
+      </div>
     </main>
   );
 }

@@ -55,28 +55,39 @@ export default async function AccessLogPage(props: PageProps<"/patient/access-lo
       <TopBar name={user.name} links={PATIENT_LINKS} />
       <main className="page">
         <h1>Who viewed my records</h1>
+        <p className="lead">
+          Every time someone opens or asks for your records it is listed here, including attempts that were refused.
+        </p>
 
-        {log.items.length === 0 && <p className="muted">Nobody has looked at your records yet.</p>}
+        {log.items.length === 0 && <p className="empty">Nobody has looked at your records yet.</p>}
 
         {log.items.length > 0 && (
-          <div className="card">
+          <div className="table-wrap">
             <table className="table">
               <thead>
                 <tr>
                   <th>When</th>
                   <th>Who</th>
                   <th>What</th>
-                  <th>Under consent</th>
+                  <th>Result</th>
+                  <th>Consent</th>
                 </tr>
               </thead>
               <tbody>
                 {log.items.map((entry) => (
-                  <tr key={entry.id} className={entry.outcome === "DENIED" ? "denied" : ""}>
+                  <tr key={entry.id}>
                     <td>{formatIST(entry.at)}</td>
                     <td>
                       {entry.actorName} ({entry.actorRole.toLowerCase()})
                     </td>
                     <td>{whatHappened(entry.action)}</td>
+                    <td>
+                      {entry.outcome === "DENIED" ? (
+                        <span className="badge badge-red">Refused</span>
+                      ) : (
+                        <span className="badge badge-green">Allowed</span>
+                      )}
+                    </td>
                     <td>{consentText(entry.outcome, entry.reason, entry.consentPurpose)}</td>
                   </tr>
                 ))}
@@ -85,21 +96,23 @@ export default async function AccessLogPage(props: PageProps<"/patient/access-lo
           </div>
         )}
 
-        <div className="row">
-          {log.page > 1 && (
-            <Link className="link" href={"/patient/access-log?page=" + (log.page - 1)}>
-              Newer
-            </Link>
-          )}
-          <span className="muted">
-            Page {log.page} of {lastPage}
-          </span>
-          {log.page < lastPage && (
-            <Link className="link" href={"/patient/access-log?page=" + (log.page + 1)}>
-              Older
-            </Link>
-          )}
-        </div>
+        {log.total > 0 && (
+          <nav aria-label="Pages" className="row">
+            {log.page > 1 && (
+              <Link className="link" href={"/patient/access-log?page=" + (log.page - 1)}>
+                Newer
+              </Link>
+            )}
+            <span className="muted">
+              Page {log.page} of {lastPage}
+            </span>
+            {log.page < lastPage && (
+              <Link className="link" href={"/patient/access-log?page=" + (log.page + 1)}>
+                Older
+              </Link>
+            )}
+          </nav>
+        )}
       </main>
     </>
   );

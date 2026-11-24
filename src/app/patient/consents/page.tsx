@@ -15,8 +15,10 @@ type SectionProps = {
 function Section({ title, consents, empty }: SectionProps) {
   return (
     <section>
-      <h2>{title}</h2>
-      {consents.length === 0 && <p className="muted">{empty}</p>}
+      <h2>
+        {title} ({consents.length})
+      </h2>
+      {consents.length === 0 && <p className="empty">{empty}</p>}
       {consents.map((consent) => (
         <ConsentCard key={consent.id} consent={consent} />
       ))}
@@ -50,6 +52,10 @@ export default async function ConsentCenterPage() {
       <TopBar name={user.name} links={PATIENT_LINKS} />
       <main className="page">
         <h1>Consents</h1>
+        <p className="lead">
+          A doctor can see your records only while a consent is active. You choose what they see and can revoke it at
+          any time.
+        </p>
         <Section title="Waiting for you" consents={waiting} empty="No doctor is waiting for an answer." />
         <Section title="Active" consents={active} empty="No doctor can see your records right now." />
         <Section title="Past" consents={past} empty="Nothing here yet." />

@@ -1,5 +1,5 @@
-import Link from "next/link";
 import { LogoutButton } from "./logout-button";
+import { NavLinks } from "./nav-links";
 
 type TopBarProps = {
   name: string;
@@ -8,17 +8,14 @@ type TopBarProps = {
 
 export function TopBar({ name, links }: TopBarProps) {
   return (
-    <header className="topbar">
+    <div className="topbar">
       <div className="topbar-inner">
-        <strong>ABHA Portal</strong>
-        {links.map((link) => (
-          <Link key={link.href} href={link.href}>
-            {link.label}
-          </Link>
-        ))}
-        <span className="topbar-name">{name}</span>
-        <LogoutButton />
+        <NavLinks links={links} />
+        <div className="topbar-user">
+          <span>Signed in as {name}</span>
+          <LogoutButton />
+        </div>
       </div>
-    </header>
+    </div>
   );
 }

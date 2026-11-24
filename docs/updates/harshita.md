@@ -3,6 +3,43 @@
 
 ---
 
+## [2026-11-24 23:10] Patient portal UI — government-style redesign
+
+**Done:** Design critique of every screen, then fixed the patient portal. Site frame on every page:
+skip link, "student demo, not official" strip, identity header, navy nav with the current page marked
+(`aria-current`), footer. Noto Sans (Latin + Devanagari) replaces the unused Geist. New shared styles
+(badges, tiles, summary lists, confirm panel, empty states, focus outline) in `globals.css`; old
+class names kept so Ravuri's pages pick up the look unchanged. Landing page explains consent in 3
+steps. Login/OTP: hint text, `autocomplete="one-time-code"`, buttons recover after a network error.
+Home: whole tile clickable, "Action needed" when a doctor is waiting. Consent Center: status badge,
+facts as a list, approve panel, in-page revoke confirmation instead of `window.confirm`. Access log:
+"Allowed/Refused" badges instead of grey text (was 2.5:1, failed WCAG), no paging when empty, table
+scrolls on phones.
+
+**Files touched:** `components/ui/{site-header,site-footer,nav-links}.tsx` (new) · `globals.css`,
+`layout.tsx`, `page.tsx`, `(auth)/login/**`, `patient/**`, `components/ui/top-bar.tsx`, `.gitignore` (modified)
+
+**Run command:**
+```bash
+npm run check && npm run build
+```
+
+**Access check (real browser, 1366 px and 390 px):** Asha OTP login → home shows "1 doctor is waiting"
+→ approve Arjun → Active → Revoke → confirm panel → Past "Revoked". Kavya's consent lookup appears in
+Asha's access log with an "Allowed" badge. Patient routes still dynamic (ƒ) in the build.
+
+**Learned:** Local `.env` was missing `JWT_SECRET` → OTP verify gave a 500. `.env.example` has it;
+copy it on every fresh clone.
+
+**AI used:** review: design critique · code: everything above.
+
+**Open issues:**
+- Staff and admin screens (Ravuri's) use inline styles and Title Case; they now get the new colours but
+  should move to the shared classes.
+- OTP page still carries the ABHA number and txn id in the URL (browser history).
+
+**Next:** staff login/register screens in the same style; push to main.
+
 ## [2026-11-24 22:50] Phase 6 — self-audit of phases 0–5 + review of Ravuri's pharmacy
 
 **Done:** Audited everything in Part A against the brief, CONTRACTS and TRAPS. Pure logic was well
