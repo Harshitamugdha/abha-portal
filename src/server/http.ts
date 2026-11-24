@@ -1,5 +1,6 @@
 import "server-only";
 import { ERROR_STATUS, type ActionResult, type ErrorCode } from "@/contracts/shared";
+import { logError } from "@/server/log";
 
 const DEFAULT_MESSAGES: Record<ErrorCode, string> = {
   VALIDATION_FAILED: "Some of the information you sent is not valid.",
@@ -55,7 +56,7 @@ export function handleRouteError(error: unknown): Response {
   if (error instanceof ApiError) {
     return apiError(error.code, error.message, error.details);
   }
-  console.error(error);
+  logError(error, "route");
   return apiError("INTERNAL");
 }
 
@@ -63,6 +64,6 @@ export function handleActionError(error: unknown): ActionResult<never> {
   if (error instanceof ApiError) {
     return actionError(error.code, error.message, error.details);
   }
-  console.error(error);
+  logError(error, "action");
   return actionError("INTERNAL");
 }
