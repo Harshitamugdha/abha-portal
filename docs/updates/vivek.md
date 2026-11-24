@@ -3,6 +3,31 @@
 
 ---
 
+## [2026-11-25 01:30] Slice P0.3 — Doctor viewer, three states, on fixtures (Phase 0 complete)
+
+**Done:** Replaced doctor placeholder with clinical dashboard and patient search box. Implemented doctor patient record viewer displaying three distinct UI states on fixtures (`ConsentRequired`, `EmptyState` in scope, and `InstitutionGroup` grouped by institution). Added pure `group-by-institution.ts` with tests and production guard calling `notFound()`. Phase 0 is complete.
+
+**Files touched:** `src/app/doctor/page.tsx` (modified) · `src/app/doctor/doctor-links.ts` (new) · `src/app/doctor/patients/page.tsx` (new) · `src/app/doctor/patients/[patientId]/page.tsx` (new) · `src/app/doctor/patients/[patientId]/fixtures.ts` (new) · `src/app/doctor/patients/[patientId]/fixtures.test.ts` (new) · `src/components/ui/consent-required.tsx` (new) · `src/components/ui/institution-group.tsx` (new) · `src/components/ui/group-by-institution.ts` (new) · `src/components/ui/group-by-institution.test.ts` (new) · `CHANGELOG.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Dr Kavya (`kavya@citygen.test` / `Demo@1234`) → /doctor/patients/user-asha?state=records (or use dev state switcher to toggle `consent` and `empty`).
+
+**Access check:** Dr Kavya views /doctor/patients/user-asha across three distinct screens: `consent` renders an active amber alert with "Request access" (never an empty list, TRAPS §4), `empty` renders "No records in the scopes you have access to", `records` renders records grouped by institution (City General & Sunrise). Asha opening /doctor is redirected to /patient. Logged-out access redirects to /staff/login.
+
+**Demo steps enabled:** 2 & 5 (viewer three states verified)
+
+**Learned:** Explicitly designing the "Consent required" state as an alert banner rather than checking if items are empty prevents false clinical statements (TRAPS §4).
+
+**AI used:** code: built viewer layout, institution grouping logic, fixture models, and vitest suites.
+
+**Open issues:**
+- none
+
+**Next:** Phase 1 — Records API (`listPatientRecords` data function with `authorize()`, `d.allowedTypes`, pagination, and Route Handlers).
+
 ## [2026-11-25 00:30] Slice P0.2 — Patient screens on fixtures
 
 **Done:** Built patient records timeline and dashboard cards on fixtures parsed with `RecordDTO`. Monthly grouping in IST with rollover boundary tests (`group-by-month.ts`), shared UI components (`RecordCard`, `RecordTimeline`, `Badge`, `EmptyState`), and production guard calling `notFound()`. Updated `PATIENT_LINKS` with Records and Upload.

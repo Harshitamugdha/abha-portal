@@ -4,6 +4,7 @@ Newest first. One entry per merged phase that changes what a user can do, or wha
 Contract changes are marked **[contract]**.
 
 ## Unreleased
+- **Phase 0 complete (25 Nov 2026):** Vivek completed Phase 0 shells: patient records timeline and doctor patient viewer with three distinct states (consent required, empty in scope, records grouped by institution) built against fixtures.
 - **[contract]** (24 Nov 2026) Initial schemas for records, clinical, and lab domains: `RecordDTO`, `RecordListQuery`, `DocumentUpload`, `PatientLookupDTO`, `SummaryDTO`, `PrescriptionCreate`, `EncounterCreate`, `LabOrderCreate`, `LabOrderDTO`, `LabResultUpload` (Vivek, Slice P0.1).
 - **[contract]** (21 Nov 2026) `ConsentGrant.durationDays` (schema, default 7) so approve can set `validTo`; `ConsentRequest.institutionId?` for doctors at two institutions.
 - **v3 (21 Nov 2026):** Ravuri builds again (D23): pharmacy, admin, Edge health route, `logError`, deployment, CI. New brief `docs/team/ravuri.md` and log `docs/updates/ravuri.md`; Harshita's brief drops that work. **[contract]** owner of `pharmacy.ts` and `admin.ts` is now Ravuri (shapes unchanged).
