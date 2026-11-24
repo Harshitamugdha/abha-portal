@@ -12,15 +12,13 @@ const notoSans = Noto_Sans({
 export const metadata: Metadata = {
   title: "ABHA Health Portal",
   description: "Your health records from every hospital, shared only with your consent.",
+  robots: { index: false, follow: false },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html lang="en" className={`${notoSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
-        <a className="skip-link" href="#content">
-          Skip to main content
-        </a>
         <SiteHeader />
         <div id="content" className="flex flex-col flex-1">
           {children}

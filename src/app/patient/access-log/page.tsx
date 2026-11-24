@@ -32,7 +32,7 @@ function consentText(outcome: string, reason: string | null, purpose: string | n
     }
     return "Refused";
   }
-  return purpose || "—";
+  return purpose || "Not needed";
 }
 
 export default async function AccessLogPage(props: PageProps<"/patient/access-log">) {
@@ -53,66 +53,82 @@ export default async function AccessLogPage(props: PageProps<"/patient/access-lo
   return (
     <>
       <TopBar name={user.name} links={PATIENT_LINKS} />
-      <main className="page">
-        <h1>Who viewed my records</h1>
-        <p className="lead">
-          Every time someone opens or asks for your records it is listed here, including attempts that were refused.
-        </p>
-
-        {log.items.length === 0 && <p className="empty">Nobody has looked at your records yet.</p>}
-
-        {log.items.length > 0 && (
-          <div className="table-wrap">
-            <table className="table">
-              <thead>
-                <tr>
-                  <th>When</th>
-                  <th>Who</th>
-                  <th>What</th>
-                  <th>Result</th>
-                  <th>Consent</th>
-                </tr>
-              </thead>
-              <tbody>
-                {log.items.map((entry) => (
-                  <tr key={entry.id}>
-                    <td>{formatIST(entry.at)}</td>
-                    <td>
-                      {entry.actorName} ({entry.actorRole.toLowerCase()})
-                    </td>
-                    <td>{whatHappened(entry.action)}</td>
-                    <td>
-                      {entry.outcome === "DENIED" ? (
-                        <span className="badge badge-red">Refused</span>
-                      ) : (
-                        <span className="badge badge-green">Allowed</span>
-                      )}
-                    </td>
-                    <td>{consentText(entry.outcome, entry.reason, entry.consentPurpose)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+      <main className="landing">
+        <section className="band">
+          <div className="container page-head">
+            <p className="step-label">Your account</p>
+            <h1 className="auth-title">Who viewed my records</h1>
           </div>
-        )}
+        </section>
 
-        {log.total > 0 && (
-          <nav aria-label="Pages" className="row">
-            {log.page > 1 && (
-              <Link className="link" href={"/patient/access-log?page=" + (log.page - 1)}>
-                Newer
-              </Link>
-            )}
-            <span className="muted">
-              Page {log.page} of {lastPage}
-            </span>
-            {log.page < lastPage && (
-              <Link className="link" href={"/patient/access-log?page=" + (log.page + 1)}>
-                Older
-              </Link>
-            )}
-          </nav>
-        )}
+        <div className="container dashboard">
+          <p className="lead">
+            Every time someone opens or asks for your records it is listed here, including attempts that were refused.
+          </p>
+
+          {log.items.length === 0 && <p className="empty">Nobody has looked at your records yet.</p>}
+
+          {log.items.length > 0 && (
+            <div>
+              <div className="table-wrap">
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>When</th>
+                      <th>Who</th>
+                      <th>What</th>
+                      <th>Result</th>
+                      <th>Consent used</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {log.items.map((entry) => (
+                      <tr key={entry.id}>
+                        <td>{formatIST(entry.at)}</td>
+                        <td>
+                          <strong>{entry.actorName}</strong>
+                          <br />
+                          <span className="muted">{entry.actorRole.toLowerCase()}</span>
+                        </td>
+                        <td>{whatHappened(entry.action)}</td>
+                        <td>
+                          {entry.outcome === "DENIED" ? (
+                            <span className="badge badge-red">Refused</span>
+                          ) : (
+                            <span className="badge badge-green">Allowed</span>
+                          )}
+                        </td>
+                        <td>{consentText(entry.outcome, entry.reason, entry.consentPurpose)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="table-footer">
+                <p className="muted">
+                  <span className="badge badge-green">Allowed</span> they saw what they asked for.{" "}
+                  <span className="badge badge-red">Refused</span> they were stopped and saw nothing.
+                </p>
+                <nav aria-label="Pages" className="row">
+                  {log.page > 1 && (
+                    <Link className="accent-link" href={"/patient/access-log?page=" + (log.page - 1)}>
+                      Newer
+                    </Link>
+                  )}
+                  <span className="muted">
+                    Page {log.page} of {lastPage}
+                  </span>
+                  {log.page < lastPage && (
+                    <Link className="accent-link" href={"/patient/access-log?page=" + (log.page + 1)}>
+                      Older
+                    </Link>
+                  )}
+                </nav>
+              </div>
+            </div>
+          )}
+        </div>
       </main>
     </>
   );

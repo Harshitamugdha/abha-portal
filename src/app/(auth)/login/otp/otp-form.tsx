@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCountdown } from "./use-countdown";
 
@@ -76,9 +77,9 @@ export function OtpForm({ firstTxnId, maskedMobile, abha, firstDevOtp }: OtpForm
   }
 
   return (
-    <form className="form card" onSubmit={verify}>
+    <form className="form-card" onSubmit={verify}>
       <p>
-        We sent a 6-digit OTP to the mobile number ending <strong>{maskedMobile}</strong>. It is valid for 5 minutes.
+        We sent a 6-digit OTP to the mobile number ending <strong>{maskedMobile}</strong>.
       </p>
       {devOtp && <p className="hint">Demo OTP: {devOtp}</p>}
       <label className="label">
@@ -95,19 +96,28 @@ export function OtpForm({ firstTxnId, maskedMobile, abha, firstDevOtp }: OtpForm
           required
         />
       </label>
-      <div className="row">
-        <button className="btn" type="submit" disabled={busy}>
-          Verify and log in
-        </button>
-        <button className="btn btn-secondary" type="button" disabled={busy || countdown.left > 0} onClick={resend}>
-          {countdown.left > 0 ? "Resend OTP in " + countdown.left + "s" : "Resend OTP"}
-        </button>
-      </div>
+
       {error && (
         <p className="error" role="alert">
           {error}
         </p>
       )}
+
+      <div className="form-actions">
+        <button className="btn btn-secondary" type="button" disabled={busy || countdown.left > 0} onClick={resend}>
+          {countdown.left > 0 ? "Resend OTP in " + countdown.left + "s" : "Resend OTP"}
+        </button>
+        <button className="btn btn-accent btn-large" type="submit" disabled={busy}>
+          Verify and log in
+        </button>
+      </div>
+
+      <p className="form-footer">
+        Wrong ABHA?{" "}
+        <Link className="accent-link" href="/login">
+          Use a different one
+        </Link>
+      </p>
     </form>
   );
 }

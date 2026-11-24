@@ -49,7 +49,7 @@ export function ConsentCard({ consent }: { consent: ConsentDTO }) {
     }
   }
 
-  async function send(action: () => Promise<ActionResult<ConsentDTO>>) {
+  async function send(action: () => Promise<ActionResult<ConsentDTO>>, nextTab: string) {
     setBusy(true);
     setError("");
     try {
@@ -59,6 +59,7 @@ export function ConsentCard({ consent }: { consent: ConsentDTO }) {
         return;
       }
       setMode("view");
+      router.push("/patient/consents?tab=" + nextTab);
       router.refresh();
     } catch {
       setError(NETWORK_ERROR);
@@ -68,15 +69,15 @@ export function ConsentCard({ consent }: { consent: ConsentDTO }) {
   }
 
   function approve() {
-    send(() => approveConsent({ consentId: consent.id, scopes: ticked }));
+    send(() => approveConsent({ consentId: consent.id, scopes: ticked }), "active");
   }
 
   function deny() {
-    send(() => denyConsent({ consentId: consent.id }));
+    send(() => denyConsent({ consentId: consent.id }), "past");
   }
 
   function revoke() {
-    send(() => revokeConsent({ consentId: consent.id }));
+    send(() => revokeConsent({ consentId: consent.id }), "past");
   }
 
   const waiting = consent.displayStatus === "REQUESTED";
