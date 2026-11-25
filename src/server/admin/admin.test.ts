@@ -23,6 +23,7 @@ vi.mock("@/server/db", () => ({
     },
     institution: {
       findMany: vi.fn(),
+      findUnique: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
     },
@@ -155,6 +156,13 @@ describe("admin server functions", () => {
       });
       expect(created.name).toBe("Apollo Clinic");
 
+      vi.mocked(db.institution.findUnique).mockResolvedValueOnce({
+        id: "inst-apollo",
+        name: "Apollo Clinic",
+        type: "HOSPITAL",
+        city: "Hyderabad",
+      } as never);
+
       vi.mocked(db.institution.update).mockResolvedValueOnce({
         id: "inst-apollo",
         name: "Apollo Clinic Banjara",
@@ -173,6 +181,22 @@ describe("admin server functions", () => {
       vi.mocked(db.institution.findMany).mockResolvedValueOnce([updated] as never);
       const list = await listInstitutions(adminUser);
       expect(list.length).toBe(1);
+    });
+
+    it("returns NOT_FOUND when updating an unknown institution id", async () => {
+      vi.mocked(authorize).mockResolvedValue({ allowed: true, reason: "ROLE" });
+      vi.mocked(db.institution.findUnique).mockResolvedValueOnce(null);
+
+      await expect(
+        updateInstitution(adminUser, {
+          id: "inst-nonexistent",
+          name: "Fake",
+          type: "HOSPITAL",
+          city: "Delhi",
+        }),
+      ).rejects.toMatchObject({
+        code: "NOT_FOUND",
+      });
     });
   });
 });

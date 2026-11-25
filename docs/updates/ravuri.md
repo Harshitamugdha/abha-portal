@@ -3,6 +3,28 @@
 
 ---
 
+## [2026-11-25 11:15] Review Feedback Resolutions — Pharmacy atomic race prevention, check order, Admin institution edit & audit date filters
+
+**Done:** Fixed pharmacy dispense race condition by using atomic `db.prescription.updateMany` with `where: { recordId, dispensedAt: null }` and `dispensedBy: user.id`. Reordered dispense checks so `authorize()` is called immediately after row lookup (ensuring 404 and DENIED audit logging for unauthorized callers). Added from/to date filtering and full query-parameter preservation in `/admin/audit`. Added institution editing UI (`InstitutionManager`) and 404 handling on unknown id. Replaced object spread tricks with plain if statements and fixed `ListStaffQuery` boolean parsing.
+
+**Files touched:** `src/server/pharmacy/pharmacy.ts` (modified) · `src/server/pharmacy/pharmacy.test.ts` (modified) · `src/contracts/admin.ts` (modified) · `src/contracts/admin.test.ts` (modified) · `src/server/admin/admin.ts` (modified) · `src/server/admin/admin.test.ts` (modified) · `src/server/log.ts` (modified) · `src/app/admin/audit/page.tsx` (modified) · `src/app/admin/institutions/page.tsx` (modified) · `src/app/admin/institutions/institution-manager.tsx` (new) · `docs/team/ravuri.md` (modified) · `docs/updates/ravuri.md` (modified)
+
+**Run command:**
+```bash
+npm run check && npm run build
+```
+All typechecks, linter checks, and 233 Vitest tests pass cleanly. Production build compiles all 23 application routes without warnings.
+
+**Access check:** Non-pharmacy roles attempting to dispense an already-dispensed prescription receive 404 NOT_FOUND instead of conflict/leak, with DENIED recorded in the audit log; unknown institution id updates return 404 NOT_FOUND.
+
+**Demo steps enabled:** Step 8 (Pharmacy lookup and atomic dispense), Step 11 (Admin audit filtering by date/outcome and institution management).
+
+**Learned:** How atomic conditional updates (`updateMany` with conditional matching) avoid concurrency race conditions in serverless database environments without heavy table-level locking.
+
+**AI used:** code: implemented review fixes across pharmacy, admin, and schema files.
+
+---
+
 ## [2026-11-24 14:50] Phase 4 — CI Workflow
 
 **Done:** Created GitHub Actions workflow `.github/workflows/ci.yml` that triggers on pushes and PRs to `main`. It spins up an ephemeral PostgreSQL 16 container, applies Prisma migrations, executes the seed script, runs `npm run check` (typecheck, eslint, Vitest suite), and executes `npm run build`.
