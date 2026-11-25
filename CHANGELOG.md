@@ -4,6 +4,7 @@ Newest first. One entry per merged phase that changes what a user can do, or wha
 Contract changes are marked **[contract]**.
 
 ## Unreleased
+- **Slice P1.1 (25 Nov 2026):** Patient records timeline and dashboard switched from fixtures to live database data via `listPatientRecords` and `authorize()`, with GET form filtering (record type, institution, date range), pagination, and loading/error states (Vivek).
 - **Phase 0 complete (25 Nov 2026):** Vivek completed Phase 0 shells: patient records timeline and doctor patient viewer with three distinct states (consent required, empty in scope, records grouped by institution) built against fixtures.
 - **[contract]** (24 Nov 2026) Initial schemas for records, clinical, and lab domains: `RecordDTO`, `RecordListQuery`, `DocumentUpload`, `PatientLookupDTO`, `SummaryDTO`, `PrescriptionCreate`, `EncounterCreate`, `LabOrderCreate`, `LabOrderDTO`, `LabResultUpload` (Vivek, Slice P0.1).
 - **[contract]** (21 Nov 2026) `ConsentGrant.durationDays` (schema, default 7) so approve can set `validTo`; `ConsentRequest.institutionId?` for doctors at two institutions.

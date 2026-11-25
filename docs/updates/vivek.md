@@ -3,6 +3,31 @@
 
 ---
 
+## [2026-11-25 15:00] Slice P1.1 — Records list and detail, patient timeline on real data
+
+**Done:** Implemented `listPatientRecords`, `getRecord`, and `listPatientInstitutions` in `src/server/records/list.ts` with `authorize()`, SQL scope filtering (`WHERE type IN (decision.allowedTypes)`), page-based pagination, and strict field-by-field DTO mapping. Switched `/patient/records` and the patient dashboard (`/patient`) to live database data with plain GET form filtering (`type`, `institutionId`, `from`, `to`) and pagination. Added `loading.tsx` and `error.tsx` for patient records and removed fixture files.
+
+**Files touched:** `src/server/records/list.ts` (new) · `src/server/records/list.test.ts` (new) · `src/app/patient/records/page.tsx` (modified) · `src/app/patient/records/loading.tsx` (new) · `src/app/patient/records/error.tsx` (new) · `src/app/patient/page.tsx` (modified) · `src/app/patient/records/fixtures.ts` (deleted) · `src/app/patient/records/fixtures.test.ts` (deleted) · `CHANGELOG.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Asha (`91-1000-0000-0001`, OTP `123456`) → http://localhost:3000/patient/records (views all 7 records across City General and Sunrise, newest first; filter by Lab reports shows 2). Log in as Rohan (`91-1000-0000-0002`) → sees strictly his 2 records from Lakeside.
+
+**Access check:** Asha sees her 7 records from two hospitals, newest first; filter type Lab reports shows 2. Rohan sees only his 2. Cross-patient isolation verified: Rohan cannot view Asha's records and vice-versa. Calling `listPatientRecords` without authorization throws `CONSENT_REQUIRED` and does not invoke `findMany`.
+
+**Demo steps enabled:** 1 (Asha sees her live timeline of records from two hospitals)
+
+**Learned:** Calling `authorize()` before querying and applying `type IN (decision.allowedTypes)` directly in the SQL WHERE clause ensures that excluded scopes are never fetched or leaked over the network (TRAPS §5).
+
+**AI used:** code: implemented server records data functions, page integration, GET filter form, loading/error boundaries, and unit tests.
+
+**Open issues:**
+- none
+
+**Next:** Phase 1, Slice P1.2 / Route Handlers (`/patients/:id/records` and `/records/:id` for doctor viewer).
+
 ## [2026-11-25 01:30] Slice P0.3 — Doctor viewer, three states, on fixtures (Phase 0 complete)
 
 **Done:** Replaced doctor placeholder with clinical dashboard and patient search box. Implemented doctor patient record viewer displaying three distinct UI states on fixtures (`ConsentRequired`, `EmptyState` in scope, and `InstitutionGroup` grouped by institution). Added pure `group-by-institution.ts` with tests and production guard calling `notFound()`. Phase 0 is complete.

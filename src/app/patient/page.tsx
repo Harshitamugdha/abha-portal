@@ -5,6 +5,7 @@ import type { ConsentDTO } from "@/contracts/consent";
 import { listMyAccessLog } from "@/server/audit/queries";
 import { getSession } from "@/server/auth/session";
 import { listConsents } from "@/server/consent/engine";
+import { listPatientRecords } from "@/server/records/list";
 import { PATIENT_LINKS } from "./patient-links";
 
 function splitByStatus(consents: ConsentDTO[]) {
@@ -29,6 +30,7 @@ export default async function PatientHomePage() {
 
   const consents = await listConsents(user, { page: 1, pageSize: 50 });
   const accessLog = await listMyAccessLog(user, { page: 1, pageSize: 1 });
+  const records = await listPatientRecords(user, { patientId: user.id, pageSize: 1 });
   const { waiting, activeCount } = splitByStatus(consents.items);
 
   return (
@@ -66,6 +68,10 @@ export default async function PatientHomePage() {
               At a glance
             </h2>
             <div className="stats">
+              <Link href="/patient/records" className="stat">
+                <span className="stat-number">{records.total}</span>
+                <span className="stat-label">Health records on file</span>
+              </Link>
               <Link href="/patient/consents" className="stat">
                 <span className="stat-number">{waiting.length}</span>
                 <span className="stat-label">Requests waiting for you</span>
