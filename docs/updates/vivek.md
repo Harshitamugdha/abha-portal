@@ -3,6 +3,31 @@
 
 ---
 
+## [2026-11-25 22:45] Slice P2.1 — Upload a document (storage, action, form)
+
+**Done:** Implemented file storage (`put`, `stream`) in `.uploads/` (outside `public/`, TRAPS §12) and MIME detection via binary magic bytes (`detectMime` for PDF, PNG, JPEG). Created `listInstitutionChoices` exposing public fields and `createDocumentRecord` with `authorize("record:create:self")` and a single atomic `db.$transaction` creating `FileObject` and `HealthRecord` (`type: "DOCUMENT"`, `authorId: null`). Implemented `uploadDocument` Server Action with 5 MB validation, raised `experimental.serverActions.bodySizeLimit` to `'10mb'` in `next.config.ts`, and built `/patient/upload` with instant revalidation on submit.
+
+**Files touched:** `src/server/records/storage.ts` (new) · `src/server/records/storage.test.ts` (new) · `src/server/records/institutions.ts` (new) · `src/server/records/upload.ts` (new) · `src/server/records/upload.test.ts` (new) · `src/server/records/params.ts` (modified) · `src/server/records/list.ts` (modified) · `src/app/actions/records.ts` (new) · `src/app/actions/records.test.ts` (new) · `src/app/patient/upload/page.tsx` (new) · `src/app/patient/upload/upload-form.tsx` (new) · `next.config.ts` (modified) · `CHANGELOG.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Asha (`91-1000-0000-0001`, OTP `123456`) → http://localhost:3000/patient/upload → upload small PDF → redirects to /patient/records with document at the top of timeline.
+
+**Access check:** Asha uploads a small PDF: it appears at the top of the timeline immediately without a manual refresh. A text file renamed `.pdf` is rejected ("Only PDF, PNG, or JPEG files are allowed."). A file > 5 MB shows "The file is larger than 5 MB." on the form. Uploaded file exists in `.uploads/`, not in `public/`. Non-patient upload attempts are rejected with 403 `FORBIDDEN`.
+
+**Demo steps enabled:** 1 (Asha uploads her past discharge document and views it in her unified timeline)
+
+**Learned:** In Next.js with Server Actions, `"use server"` files must export only async functions, and setting `bodySizeLimit` in `next.config.ts` above the application limit (e.g. 10 MB vs 5 MB) accounts for HTTP multipart boundary overhead so our application-level checks can display user-friendly form errors rather than crashing at the network parser level.
+
+**AI used:** code & debugging: implemented storage service, byte inspection, Server Action, upload form, and fixed Next.js Server Action body limit overhead.
+
+**Open issues:**
+- none
+
+**Next:** Phase 2, Slice P2.2 — File download / streaming (`GET /files/:id` with `authorize("file:read")` and `Content-Disposition: inline`).
+
 ## [2026-11-25 22:00] Slice P1.2 — Records route handlers (Phase 1 complete)
 
 **Done:** Implemented `GET /api/v1/patients/[patientId]/records` and `GET /api/v1/records/[id]` Route Handlers with session enforcement, pure URL searchParams normalization helper (`parseRecordListParams`), and error mapping via `handleRouteError`. Built patient record detail page `/patient/records/[id]` using `getRecord` with hidden file download links until Phase 2.2, and linked timeline cards to details. Phase 1 is complete.

@@ -2,6 +2,30 @@ import "server-only";
 import { RecordListQuery } from "@/contracts/records";
 import { ApiError } from "@/server/http";
 
+export function parseIstDate(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+
+  // YYYY-MM-DD
+  if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+    return new Date(`${trimmed}T12:00:00+05:30`).toISOString();
+  }
+  // YYYY-MM-DDTHH:mm
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/.test(trimmed)) {
+    return new Date(`${trimmed}:00+05:30`).toISOString();
+  }
+  // YYYY-MM-DDTHH:mm:ss
+  if (/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}$/.test(trimmed)) {
+    return new Date(`${trimmed}+05:30`).toISOString();
+  }
+
+  const d = new Date(trimmed);
+  if (!isNaN(d.getTime())) {
+    return d.toISOString();
+  }
+  return trimmed;
+}
+
 function normalizeDate(val: string | null | undefined, endOfDay = false): string | undefined {
   if (!val) return undefined;
   if (/^\d{4}-\d{2}-\d{2}$/.test(val)) {

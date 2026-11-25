@@ -6,7 +6,7 @@ import { authorize } from "@/server/auth/authorize";
 import { db } from "@/server/db";
 import { ApiError } from "@/server/http";
 
-const recordSelect = {
+export const recordSelect = {
   id: true,
   patientId: true,
   institutionId: true,
@@ -29,7 +29,7 @@ const recordSelect = {
   },
 } as const;
 
-type HealthRecordRow = {
+export type HealthRecordRow = {
   id: string;
   patientId: string;
   institutionId: string;
@@ -50,7 +50,7 @@ type HealthRecordRow = {
   } | null;
 };
 
-function toRecordDTO(row: HealthRecordRow): RecordDTO {
+export function toRecordDTO(row: HealthRecordRow): RecordDTO {
   let prescription: PrescriptionDetail | null = null;
   if (row.prescription) {
     const rawItems = Array.isArray(row.prescription.items) ? row.prescription.items : [];
