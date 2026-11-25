@@ -3,6 +3,31 @@
 
 ---
 
+## [2026-11-26 01:20] Slice P3.3 — Doctor consent request form
+
+**Done:** Built `ConsentRequestForm` and pure helper `buildConsentRequest` with unit tests for validation rules. Form provides scope checkboxes (all 4 clinical scopes, $\ge 1$), duration (1–30 days, default 7), clinical purpose (3–120 characters), and dynamic institution `<select>` only when the doctor belongs to $> 1$ institution (sending `undefined` otherwise, never defaulting to `[0]` per Part C). Integrated with Harshita's `requestConsent` Server Action, presenting field errors on `VALIDATION_FAILED` and handling pending state and duplicate requests. Implemented `/doctor/patients/[patientId]/request-consent/page.tsx` with role checking that redirects patients to `/patient`.
+
+**Files touched:** `src/app/doctor/patients/[patientId]/request-consent/page.tsx` (modified) · `src/app/doctor/patients/[patientId]/request-consent/consent-request-form.tsx` (new) · `src/app/doctor/patients/[patientId]/request-consent/form-helper.ts` (new) · `src/app/doctor/patients/[patientId]/request-consent/form-helper.test.ts` (new) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Dr Kavya (`kavya@citygen.test` / `Demo@1234`) → `/doctor/patients/user-asha/request-consent` → select Prescriptions and Lab reports, 7 days, purpose "Follow-up" → submit → see "Waiting for the patient". In second window log in as Asha (`91-1000-0000-0001` / OTP `123456`) → approve → refocus Dr Kavya window → see records update in real time.
+
+**Access check:** Dr Kavya requests Prescriptions + Lab reports, 7 days, purpose "Follow-up". Asha approves in `/patient/consents`. Kavya refocuses viewer: prescriptions and lab reports grouped by institution, no documents or visits. Submitting twice shows request already open without creating duplicate rows. Empty purpose produces inline field error. Asha visiting the form URL is redirected to `/patient`.
+
+**Demo steps enabled:** 3 (Doctor requests scoped, time-bound consent from patient)
+
+**Learned:** Never blindly take `doctor.institutionIds[0]` when a doctor practices across multiple healthcare facilities; always prompt them in the UI to select their practicing institution for the consent request.
+
+**AI used:** code: implemented form helper, client-side form with field error mapping, server page with role-redirection, and vitest validation suite.
+
+**Open issues:**
+- none
+
+**Next:** Slice P3.4 (or next Phase 3 slice — e.g. Lab report PDF viewer with `next/dynamic`).
+
 ## [2026-11-26 01:05] Slice P3.2 — Doctor viewer with React Query
 
 **Done:** Installed `@tanstack/react-query` (`5.108.4`) and wrapped doctor routes in `DoctorQueryProvider` (`src/app/doctor/layout.tsx`) whose `QueryClient` is created with `useState` so leaving `/doctor` clears cache (TRAPS §14). Replaced the fixture viewer with live client component `PatientViewer` calling `GET /api/v1/patients/[patientId]/records` with `refetchOnWindowFocus: true` and `staleTime: 0`. Implemented pure helper `viewerState(error, data)` checking `error.code === 'CONSENT_REQUIRED'` before data to prevent false "no records" states (TRAPS §4). Added active consent banner from `/api/v1/consents/latest` and memoized records grouping by institution with `useMemo`. Removed the `?state=` fixture switch and retrieved patient name via `getPatientHeader`.

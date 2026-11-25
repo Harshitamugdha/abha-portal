@@ -4,6 +4,7 @@ Newest first. One entry per merged phase that changes what a user can do, or wha
 Contract changes are marked **[contract]**.
 
 ## Unreleased
+- **Slice P3.3 (26 Nov 2026):** Doctor consent request form at /doctor/patients/:id/request-consent with 4 clinical scopes, 1-30 days duration, 3-120 char purpose, multi-institution selection handling, integration with requestConsent Server Action, validation error display, duplicate detection, and patient redirect protection (Vivek).
 - **Slice P3.2 (26 Nov 2026):** Doctor records viewer unified with React Query v5.108.4 (`staleTime: 0`, `refetchOnWindowFocus: true`), dynamic state decision (`viewerState`) checking `CONSENT_REQUIRED` before data (TRAPS §4), doctor QueryProvider discarding cache on route exit (TRAPS §14), consent details banner, and grouping by institution (Vivek).
 - **Slice P3.1 (26 Nov 2026):** Doctor patient lookup (by hyphenated/unhyphenated ABHA number or address) returning masked ABHA and name only ("lookup is not access"), patient summary by institution and allowed scopes with latestAt, route handlers GET /api/v1/patients/lookup and /api/v1/patients/:id/summary, and /doctor/patients search page with loading and error boundaries (Vivek).
 - **Phase 2 complete (25 Nov 2026):** Vivek completed Phase 2 (Uploads and files): disk storage with magic-byte MIME checking, patient self-upload with 5 MB limit and atomic transaction, authorized file route GET /api/v1/files/:id with inline streaming and scope-exclusion enforcement, and Open file links on records.
