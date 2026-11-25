@@ -34,3 +34,6 @@ export function groupRecordsByInstitution(records: RecordDTO[]): InstitutionGrou
 
   return result;
 }
+
+export const groupByInstitution = groupRecordsByInstitution;
+

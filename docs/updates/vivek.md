@@ -3,6 +3,31 @@
 
 ---
 
+## [2026-11-26 01:05] Slice P3.2 — Doctor viewer with React Query
+
+**Done:** Installed `@tanstack/react-query` (`5.108.4`) and wrapped doctor routes in `DoctorQueryProvider` (`src/app/doctor/layout.tsx`) whose `QueryClient` is created with `useState` so leaving `/doctor` clears cache (TRAPS §14). Replaced the fixture viewer with live client component `PatientViewer` calling `GET /api/v1/patients/[patientId]/records` with `refetchOnWindowFocus: true` and `staleTime: 0`. Implemented pure helper `viewerState(error, data)` checking `error.code === 'CONSENT_REQUIRED'` before data to prevent false "no records" states (TRAPS §4). Added active consent banner from `/api/v1/consents/latest` and memoized records grouping by institution with `useMemo`. Removed the `?state=` fixture switch and retrieved patient name via `getPatientHeader`.
+
+**Files touched:** `package.json` (modified) · `package-lock.json` (modified) · `src/app/doctor/layout.tsx` (new) · `src/app/doctor/query-provider.tsx` (new) · `src/app/doctor/patients/[patientId]/page.tsx` (modified) · `src/app/doctor/patients/[patientId]/patient-viewer.tsx` (new) · `src/app/doctor/patients/[patientId]/viewer-state.ts` (new) · `src/app/doctor/patients/[patientId]/viewer-state.test.ts` (new) · `src/app/doctor/patients/[patientId]/request-consent/page.tsx` (new) · `src/components/ui/group-by-institution.ts` (modified) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Dr Arjun (`arjun@sunrise.test` / `Demo@1234`) → open `/doctor/patients/user-asha` (shows "Consent required") → Asha approves with Visits unticked → refocus Dr Arjun window → viewer immediately updates live to display Asha's lab reports grouped by institution with consent banner.
+
+**Access check:** Dr Arjun sees "Consent required" (403 `CONSENT_REQUIRED`). Asha approves pending request with Visits unticked. Arjun refocuses window: viewer displays only lab reports grouped by institution; Network response has no `ENCOUNTER`, `PRESCRIPTION` or `DOCUMENT`. Asha revokes: refocusing Arjun's window returns to "Consent required". Logging out Arjun and logging in as Dr Kavya: `/doctor/patients/user-asha` shows "Consent required" with zero flash of Arjun's data. Dr Kavya on `/doctor/patients/user-meera`: shows "Consent required" (expired consent).
+
+**Demo steps enabled:** 3, 5 (Doctor records viewer with reactive live consent gating, scope exclusion, and cache isolation)
+
+**Learned:** Creating the React Query client within a route layout's `useState` ensures client-side cache is thrown away upon route exit or logout (TRAPS §14), and prioritizing `error.code === 'CONSENT_REQUIRED'` before inspecting data in `viewerState` guarantees doctors are never misinformed that a patient has "no records" when consent is required (TRAPS §4).
+
+**AI used:** code: integrated TanStack Query, built QueryProvider, wrote pure viewerState helper with Vitest unit tests, updated viewer page and patient-viewer client component.
+
+**Open issues:**
+- none
+
+**Next:** Slice P3.3 — Doctor consent request form (`/doctor/patients/[patientId]/request-consent`).
+
 ## [2026-11-26 00:20] Slice P3.1 — Patient lookup, summary and search page
 
 **Done:** Implemented `lookupPatient`, `getPatientHeader`, and `getPatientSummary` in `src/server/clinical/lookup.ts`. Supported 14-digit numbers with/without hyphens and ABHA addresses via `parseAbhaInput`, returning strictly `patientId`, `name`, and `abhaNumberMasked` under `patient:lookup` authorization. Enforced role checks upfront so non-doctors get `FORBIDDEN` even for unknown ABHAs. Built `getPatientSummary` with `record:list` filtering strictly by active consent `allowedTypes` plus `latestAt`. Created route handlers `GET /api/v1/patients/lookup` and `GET /api/v1/patients/[patientId]/summary`. Built `/doctor/patients` Server Component search page with loading and error boundaries.
@@ -13,7 +38,7 @@
 ```bash
 npm run dev
 ```
-Log in as Dr Kavya (`kavya@citygen.in` / `Doctor@123`) → go to `/doctor/patients` → search `91-1000-0000-0001` or `Asha.Verma@abdm` → see Asha Verma with masked ABHA `XX-XXXX-XXXX-0001` and "Open patient record ↗" button.
+Log in as Dr Kavya (`kavya@citygen.test` / `Demo@1234`) → go to `/doctor/patients` → search `91-1000-0000-0001` or `Asha.Verma@abdm` → see Asha Verma with masked ABHA `XX-XXXX-XXXX-0001` and "Open patient record ↗" button.
 
 **Access check:** Dr Kavya searches `91-1000-0000-0001`, `91100000000001`, and `Asha.Verma@abdm`: same result (`XX-XXXX-XXXX-0001`). Invalid format shows validation message. Asha calling `/api/v1/patients/lookup?abha=91100000000002` receives 403 FORBIDDEN. Network response contains only 3 fields (`patientId`, `name`, `abhaNumberMasked`). Asha's access log displays "Looked you up". Dr Kavya (no consent) on `/api/v1/patients/user-asha/summary` returns 403 CONSENT_REQUIRED.
 
