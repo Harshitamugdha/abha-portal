@@ -4,6 +4,7 @@ Newest first. One entry per merged phase that changes what a user can do, or wha
 Contract changes are marked **[contract]**.
 
 ## Unreleased
+- **Slice P3.1 (26 Nov 2026):** Doctor patient lookup (by hyphenated/unhyphenated ABHA number or address) returning masked ABHA and name only ("lookup is not access"), patient summary by institution and allowed scopes with latestAt, route handlers GET /api/v1/patients/lookup and /api/v1/patients/:id/summary, and /doctor/patients search page with loading and error boundaries (Vivek).
 - **Phase 2 complete (25 Nov 2026):** Vivek completed Phase 2 (Uploads and files): disk storage with magic-byte MIME checking, patient self-upload with 5 MB limit and atomic transaction, authorized file route GET /api/v1/files/:id with inline streaming and scope-exclusion enforcement, and Open file links on records.
 - **Slice P2.1 (25 Nov 2026):** Patient document upload with disk storage under .uploads/, magic-byte MIME validation (PDF, PNG, JPEG), 5 MB file size limit with 10 MB Next.js bodySizeLimit, and /patient/upload form with automatic revalidation (Vivek).
 - **Phase 1 complete (25 Nov 2026):** Vivek completed Phase 1 (Records API): live data data functions (`listPatientRecords`, `getRecord`), patient records timeline and dashboard on live PostgreSQL with scope filtering, route handlers `GET /api/v1/patients/:patientId/records` and `GET /api/v1/records/:id`, and patient record detail page.

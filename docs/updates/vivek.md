@@ -3,6 +3,31 @@
 
 ---
 
+## [2026-11-26 00:20] Slice P3.1 — Patient lookup, summary and search page
+
+**Done:** Implemented `lookupPatient`, `getPatientHeader`, and `getPatientSummary` in `src/server/clinical/lookup.ts`. Supported 14-digit numbers with/without hyphens and ABHA addresses via `parseAbhaInput`, returning strictly `patientId`, `name`, and `abhaNumberMasked` under `patient:lookup` authorization. Enforced role checks upfront so non-doctors get `FORBIDDEN` even for unknown ABHAs. Built `getPatientSummary` with `record:list` filtering strictly by active consent `allowedTypes` plus `latestAt`. Created route handlers `GET /api/v1/patients/lookup` and `GET /api/v1/patients/[patientId]/summary`. Built `/doctor/patients` Server Component search page with loading and error boundaries.
+
+**Files touched:** `src/server/clinical/lookup.ts` (new) · `src/server/clinical/lookup.test.ts` (new) · `src/app/api/v1/patients/lookup/route.ts` (new) · `src/app/api/v1/patients/lookup/route.test.ts` (new) · `src/app/api/v1/patients/[patientId]/summary/route.ts` (new) · `src/app/api/v1/patients/[patientId]/summary/route.test.ts` (new) · `src/app/doctor/patients/page.tsx` (modified) · `src/app/doctor/patients/loading.tsx` (new) · `src/app/doctor/patients/error.tsx` (new) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Dr Kavya (`kavya@citygen.in` / `Doctor@123`) → go to `/doctor/patients` → search `91-1000-0000-0001` or `Asha.Verma@abdm` → see Asha Verma with masked ABHA `XX-XXXX-XXXX-0001` and "Open patient record ↗" button.
+
+**Access check:** Dr Kavya searches `91-1000-0000-0001`, `91100000000001`, and `Asha.Verma@abdm`: same result (`XX-XXXX-XXXX-0001`). Invalid format shows validation message. Asha calling `/api/v1/patients/lookup?abha=91100000000002` receives 403 FORBIDDEN. Network response contains only 3 fields (`patientId`, `name`, `abhaNumberMasked`). Asha's access log displays "Looked you up". Dr Kavya (no consent) on `/api/v1/patients/user-asha/summary` returns 403 CONSENT_REQUIRED.
+
+**Demo steps enabled:** 2 (Doctor finds a patient by ABHA number or address without exposing clinical records)
+
+**Learned:** Upfront authorization check on `patient:lookup` prevents enumeration of valid vs invalid ABHAs by unauthorized callers (a non-doctor receives 403 `FORBIDDEN` regardless of whether the queried ABHA exists).
+
+**AI used:** code: implemented lookup/summary data functions, route handlers, search page, loading/error boundaries, and comprehensive unit tests.
+
+**Open issues:**
+- none
+
+**Next:** Slice P3.2 — Doctor patient summary and records viewer page (client-side React Query viewer, `CONSENT_REQUIRED` vs empty states).
+
 ## [2026-11-25 23:55] Slice P2.2 — File download route (Phase 2 complete)
 
 **Done:** Built `getFileStream` data function and route handlers `GET /api/v1/files/[id]` and `GET /files/[id]` enforcing `authorize("file:read")` against owning records. Files stream inline with stored MIME type and size. Integrated "Open file ↗" links on the patient record detail page (`/patient/records/[id]`) and timeline cards. Phase 2 is complete.
