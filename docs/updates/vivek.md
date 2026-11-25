@@ -3,6 +3,31 @@
 
 ---
 
+## [2026-11-25 22:00] Slice P1.2 — Records route handlers (Phase 1 complete)
+
+**Done:** Implemented `GET /api/v1/patients/[patientId]/records` and `GET /api/v1/records/[id]` Route Handlers with session enforcement, pure URL searchParams normalization helper (`parseRecordListParams`), and error mapping via `handleRouteError`. Built patient record detail page `/patient/records/[id]` using `getRecord` with hidden file download links until Phase 2.2, and linked timeline cards to details. Phase 1 is complete.
+
+**Files touched:** `src/server/records/params.ts` (new) · `src/server/records/params.test.ts` (new) · `src/app/api/v1/patients/[patientId]/records/route.ts` (new) · `src/app/api/v1/patients/[patientId]/records/route.test.ts` (new) · `src/app/api/v1/records/[id]/route.ts` (new) · `src/app/api/v1/records/[id]/route.test.ts` (new) · `src/app/patient/records/[id]/page.tsx` (new) · `src/components/ui/record-card.tsx` (modified) · `docs/updates/vivek.md` (modified) · `CHANGELOG.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Dr Arjun (`arjun@sunrise.test` / `Demo@1234`) after Asha approves lab reports → http://localhost:3000/api/v1/patients/user-asha/records (returns 200 with only `LAB_REPORT` items, no visits/prescriptions/documents leaked).
+
+**Access check:** Dr Kavya on `/api/v1/patients/user-asha/records` returns 403 `CONSENT_REQUIRED` (not 200 with empty array). Dr Kavya on `/api/v1/patients/user-meera/records` returns 403 `CONSENT_REQUIRED` (expired consent). Rohan on `/api/v1/records/rec-asha-cbc` returns 404 `NOT_FOUND`, admin returns 404 `NOT_FOUND`, unauthenticated returns 401 `UNAUTHENTICATED`. Asha's access log audits both allowed and refused reads.
+
+**Demo steps enabled:** 1, 2, 5 (Unified timeline, doctor consent enforcement, and cross-institution scoped JSON delivery)
+
+**Learned:** In Next.js App Router route handlers, `context.params` is a Promise that must be awaited, and returning a 404 for unconsented single records prevents leaking whether a specific record ID exists.
+
+**AI used:** code: implemented route handlers, search params parsing helper, patient record detail page, and vitest suites.
+
+**Open issues:**
+- none
+
+**Next:** Phase 2 — Uploads and files (`storage.ts`, `uploadDocument` Server Action, file size/MIME validation from byte magic numbers, and `GET /files/:id`).
+
 ## [2026-11-25 15:00] Slice P1.1 — Records list and detail, patient timeline on real data
 
 **Done:** Implemented `listPatientRecords`, `getRecord`, and `listPatientInstitutions` in `src/server/records/list.ts` with `authorize()`, SQL scope filtering (`WHERE type IN (decision.allowedTypes)`), page-based pagination, and strict field-by-field DTO mapping. Switched `/patient/records` and the patient dashboard (`/patient`) to live database data with plain GET form filtering (`type`, `institutionId`, `from`, `to`) and pagination. Added `loading.tsx` and `error.tsx` for patient records and removed fixture files.

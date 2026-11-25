@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { RecordDTO } from "@/contracts/records";
 import { formatIST } from "@/contracts/format";
 import { Badge } from "./badge";
@@ -18,7 +19,11 @@ export function RecordCard({ record }: { record: RecordDTO }) {
         <span className="text-xs text-gray-500">{formatIST(record.occurredAt)}</span>
       </div>
 
-      <h3 className="font-semibold text-base mb-1">{record.title}</h3>
+      <h3 className="font-semibold text-base mb-1">
+        <Link href={`/patient/records/${record.id}`} className="hover:underline">
+          {record.title}
+        </Link>
+      </h3>
 
       {record.authorName && (
         <p className="text-xs text-gray-600 mb-2">

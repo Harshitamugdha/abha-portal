@@ -4,6 +4,7 @@ Newest first. One entry per merged phase that changes what a user can do, or wha
 Contract changes are marked **[contract]**.
 
 ## Unreleased
+- **Phase 1 complete (25 Nov 2026):** Vivek completed Phase 1 (Records API): live data data functions (`listPatientRecords`, `getRecord`), patient records timeline and dashboard on live PostgreSQL with scope filtering, route handlers `GET /api/v1/patients/:patientId/records` and `GET /api/v1/records/:id`, and patient record detail page.
 - **Slice P1.1 (25 Nov 2026):** Patient records timeline and dashboard switched from fixtures to live database data via `listPatientRecords` and `authorize()`, with GET form filtering (record type, institution, date range), pagination, and loading/error states (Vivek).
 - **Phase 0 complete (25 Nov 2026):** Vivek completed Phase 0 shells: patient records timeline and doctor patient viewer with three distinct states (consent required, empty in scope, records grouped by institution) built against fixtures.
 - **[contract]** (24 Nov 2026) Initial schemas for records, clinical, and lab domains: `RecordDTO`, `RecordListQuery`, `DocumentUpload`, `PatientLookupDTO`, `SummaryDTO`, `PrescriptionCreate`, `EncounterCreate`, `LabOrderCreate`, `LabOrderDTO`, `LabResultUpload` (Vivek, Slice P0.1).
