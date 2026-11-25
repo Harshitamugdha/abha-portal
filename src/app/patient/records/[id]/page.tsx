@@ -3,6 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { RECORD_TYPE_LABELS } from "@/components/ui/record-labels";
 import { TopBar } from "@/components/ui/top-bar";
+import { FileViewerTrigger } from "@/components/ui/file-viewer";
 import { formatIST } from "@/contracts/format";
 import { getSession } from "@/server/auth/session";
 import { ApiError } from "@/server/http";
@@ -139,25 +140,28 @@ export default async function PatientRecordDetailPage(props: PageProps) {
               <div className="border-t border-gray-100 pt-4">
                 <p className="text-sm text-gray-500 mb-2">Attached Document</p>
                 <div
-                  className="p-4 bg-slate-50 border border-slate-200 rounded row"
+                  className="p-4 bg-slate-50 border border-slate-200 rounded row mb-3"
                   style={{ justifyContent: "space-between", alignItems: "center" }}
                 >
                   <div className="row" style={{ gap: "8px", alignItems: "center" }}>
                     <span className="text-xl">📎</span>
                     <div>
                       <p className="text-sm font-medium text-slate-800">Attached medical file</p>
-                      <p className="text-xs text-slate-500">Authorized access only (opens inline)</p>
+                      <p className="text-xs text-slate-500">Authorized access only (opens inline or in new tab)</p>
                     </div>
                   </div>
-                  <a
-                    href={`/api/v1/files/${record.fileId}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="btn btn-accent"
-                  >
-                    Open file ↗
-                  </a>
+                  <div className="row" style={{ gap: "8px" }}>
+                    <a
+                      href={`/api/v1/files/${record.fileId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="btn btn-outline"
+                    >
+                      Open file ↗
+                    </a>
+                  </div>
                 </div>
+                <FileViewerTrigger record={record} buttonLabel="View file inline" />
               </div>
             )}
 

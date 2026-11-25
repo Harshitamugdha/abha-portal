@@ -3,6 +3,31 @@
 
 ---
 
+## [2026-11-26 01:30] Slice P3.4 — File viewer loaded on demand (Phase 3 complete)
+
+**Done:** Implemented client component `FileViewer` rendering a native `iframe` pointing to `/api/v1/files/[id]`. Wrapped in `FileViewerTrigger` using `next/dynamic` (`ssr: false` with animated loading fallback), which lazy-loads the bundle chunk only when the user clicks "View file". Implemented pure helper `canViewFile` with unit tests ensuring records without `fileId` never display file actions. Integrated into `RecordCard` (doctor viewer) and patient record detail page. Phase 3 is officially complete.
+
+**Files touched:** `src/components/ui/file-viewer/can-view-file.ts` (new) · `src/components/ui/file-viewer/can-view-file.test.ts` (new) · `src/components/ui/file-viewer/file-viewer.tsx` (new) · `src/components/ui/file-viewer/file-viewer-trigger.tsx` (new) · `src/components/ui/file-viewer/index.ts` (new) · `src/components/ui/record-card.tsx` (modified) · `src/app/patient/records/[id]/page.tsx` (modified) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Dr Arjun (`arjun@sunrise.test` / `Demo@1234`) → open `/doctor/patients/user-asha` → click "View file" on a lab report with fileId → PDF renders inline inside dynamic iframe. Network tab confirms chunk loads only on click.
+
+**Access check:** Dr Arjun with `LAB_REPORT` consent clicks "View file": displays the PDF inline; Network tab shows dynamic viewer chunk loads on demand only after clicking the button. Dr Arjun attempting to open Asha's uploaded `DOCUMENT` file receives 403 `CONSENT_REQUIRED` (scope excluded). When Dr Kavya obtains consent including `DOCUMENT`, she can open Asha's document file inline, while Rohan (wrong patient) receives 404 `NOT_FOUND`.
+
+**Demo steps enabled:** 2, 3, 5 (Doctor lookup, request consent, reactive viewer, on-demand PDF file viewing, and strict scope gating)
+
+**Learned:** Using `next/dynamic` with `ssr: false` defers loading viewer assets until user interaction occurs, keeping initial bundle size minimal and fulfilling INT257 dynamic route/component practical requirements.
+
+**AI used:** code: implemented native iframe FileViewer, dynamic trigger with loading fallback, pure canViewFile helper with tests, and component integrations.
+
+**Open issues:**
+- none
+
+**Next:** Phase 4 — Clinical writes (`createPrescription` with 6-character share code, `createEncounter`, `createLabOrder`, and optimistic UI with rollback).
+
 ## [2026-11-26 01:20] Slice P3.3 — Doctor consent request form
 
 **Done:** Built `ConsentRequestForm` and pure helper `buildConsentRequest` with unit tests for validation rules. Form provides scope checkboxes (all 4 clinical scopes, $\ge 1$), duration (1–30 days, default 7), clinical purpose (3–120 characters), and dynamic institution `<select>` only when the doctor belongs to $> 1$ institution (sending `undefined` otherwise, never defaulting to `[0]` per Part C). Integrated with Harshita's `requestConsent` Server Action, presenting field errors on `VALIDATION_FAILED` and handling pending state and duplicate requests. Implemented `/doctor/patients/[patientId]/request-consent/page.tsx` with role checking that redirects patients to `/patient`.

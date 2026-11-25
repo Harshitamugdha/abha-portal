@@ -3,6 +3,7 @@ import type { RecordDTO } from "@/contracts/records";
 import { formatIST } from "@/contracts/format";
 import { Badge } from "./badge";
 import { RECORD_TYPE_LABELS } from "./record-labels";
+import { FileViewerTrigger } from "./file-viewer";
 
 export function RecordCard({ record }: { record: RecordDTO }) {
   const isPrescription = record.type === "PRESCRIPTION" && record.prescription;
@@ -51,18 +52,7 @@ export function RecordCard({ record }: { record: RecordDTO }) {
         </div>
       )}
 
-      {record.fileId && (
-        <div className="mt-2 text-xs text-teal-700 font-medium">
-          <a
-            href={`/api/v1/files/${record.fileId}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="hover:underline"
-          >
-            📎 Attached document (Open ↗)
-          </a>
-        </div>
-      )}
+      <FileViewerTrigger record={record} buttonLabel="View file" />
     </article>
   );
 }
