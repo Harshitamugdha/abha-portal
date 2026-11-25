@@ -3,6 +3,31 @@
 
 ---
 
+## [2026-11-25 23:55] Slice P2.2 — File download route (Phase 2 complete)
+
+**Done:** Built `getFileStream` data function and route handlers `GET /api/v1/files/[id]` and `GET /files/[id]` enforcing `authorize("file:read")` against owning records. Files stream inline with stored MIME type and size. Integrated "Open file ↗" links on the patient record detail page (`/patient/records/[id]`) and timeline cards. Phase 2 is complete.
+
+**Files touched:** `src/server/records/stream.ts` (new) · `src/server/records/stream.test.ts` (new) · `src/app/api/v1/files/[id]/route.ts` (new) · `src/app/api/v1/files/[id]/route.test.ts` (new) · `src/app/files/[id]/route.ts` (new) · `src/app/patient/records/[id]/page.tsx` (modified) · `src/components/ui/record-card.tsx` (modified) · `docs/updates/vivek.md` (modified) · `CHANGELOG.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Asha (`91-1000-0000-0001`, OTP `123456`) → open document record → click "Open file ↗" (opens PDF or image inline in new tab).
+
+**Access check:** Asha opens her uploaded file URL: rendered inline. Rohan: 404 NOT_FOUND. Logged out: 401 UNAUTHENTICATED. Admin: 404 NOT_FOUND. Dr Kavya (no consent): 403 CONSENT_REQUIRED. Dr Arjun (consented for ENCOUNTER and LAB_REPORT only, but not DOCUMENT): 403 CONSENT_REQUIRED (scope excluded). Denied calls never invoke file disk streaming.
+
+**Demo steps enabled:** 1, 5 (Document inline viewing for patient, and strict ABDM scope-exclusion enforcement on file reads)
+
+**Learned:** Authorizing file access against the owning `HealthRecord` (rather than the raw `FileObject` ID) ensures that doctor consent scopes, patient ownership, and expiration are evaluated on every file read, returning 404 for wrong patients and admins so existence of private files is never leaked.
+
+**AI used:** code: implemented streaming data function, route handlers, UI integration, and vitest test suites.
+
+**Open issues:**
+- none
+
+**Next:** Phase 3 — Doctor: lookup, viewer, consent request (`/api/v1/patients/lookup`, patient summary, client-side viewer with React Query, and consent request form).
+
 ## [2026-11-25 22:45] Slice P2.1 — Upload a document (storage, action, form)
 
 **Done:** Implemented file storage (`put`, `stream`) in `.uploads/` (outside `public/`, TRAPS §12) and MIME detection via binary magic bytes (`detectMime` for PDF, PNG, JPEG). Created `listInstitutionChoices` exposing public fields and `createDocumentRecord` with `authorize("record:create:self")` and a single atomic `db.$transaction` creating `FileObject` and `HealthRecord` (`type: "DOCUMENT"`, `authorId: null`). Implemented `uploadDocument` Server Action with 5 MB validation, raised `experimental.serverActions.bodySizeLimit` to `'10mb'` in `next.config.ts`, and built `/patient/upload` with instant revalidation on submit.

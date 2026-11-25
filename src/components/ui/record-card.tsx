@@ -53,7 +53,14 @@ export function RecordCard({ record }: { record: RecordDTO }) {
 
       {record.fileId && (
         <div className="mt-2 text-xs text-teal-700 font-medium">
-          📎 Attached document
+          <a
+            href={`/api/v1/files/${record.fileId}`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="hover:underline"
+          >
+            📎 Attached document (Open ↗)
+          </a>
         </div>
       )}
     </article>

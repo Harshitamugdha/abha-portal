@@ -137,9 +137,26 @@ export default async function PatientRecordDetailPage(props: PageProps) {
 
             {record.fileId && (
               <div className="border-t border-gray-100 pt-4">
-                <p className="text-sm text-gray-500 mb-1">Attached Document</p>
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded text-sm text-slate-700">
-                  📎 Document attached to this record. File download will be enabled in Phase 2.
+                <p className="text-sm text-gray-500 mb-2">Attached Document</p>
+                <div
+                  className="p-4 bg-slate-50 border border-slate-200 rounded row"
+                  style={{ justifyContent: "space-between", alignItems: "center" }}
+                >
+                  <div className="row" style={{ gap: "8px", alignItems: "center" }}>
+                    <span className="text-xl">📎</span>
+                    <div>
+                      <p className="text-sm font-medium text-slate-800">Attached medical file</p>
+                      <p className="text-xs text-slate-500">Authorized access only (opens inline)</p>
+                    </div>
+                  </div>
+                  <a
+                    href={`/api/v1/files/${record.fileId}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="btn btn-accent"
+                  >
+                    Open file ↗
+                  </a>
                 </div>
               </div>
             )}
