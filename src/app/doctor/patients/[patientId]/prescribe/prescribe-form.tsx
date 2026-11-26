@@ -1,9 +1,17 @@
 "use client";
 
-import { useState } from "react";
+import { startTransition, useOptimistic, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { createPrescription } from "@/app/actions/clinical";
 import { PrescriptionCreate } from "@/contracts/clinical";
+import { formatIST } from "@/contracts/format";
+import type { RecordDTO } from "@/contracts/records";
+import {
+  addPendingPrescription,
+  type OptimisticPrescription,
+  type PrescriptionDraft,
+} from "./optimistic";
 
 type InstitutionChoice = {
   id: string;
@@ -13,7 +21,9 @@ type InstitutionChoice = {
 type PrescribeFormProps = {
   patientId: string;
   patientName: string;
+  doctorName?: string;
   institutions: InstitutionChoice[];
+  initialPrescriptions?: RecordDTO[];
 };
 
 type DrugRow = {
@@ -39,8 +49,12 @@ function createInitialRow(): DrugRow {
 export function PrescribeForm({
   patientId,
   patientName,
+  doctorName = "Dr Kavya Iyer",
   institutions,
+  initialPrescriptions = [],
 }: PrescribeFormProps) {
+  const router = useRouter();
+
   const [rows, setRows] = useState<DrugRow[]>([createInitialRow()]);
   const [notes, setNotes] = useState("");
   const [institutionId, setInstitutionId] = useState("");
@@ -49,6 +63,14 @@ export function PrescribeForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [isPending, setIsPending] = useState(false);
   const [result, setResult] = useState<{ recordId: string; shareCode: string } | null>(null);
+
+  // React 19 useOptimistic hook with pure addPendingPrescription helper
+  const [optimisticPrescriptions, addOptimisticPrescription] = useOptimistic<
+    OptimisticPrescription[],
+    PrescriptionDraft
+  >(initialPrescriptions, (currentList, draft) =>
+    addPendingPrescription(currentList, draft),
+  );
 
   const hasMultipleInstitutions = institutions.length > 1;
 
@@ -83,16 +105,18 @@ export function PrescribeForm({
     setFieldErrors({});
     setFormError(null);
 
+    const items = rows.map((r) => ({
+      drug: r.drug.trim(),
+      dose: r.dose.trim(),
+      frequency: r.frequency.trim(),
+      durationDays: Number(r.durationDays),
+      notes: r.notes.trim() || undefined,
+    }));
+
     const payload = {
       patientId,
       institutionId: hasMultipleInstitutions ? institutionId || undefined : undefined,
-      items: rows.map((r) => ({
-        drug: r.drug.trim(),
-        dose: r.dose.trim(),
-        frequency: r.frequency.trim(),
-        durationDays: Number(r.durationDays),
-        notes: r.notes.trim() || undefined,
-      })),
+      items,
       notes: notes.trim() || undefined,
     };
 
@@ -112,79 +136,113 @@ export function PrescribeForm({
     }
 
     setIsPending(true);
-    try {
-      const res = await createPrescription(payload);
 
-      if (!res.ok) {
-        if (res.error.code === "CONSENT_REQUIRED") {
-          setFormError(
-            "Consent required: You do not have an active consent to write prescriptions for this patient.",
-          );
-        } else if (res.error.code === "VALIDATION_FAILED") {
-          setFormError(res.error.message || "Validation failed on the submitted prescription.");
-        } else {
-          setFormError(res.error.message || "Failed to create prescription.");
+    const draft: PrescriptionDraft = {
+      patientId,
+      items,
+      notes: notes.trim() || undefined,
+      institutionId: payload.institutionId,
+      institutionName:
+        institutions.find((i) => i.id === payload.institutionId)?.name || "Current Hospital",
+      authorName: doctorName,
+    };
+
+    // startTransition required by React useOptimistic
+    startTransition(async () => {
+      // 1. Instantly display pending row marked 'Saving'
+      addOptimisticPrescription(draft);
+
+      try {
+        const res = await createPrescription(payload);
+
+        if (!res.ok) {
+          // Action returned ok: false -> row disappears upon transition completion, error message shown
+          if (res.error.code === "CONSENT_REQUIRED") {
+            setFormError(
+              "Consent required: You do not have an active consent to write prescriptions for this patient.",
+            );
+          } else if (res.error.code === "VALIDATION_FAILED") {
+            setFormError(res.error.message || "Validation failed on the submitted prescription.");
+          } else {
+            setFormError(res.error.message || "Failed to create prescription.");
+          }
+          return;
         }
-        return;
-      }
 
-      setResult(res.data);
-    } catch {
-      setFormError("An unexpected network error occurred.");
-    } finally {
-      setIsPending(false);
-    }
+        // On success: show share code and refresh server state
+        setResult(res.data);
+        router.refresh();
+      } catch {
+        setFormError("An unexpected network error occurred.");
+      } finally {
+        setIsPending(false);
+      }
+    });
   }
 
   if (result) {
     return (
-      <div className="card text-center p-8 bg-emerald-50 border-2 border-emerald-400 rounded-lg">
-        <span className="badge badge-success mb-3 font-semibold">Prescription Issued</span>
-        <h2 className="text-2xl font-bold text-emerald-950 mb-2">Prescription Created Successfully</h2>
-        <p className="text-sm text-emerald-900 mb-6">
-          A prescription for <strong>{patientName}</strong> has been recorded and is valid for 30 days.
-        </p>
-
-        <div className="my-6 p-6 bg-white border-2 border-dashed border-emerald-500 rounded-lg inline-block shadow-sm">
-          <p className="text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">Prescription Share Code</p>
-          <div
-            className="text-5xl md:text-6xl font-mono font-extrabold tracking-widest text-emerald-700 select-all"
-            data-testid="share-code"
-          >
-            {result.shareCode}
-          </div>
-          <p className="text-xs text-gray-500 mt-2">
-            Give this 6-character code to the patient or pharmacy to dispense.
+      <div className="space-y-8">
+        <div className="card text-center p-8 bg-emerald-50 border-2 border-emerald-400 rounded-lg">
+          <span className="badge badge-success mb-3 font-semibold">Prescription Issued</span>
+          <h2 className="text-2xl font-bold text-emerald-950 mb-2">Prescription Created Successfully</h2>
+          <p className="text-sm text-emerald-900 mb-6">
+            A prescription for <strong>{patientName}</strong> has been recorded and is valid for 30 days.
           </p>
+
+          <div className="my-6 p-6 bg-white border-2 border-dashed border-emerald-500 rounded-lg inline-block shadow-sm">
+            <p className="text-xs uppercase tracking-widest font-bold text-gray-500 mb-2">Prescription Share Code</p>
+            <div
+              className="text-5xl md:text-6xl font-mono font-extrabold tracking-widest text-emerald-700 select-all"
+              data-testid="share-code"
+            >
+              {result.shareCode}
+            </div>
+            <p className="text-xs text-gray-500 mt-2">
+              Give this 6-character code to the patient or pharmacy to dispense.
+            </p>
+          </div>
+
+          <div className="mt-6 flex justify-center gap-4">
+            <Link
+              href={`/doctor/patients/${encodeURIComponent(patientId)}`}
+              className="btn btn-primary btn-large inline-block"
+            >
+              ← Return to patient viewer
+            </Link>
+            <button
+              type="button"
+              onClick={() => {
+                setResult(null);
+                setRows([createInitialRow()]);
+                setNotes("");
+              }}
+              className="btn btn-secondary btn-large"
+            >
+              Write another prescription
+            </button>
+          </div>
         </div>
 
-        <div className="mt-6 flex justify-center gap-4">
-          <Link
-            href={`/doctor/patients/${encodeURIComponent(patientId)}`}
-            className="btn btn-primary btn-large inline-block"
-          >
-            ← Return to patient viewer
-          </Link>
-          <button
-            type="button"
-            onClick={() => {
-              setResult(null);
-              setRows([createInitialRow()]);
-              setNotes("");
-            }}
-            className="btn btn-secondary btn-large"
-          >
-            Write another prescription
-          </button>
-        </div>
+        {/* Existing Prescriptions List */}
+        <section aria-labelledby="prescriptions-heading" className="space-y-4">
+          <h2 id="prescriptions-heading" className="text-lg font-bold text-gray-900">
+            Prescriptions for {patientName} ({optimisticPrescriptions.length})
+          </h2>
+          <div className="space-y-3">
+            {optimisticPrescriptions.map((rx) => (
+              <PrescriptionRow key={rx.id} prescription={rx} />
+            ))}
+          </div>
+        </section>
       </div>
     );
   }
 
   return (
-    <div>
+    <div className="space-y-8">
       {formError && (
-        <div className="alert-panel mb-6" role="alert">
+        <div className="alert-panel" role="alert">
           <p className="error font-medium mb-1">Prescription Error</p>
           <p className="text-sm text-gray-700">{formError}</p>
           {formError.includes("Consent required") && (
@@ -399,6 +457,93 @@ export function PrescribeForm({
           </Link>
         </div>
       </form>
+
+      {/* Optimistic Prescriptions List */}
+      <section aria-labelledby="prescriptions-heading" className="space-y-4 pt-4 border-t border-slate-200">
+        <div className="flex items-center justify-between">
+          <h2 id="prescriptions-heading" className="text-lg font-bold text-gray-900">
+            Prescriptions for {patientName}
+          </h2>
+          <span className="text-xs text-gray-500 font-semibold">
+            {optimisticPrescriptions.length} {optimisticPrescriptions.length === 1 ? "record" : "records"}
+          </span>
+        </div>
+
+        {optimisticPrescriptions.length === 0 ? (
+          <p className="text-sm text-gray-500 italic p-4 bg-slate-50 border border-slate-200 rounded">
+            No prescriptions on file for this patient.
+          </p>
+        ) : (
+          <div className="space-y-3">
+            {optimisticPrescriptions.map((rx) => (
+              <PrescriptionRow key={rx.id} prescription={rx} />
+            ))}
+          </div>
+        )}
+      </section>
     </div>
+  );
+}
+
+function PrescriptionRow({ prescription }: { prescription: OptimisticPrescription }) {
+  const isPending = Boolean(prescription.isPending);
+  const items = prescription.prescription?.items || [];
+
+  return (
+    <article
+      className={`card p-4 border transition-all ${
+        isPending
+          ? "border-amber-400 bg-amber-50/50"
+          : "border-slate-200 bg-white"
+      }`}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-2 mb-2">
+        <div className="flex items-center gap-2">
+          {isPending ? (
+            <span className="badge badge-amber font-semibold animate-pulse">Saving...</span>
+          ) : (
+            <span className="badge badge-success font-semibold">Prescription</span>
+          )}
+          <span className="text-xs font-medium px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
+            {prescription.institutionName}
+          </span>
+          {prescription.prescription?.shareCode && !isPending && (
+            <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-800 border border-slate-200">
+              Share code: {prescription.prescription.shareCode}
+            </span>
+          )}
+        </div>
+        <span className="text-xs text-gray-500">
+          {isPending ? "Just now" : formatIST(prescription.occurredAt)}
+        </span>
+      </div>
+
+      <h3 className="font-semibold text-sm text-gray-900 mb-1">{prescription.title}</h3>
+
+      {prescription.authorName && (
+        <p className="text-xs text-gray-600 mb-2">
+          Prescribed by <span className="font-medium text-gray-800">{prescription.authorName}</span>
+        </p>
+      )}
+
+      {items.length > 0 && (
+        <div className="mt-2 pt-2 border-t border-slate-100">
+          <ul className="list-disc list-inside text-xs text-gray-700 space-y-0.5">
+            {items.map((item, idx) => (
+              <li key={idx}>
+                <strong>{item.drug}</strong> — {item.dose} ({item.frequency}, {item.durationDays} days)
+                {item.notes && <span className="text-gray-500"> — {item.notes}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {prescription.summary && (
+        <p className="text-xs text-gray-600 mt-2 italic bg-slate-50 p-2 rounded border border-slate-100">
+          Remarks: {prescription.summary}
+        </p>
+      )}
+    </article>
   );
 }

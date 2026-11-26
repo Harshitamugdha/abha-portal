@@ -3,6 +3,33 @@
 
 ---
 
+## [2026-11-26 12:15] Slice P4.3 — Optimistic prescription with rollback (Phase 4 complete)
+
+**Done:** Implemented optimistic prescription management using React 19 `useOptimistic` hook within `startTransition`. Created pure helper `addPendingPrescription` (`src/app/doctor/patients/[patientId]/prescribe/optimistic.ts`) with unit tests proving immutable array handling and preservation of the `isPending` state. Enhanced the prescribe page Server Component to load the patient's existing prescriptions via `listPatientRecords(user, { type: "PRESCRIPTION" })` and catch `CONSENT_REQUIRED` to render the `ConsentRequired` alert panel. In the prescribe form, new prescriptions are optimistically prepended and marked `Saving...`. If the Server Action refuses (e.g. after consent is revoked), the pending row instantly rolls back and the error reason is displayed; on success, `router.refresh()` synchronizes server state and the large share code is shown. Phase 4 is officially complete.
+
+**Files touched:** `src/app/doctor/patients/[patientId]/prescribe/optimistic.ts` (new) · `src/app/doctor/patients/[patientId]/prescribe/optimistic.test.ts` (new) · `src/app/doctor/patients/[patientId]/prescribe/page.tsx` (modified) · `src/app/doctor/patients/[patientId]/prescribe/prescribe-form.tsx` (modified) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Open Tab A as Dr Kavya on `/doctor/patients/user-asha/prescribe`. In Tab B as Asha, revoke Dr Kavya's consent at `/patient/consents?tab=active`. In Tab A, submit a prescription: observe the pending row appear marked `Saving...` and instantly disappear upon server refusal with the consent error reason.
+
+**Access check:** Tab A: Dr Kavya on the prescribe page with active consent. Tab B (Asha's profile): revoke consent. Tab A: click "Issue prescription". The row appears momentarily with a "Saving..." badge, then rolls back and the "Consent required" reason is displayed. Checking Asha's records confirms nothing was created. When consent is re-granted, the same flow optimistically displays the row, commits, and presents the 6-character share code.
+
+**Demo steps enabled:** 6 (Doctor writes prescription with instant optimistic UI feedback, resilient rollback on server refusal, and large share code on commit)
+
+**Learned:** `useOptimistic` requires updates to be wrapped in React's `startTransition`. When the async server action rejects or fails inside the transition, the optimistic state automatically reverts to the current server snapshot without needing manual rollback bookkeeping.
+
+**AI used:** code: built pure optimistic helper, vitest unit tests, prescribe page query with consent catch, and useOptimistic UI integration.
+
+**Open issues:**
+- none
+
+**Next:** Phase 5 — Lab Portal (`listLabOrders`, `uploadLabResult`, and `/lab` orders dashboard).
+
+---
+
 ## [2026-11-26 11:10] Slice P4.2 — Lab orders and encounters
 
 **Done:** Implemented `writeLabOrder` (`src/server/clinical/lab-order.ts`) and `writeEncounter` (`src/server/clinical/encounter.ts`) with Server Actions `createLabOrder` and `createEncounter` in `src/app/actions/clinical.ts`. Follows uniform sequence: `requireSession()`, Zod validation, `authorize()` check (`labOrder:create` / `record:create:clinical`), and database write. `writeLabOrder` verifies institution type is `LAB`, trims 1–10 tests, sets status `PENDING`, and returns `LabOrderDTO`. `writeEncounter` handles IST-to-UTC date conversion via `parseIstDate`, saves `HealthRecord(type: ENCOUNTER)`, and returns `RecordDTO`. Created writer pages at `/doctor/patients/[patientId]/lab-order` and `.../encounter`, with dynamic test rows, quick suggestions, multi-institution dropdowns, and links from the doctor viewer. Added unit and action test suites (11 new tests).

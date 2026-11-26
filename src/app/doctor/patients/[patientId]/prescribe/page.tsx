@@ -1,9 +1,12 @@
 import { notFound, redirect } from "next/navigation";
+import { ConsentRequired } from "@/components/ui/consent-required";
 import { PageHead } from "@/components/ui/page-head";
 import { TopBar } from "@/components/ui/top-bar";
 import { getSession } from "@/server/auth/session";
 import { getPatientHeader } from "@/server/clinical/lookup";
 import { db } from "@/server/db";
+import { ApiError } from "@/server/http";
+import { listPatientRecords } from "@/server/records/list";
 import { DOCTOR_LINKS } from "../../../doctor-links";
 import { PrescribeForm } from "./prescribe-form";
 
@@ -44,6 +47,34 @@ export default async function PrescribePage({ params }: PageProps) {
     });
   }
 
+  // List this patient's prescriptions; catch the consent error in the Server Component and render Consent required
+  let initialPrescriptions = [];
+  try {
+    const page = await listPatientRecords(user, {
+      patientId,
+      type: "PRESCRIPTION",
+    });
+    initialPrescriptions = page.items;
+  } catch (error) {
+    if (error instanceof ApiError && error.code === "CONSENT_REQUIRED") {
+      return (
+        <>
+          <TopBar name={user.name} links={DOCTOR_LINKS} />
+          <main className="landing">
+            <PageHead
+              kicker="Clinical prescription"
+              title={`Write prescription: ${header.name}`}
+            />
+            <div className="container dashboard">
+              <ConsentRequired patientId={patientId} patientName={header.name} />
+            </div>
+          </main>
+        </>
+      );
+    }
+    throw error;
+  }
+
   return (
     <>
       <TopBar name={user.name} links={DOCTOR_LINKS} />
@@ -57,7 +88,9 @@ export default async function PrescribePage({ params }: PageProps) {
           <PrescribeForm
             patientId={patientId}
             patientName={header.name}
+            doctorName={user.name}
             institutions={institutions}
+            initialPrescriptions={initialPrescriptions}
           />
         </div>
       </main>
