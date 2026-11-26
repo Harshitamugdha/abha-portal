@@ -3,6 +3,33 @@
 
 ---
 
+## [2026-11-26 12:40] Slice P5.1 — Lab: pending orders
+
+**Done:** Implemented `listLabOrders` (`src/server/lab/list.ts`) authorized with action `labOrder:list:lab`. Enforces that orders are queried strictly using session `institutionIds` (never from request parameters) and protects patient confidentiality by selecting solely the patient's name (no ABHA, DOB, or gender). Built the diagnostic lab orders dashboard at `/lab` with default `PENDING` filter, status tabs (`PENDING`, `COMPLETED`, `ALL`), loading skeleton (`loading.tsx`), error boundary (`error.tsx`), and responsive empty state. Added order details route at `/lab/orders/[orderId]`. Added unit test suite in `src/server/lab/list.test.ts` verifying session institution scoping, role gating (`FORBIDDEN`), empty handling, and exact DTO contract shapes.
+
+**Files touched:** `src/server/lab/list.ts` (new) · `src/server/lab/list.test.ts` (new) · `src/app/lab/page.tsx` (modified) · `src/app/lab/loading.tsx` (new) · `src/app/lab/error.tsx` (new) · `src/app/lab/orders/[orderId]/page.tsx` (new) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Precision Lab (`desk@precision.test` / `Demo@1234`) → navigate to `/lab` → observe the seeded pending diagnostic order for Asha Verma (ordered by Dr Arjun Rao for HbA1c and Thyroid profile) displayed in the table. Inspect network and HTML: confirm no ABHA number or birth date is present. Attempt accessing `/lab` as Dr Kavya or Asha: verified redirection to `/doctor` and `/patient`.
+
+**Access check:** `desk@precision.test` sees the seeded order for Asha Verma (HbA1c, Thyroid profile) by Dr Arjun Rao, and no ABHA or birth date in the page or the network response. Kavya opening `/lab` is redirected to `/doctor`; Asha is redirected to `/patient`.
+
+**Demo steps enabled:** 7 (Lab staff views pending diagnostic orders without access to patient history or identifying demographics)
+
+**Learned:** In ABDM, diagnostic laboratories receive test orders fulfilled by order ID and patient name only; they do not have clinical access to the patient's longitudinal health record, ABHA identifier, or demographic profile.
+
+**AI used:** code: implemented lab orders query function with session-only scoping, Vitest test suite, and `/lab` orders dashboard with status filters and error boundaries.
+
+**Open issues:**
+- none
+
+**Next:** Slice P5.2 — Lab result upload (`uploadLabResult` action and result PDF upload form).
+
+---
+
 ## [2026-11-26 12:15] Slice P4.3 — Optimistic prescription with rollback (Phase 4 complete)
 
 **Done:** Implemented optimistic prescription management using React 19 `useOptimistic` hook within `startTransition`. Created pure helper `addPendingPrescription` (`src/app/doctor/patients/[patientId]/prescribe/optimistic.ts`) with unit tests proving immutable array handling and preservation of the `isPending` state. Enhanced the prescribe page Server Component to load the patient's existing prescriptions via `listPatientRecords(user, { type: "PRESCRIPTION" })` and catch `CONSENT_REQUIRED` to render the `ConsentRequired` alert panel. In the prescribe form, new prescriptions are optimistically prepended and marked `Saving...`. If the Server Action refuses (e.g. after consent is revoked), the pending row instantly rolls back and the error reason is displayed; on success, `router.refresh()` synchronizes server state and the large share code is shown. Phase 4 is officially complete.

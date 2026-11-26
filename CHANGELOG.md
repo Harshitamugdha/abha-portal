@@ -4,6 +4,7 @@ Newest first. One entry per merged phase that changes what a user can do, or wha
 Contract changes are marked **[contract]**.
 
 ## Unreleased
+- **Slice P5.1 (26 Nov 2026):** Diagnostic lab orders query engine (`listLabOrders`) enforcing session-based institution scoping and patient privacy (patient name only, no ABHA, DOB, or gender), and `/lab` orders dashboard with status filters (default PENDING), loading skeleton, error boundary, and empty states (Vivek).
 - **Phase 4 complete (26 Nov 2026):** Vivek completed Phase 4 (Clinical writes): prescription engine with 6-character cryptographic share codes and P2002 retry loop, dynamic prescription writer form with `useOptimistic` instant feedback and rollback, `createLabOrder` Server Action with lab picker from `listInstitutionChoices`, `createEncounter` Server Action with IST date conversion, and doctor viewer clinical action links.
 - **Slice P4.3 (26 Nov 2026):** Optimistic prescription with rollback using React 19 `useOptimistic`, pure `addPendingPrescription` helper, Server Component consent error catch rendering `ConsentRequired`, and `router.refresh()` on commit (Vivek).
 - **Slice P4.2 (26 Nov 2026):** Clinical lab orders and encounters: `createLabOrder` Server Action with laboratory type validation, test trimming (1–10 items), and `status: PENDING`; `createEncounter` Server Action with IST-to-UTC date parsing; writer pages at `/doctor/patients/:id/lab-order` and `.../encounter`, and direct action links on doctor patient viewer (Vivek).
