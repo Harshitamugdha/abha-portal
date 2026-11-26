@@ -900,8 +900,11 @@ legend {
 }
 
 .btn-small {
-  min-height: 38px;
-  padding: 6px 14px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 14px;
   font-size: 0.9rem;
 }
 
@@ -1052,7 +1055,8 @@ legend {
   padding: 40px var(--gutter);
 }
 
-.site-footer h2 {
+.site-footer h2,
+.site-footer .footer-title {
   color: #ffffff;
   font-size: 1.15rem;
   font-weight: 700;

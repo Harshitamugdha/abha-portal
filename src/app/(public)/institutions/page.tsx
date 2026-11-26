@@ -10,6 +10,7 @@ export const revalidate = 3600; // ISR: revalidate at most once every hour
 export const metadata: Metadata = {
   title: "Participating Health Facilities | ABHA Health Portal",
   description: "Browse registered hospitals, diagnostic laboratories, and pharmacies in the ABHA network.",
+  robots: { index: true, follow: true },
 };
 
 export default async function InstitutionsDirectoryPage() {
@@ -57,30 +58,30 @@ export default async function InstitutionsDirectoryPage() {
                 <div>
                   <div className="flex items-start justify-between gap-2 mb-2">
                     <span
-                      className={`text-xs px-2 py-0.5 rounded font-mono font-medium ${
+                      className={`text-xs px-2.5 py-1 rounded font-mono font-semibold ${
                         inst.type === "HOSPITAL"
-                          ? "bg-blue-50 text-blue-800 border border-blue-200"
+                          ? "bg-blue-100 text-blue-900 border border-blue-300"
                           : inst.type === "LAB"
-                            ? "bg-purple-50 text-purple-800 border border-purple-200"
-                            : "bg-emerald-50 text-emerald-800 border border-emerald-200"
+                            ? "bg-purple-100 text-purple-900 border border-purple-300"
+                            : "bg-emerald-100 text-emerald-900 border border-emerald-300"
                       }`}
                     >
                       {inst.type}
                     </span>
-                    <span className="text-xs text-gray-500 font-medium">📍 {inst.city}</span>
+                    <span className="text-xs text-slate-700 font-medium">📍 {inst.city}</span>
                   </div>
                   <h3 className="font-bold text-base text-gray-900 mb-1">
                     <Link href={`/institutions/${inst.id}`} className="hover:underline">
                       {inst.name}
                     </Link>
                   </h3>
-                  <p className="text-xs font-mono text-gray-400 mb-4">ID: {inst.id}</p>
+                  <p className="text-xs font-mono text-slate-600 mb-4">ID: {inst.id}</p>
                 </div>
 
                 <div className="pt-2 border-t border-slate-100">
                   <Link
                     href={`/institutions/${inst.id}`}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 inline-flex items-center gap-1"
+                    className="text-xs font-semibold text-blue-700 hover:text-blue-900 min-h-[44px] inline-flex items-center gap-1"
                   >
                     <span>Facility details</span>
                     <span>→</span>

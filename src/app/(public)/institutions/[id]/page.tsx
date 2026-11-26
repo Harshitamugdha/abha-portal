@@ -34,6 +34,7 @@ export async function generateMetadata(props: PageProps): Promise<Metadata> {
   return {
     title: `${institution.name} | ABHA Health Portal`,
     description: `${institution.name} (${institution.type}) located in ${institution.city}. Verified healthcare provider in the ABHA network.`,
+    robots: { index: true, follow: true },
   };
 }
 

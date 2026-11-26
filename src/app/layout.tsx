@@ -20,7 +20,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html lang="en" className={`${notoSans.variable} h-full antialiased`}>
       <body className="min-h-full flex flex-col">
         <SiteHeader />
-        <div id="content" className="flex flex-col flex-1">
+        <div id="content" className="flex flex-col flex-1" tabIndex={-1}>
           {children}
         </div>
         <SiteFooter />

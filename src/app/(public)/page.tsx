@@ -1,7 +1,15 @@
+import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import { PublicNav } from "@/components/ui/public-nav";
 import { getLanguage, getMessages } from "@/server/i18n";
+
+export const metadata: Metadata = {
+  title: "ABHA Health Portal — Unified Digital Health Records",
+  description:
+    "India's digital health portal connecting hospitals, diagnostic laboratories, pharmacies, and citizens under ABDM. Access longitudinal health records with secure consent.",
+  robots: { index: true, follow: true },
+};
 
 export default async function HomePage() {
   const lang = await getLanguage();
@@ -100,7 +108,7 @@ export default async function HomePage() {
             <div className="max-w-2xl mb-8">
               <p className="step-label">Ecosystem</p>
               <h2 className="section-title">{t.rolesHeading}</h2>
-              <p className="section-intro text-gray-600">{t.rolesSub}</p>
+              <p className="section-intro text-slate-700">{t.rolesSub}</p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {roles.map((role) => (
@@ -108,14 +116,17 @@ export default async function HomePage() {
                   <div>
                     <div className="flex items-center justify-between mb-3">
                       <h3 className="font-bold text-lg text-gray-900">{role.title}</h3>
-                      <span className="text-xs px-2 py-0.5 rounded font-mono font-medium bg-blue-50 text-blue-700 border border-blue-200">
+                      <span className="text-xs px-2.5 py-1 rounded font-mono font-semibold bg-blue-100 text-blue-900 border border-blue-300">
                         {role.badge}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-600 mb-6">{role.desc}</p>
+                    <p className="text-sm text-slate-700 mb-6 leading-relaxed">{role.desc}</p>
                   </div>
                   <div>
-                    <Link href={role.link} className="btn btn-secondary btn-small w-full text-center">
+                    <Link
+                      href={role.link}
+                      className="btn btn-secondary btn-small w-full text-center min-h-[44px] inline-flex items-center justify-center"
+                    >
                       {role.cta} →
                     </Link>
                   </div>

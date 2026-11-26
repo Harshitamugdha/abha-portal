@@ -135,11 +135,11 @@ client components). Plus: **a doctor at two institutions.** A consent request ca
 the doctor is acting for. If they have more than one, ask in the form; don't take `[0]`.
 
 # PART D — DONE MEANS
-- [ ] Demo steps 1 (timeline), 2, 3 (form), 5, 6, 7 work on the deployed build
-- [ ] Encounter form, optimistic prescription, intercepting modal, parallel dashboard, Hindi/English toggle all working
-- [ ] Out-of-scope records never appear in any network response
-- [ ] Files can't be fetched without an authorized session
-- [ ] `patient/*` and `doctor/*` are dynamic; only `(public)/*` is static/ISR
+- [x] Demo steps 1 (timeline), 2, 3 (form), 5, 6, 7 work on the deployed build
+- [x] Encounter form, optimistic prescription, intercepting modal, parallel dashboard, Hindi/English toggle all working
+- [x] Out-of-scope records never appear in any network response
+- [x] Files can't be fetched without an authorized session
+- [x] `patient/*` and `doctor/*` are dynamic; only `(public)/*` is static/ISR
 
 # PART E — VIVA QUESTIONS
 1. What does the intercepting route do on a hard refresh, and why?

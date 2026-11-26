@@ -32,10 +32,10 @@ export function PublicNav({
   return (
     <div className="topbar">
       <div className="topbar-inner">
-        <NavLinks links={getPublicLinks(lang)} />
+        <NavLinks links={getPublicLinks(lang)} label="Public pages" />
         <div className="nav-right" style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           {showToggle && <LanguageToggle current={lang} />}
-          <NavLinks links={getLoginLinks(lang)} label="Login" className="nav-links" />
+          <NavLinks links={getLoginLinks(lang)} label="Login access" className="nav-links" />
         </div>
       </div>
     </div>
