@@ -3,6 +3,37 @@
 
 ---
 
+## [2026-11-26 15:15] Slice P5.2 — Lab: upload a result (Phase 5 complete)
+
+**Done:** Implemented lab result upload processing via `uploadLabResultRecord` (`src/server/lab/upload.ts`) and Server Action `uploadLabResult` (`src/app/actions/lab.ts`). Enforces strict operational sequencing: `requireSession`, Zod `LabResultUpload` validation, load order, authorize `labResult:upload` (`NOT_FOUND` if order belongs to another laboratory), status check (must be `PENDING` else `CONFLICT` 409), file size validation (<= 5 MB), and magic-byte MIME detection (`detectMime` for PDF, PNG, JPEG). Executes an atomic single database transaction: concurrency guard via `updateMany` (`status: "PENDING"` -> `"COMPLETED"`, throwing `CONFLICT` if count is 0), creates `FileObject`, creates `HealthRecord` (`LAB_REPORT` with `authorId` = lab user, `institutionId` = lab institution, `occurredAt` = now), and links `LabOrder.resultRecordId`. Added `/lab/orders/[orderId]` upload form with pending state and error alerts, completed report viewer, and loading/error boundaries. Revalidates `/lab` and `/patient/records`. Built comprehensive unit and action test suites verifying concurrency conflict, cross-institution 404, transaction rollback, and role/institution ownership. Phase 5 is officially complete.
+
+**Files touched:** `src/server/lab/upload.ts` (new) · `src/server/lab/upload.test.ts` (new) · `src/app/actions/lab.ts` (new) · `src/app/actions/lab.test.ts` (new) · `src/app/lab/orders/[orderId]/order-result-form.tsx` (new) · `src/app/lab/orders/[orderId]/page.tsx` (modified) · `src/app/lab/orders/[orderId]/loading.tsx` (new) · `src/app/lab/orders/[orderId]/error.tsx` (new) · `src/components/ui/record-card.tsx` (modified) · `src/components/ui/record-timeline.tsx` (modified) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+1. Log in as Precision Lab (`desk@precision.test` / `Demo@1234`) → go to `/lab` → click order `laborder-asha-1` → upload a small PDF file and enter diagnostic summary ("HbA1c: 5.6% within normal limits.") → click "Upload Result & Complete Order" → observe the order status transition to `COMPLETED` and the uploaded report details appear.
+2. In another tab or by submitting again on a completed order, attempt an upload → observe already completed error (409 Conflict).
+3. Log in as Asha Verma (mobile `91-1000-0000-0001` / OTP `123456`) → visit `/patient/records` → observe the new `LAB_REPORT` card in the timeline and open the file viewer to review the uploaded PDF.
+4. Log in as Dr Kavya (`kavya@citygen.test` / `Demo@1234`) with active `LAB_REPORT` consent → open patient viewer `/doctor/patients/user-asha` → observe the lab report in the records timeline.
+5. As Precision Lab, attempt to open another patient's file directly (e.g. `/api/v1/files/file-asha-1`) → verify 404 Not Found response.
+
+**Access check:** `desk@precision` uploads a small PDF plus a summary: the order shows `COMPLETED`. Second try: already completed message (409). Asha's timeline shows the new Lab report and its file opens. Kavya with `LAB_REPORT` consent sees it in the viewer. The lab user opening another patient's file URL gets 404, and the lab cannot reach any patient history route.
+
+**Demo steps enabled:** 7 (Diagnostic lab staff views orders, uploads PDF test results in one transaction, and completes orders while patient immediately accesses report)
+
+**Learned:** Concurrency control on multi-step workflows like lab order fulfillment is cleanly handled via `updateMany({ where: { id, status: "PENDING" }, data: { status: "COMPLETED" } })` within the transaction, providing atomic row locking in Postgres and preventing double-submission race conditions without extra locks. ABDM laboratory users only have author access to files they directly uploaded; access to any other patient record or file correctly yields 404.
+
+**AI used:** code: implemented atomic upload service, double-submit concurrency protection, lab result server action, result upload form component, error/loading boundaries, and Vitest test suites.
+
+**Open issues:**
+- none
+
+**Next:** Phase 5 complete. Awaiting next user assignment.
+
+---
+
 ## [2026-11-26 12:40] Slice P5.1 — Lab: pending orders
 
 **Done:** Implemented `listLabOrders` (`src/server/lab/list.ts`) authorized with action `labOrder:list:lab`. Enforces that orders are queried strictly using session `institutionIds` (never from request parameters) and protects patient confidentiality by selecting solely the patient's name (no ABHA, DOB, or gender). Built the diagnostic lab orders dashboard at `/lab` with default `PENDING` filter, status tabs (`PENDING`, `COMPLETED`, `ALL`), loading skeleton (`loading.tsx`), error boundary (`error.tsx`), and responsive empty state. Added order details route at `/lab/orders/[orderId]`. Added unit test suite in `src/server/lab/list.test.ts` verifying session institution scoping, role gating (`FORBIDDEN`), empty handling, and exact DTO contract shapes.

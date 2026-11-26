@@ -19,7 +19,11 @@ export function RecordTimeline({ records }: { records: RecordDTO[] }) {
           </h2>
           <div className="space-y-3">
             {group.records.map((record) => (
-              <RecordCard key={record.id} record={record} />
+              <RecordCard
+                key={record.id}
+                record={record}
+                href={`/patient/records/${record.id}`}
+              />
             ))}
           </div>
         </section>

@@ -5,7 +5,13 @@ import { Badge } from "./badge";
 import { RECORD_TYPE_LABELS } from "./record-labels";
 import { FileViewerTrigger } from "./file-viewer";
 
-export function RecordCard({ record }: { record: RecordDTO }) {
+export function RecordCard({
+  record,
+  href,
+}: {
+  record: RecordDTO;
+  href?: string | null;
+}) {
   const isPrescription = record.type === "PRESCRIPTION" && record.prescription;
 
   return (
@@ -21,9 +27,13 @@ export function RecordCard({ record }: { record: RecordDTO }) {
       </div>
 
       <h3 className="font-semibold text-base mb-1">
-        <Link href={`/patient/records/${record.id}`} className="hover:underline">
-          {record.title}
-        </Link>
+        {href ? (
+          <Link href={href} className="hover:underline">
+            {record.title}
+          </Link>
+        ) : (
+          <span>{record.title}</span>
+        )}
       </h3>
 
       {record.authorName && (
