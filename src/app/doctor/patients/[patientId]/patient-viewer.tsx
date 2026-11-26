@@ -112,18 +112,28 @@ export function PatientViewer({
               ABHA: <span className="font-mono">{abhaNumberMasked}</span>
             </p>
           </div>
-          <div className="row" style={{ gap: "8px" }}>
-            {isConsentActive && (
-              <Link
-                href={`/doctor/patients/${encodeURIComponent(patientId)}/prescribe`}
-                className="btn btn-primary btn-small"
-              >
-                + Write prescription
-              </Link>
-            )}
+          <div className="row" style={{ gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
+            <Link
+              href={`/doctor/patients/${encodeURIComponent(patientId)}/prescribe`}
+              className="btn btn-secondary btn-small"
+            >
+              + Prescribe
+            </Link>
+            <Link
+              href={`/doctor/patients/${encodeURIComponent(patientId)}/encounter`}
+              className="btn btn-secondary btn-small"
+            >
+              + Record visit
+            </Link>
+            <Link
+              href={`/doctor/patients/${encodeURIComponent(patientId)}/lab-order`}
+              className="btn btn-secondary btn-small"
+            >
+              + Order lab
+            </Link>
             <Link
               href={`/doctor/patients/${encodeURIComponent(patientId)}/request-consent`}
-              className="btn btn-secondary btn-small"
+              className="btn btn-primary btn-small"
             >
               Request consent
             </Link>

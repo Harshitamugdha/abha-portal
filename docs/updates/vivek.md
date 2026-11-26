@@ -3,6 +3,33 @@
 
 ---
 
+## [2026-11-26 11:10] Slice P4.2 — Lab orders and encounters
+
+**Done:** Implemented `writeLabOrder` (`src/server/clinical/lab-order.ts`) and `writeEncounter` (`src/server/clinical/encounter.ts`) with Server Actions `createLabOrder` and `createEncounter` in `src/app/actions/clinical.ts`. Follows uniform sequence: `requireSession()`, Zod validation, `authorize()` check (`labOrder:create` / `record:create:clinical`), and database write. `writeLabOrder` verifies institution type is `LAB`, trims 1–10 tests, sets status `PENDING`, and returns `LabOrderDTO`. `writeEncounter` handles IST-to-UTC date conversion via `parseIstDate`, saves `HealthRecord(type: ENCOUNTER)`, and returns `RecordDTO`. Created writer pages at `/doctor/patients/[patientId]/lab-order` and `.../encounter`, with dynamic test rows, quick suggestions, multi-institution dropdowns, and links from the doctor viewer. Added unit and action test suites (11 new tests).
+
+**Files touched:** `src/server/clinical/lab-order.ts` (new) · `src/server/clinical/lab-order.test.ts` (new) · `src/server/clinical/encounter.ts` (new) · `src/server/clinical/encounter.test.ts` (new) · `src/app/actions/clinical.ts` (modified) · `src/app/actions/clinical.test.ts` (modified) · `src/app/doctor/patients/[patientId]/lab-order/page.tsx` (new) · `src/app/doctor/patients/[patientId]/lab-order/lab-order-form.tsx` (new) · `src/app/doctor/patients/[patientId]/encounter/page.tsx` (new) · `src/app/doctor/patients/[patientId]/encounter/encounter-form.tsx` (new) · `src/app/doctor/patients/[patientId]/patient-viewer.tsx` (modified) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Dr Kavya (`kavya@citygen.test` / `Demo@1234`) → open `/doctor/patients/user-asha` → click "+ Record visit" to record an encounter note, and "+ Order lab" to order HbA1c at Precision Diagnostics Lab. Log in as Asha (`91-1000-0000-0001`, OTP `123456`) → open `/patient/records` to see the new encounter in her timeline.
+
+**Access check:** Dr Kavya (with consent) orders HbA1c at Precision and records an encounter. Asha immediately sees the encounter in her timeline. Without consent, both forms refuse with "Consent required" messages and nothing is written.
+
+**Demo steps enabled:** 6 (Doctor writes prescription, records encounter, orders lab tests)
+
+**Learned:** If an active consent does not include the `ENCOUNTER` scope, Dr Kavya will not see her own newly created encounter in the patient viewer. This is expected ABDM behavior because `record:list` is strictly scope-gated; author access (D5) only applies when opening a specific single record via `record:read`.
+
+**AI used:** code: implemented lab order and encounter engines, server actions, IST date handling, client writer forms, and vitest suites.
+
+**Open issues:**
+- none
+
+**Next:** Slice P4.3 — Optimistic writes and UI feedback.
+
+---
+
 ## [2026-11-26 10:35] Slice P4.1 — Prescriptions (action, share code, writer form)
 
 **Done:** Implemented `writePrescription` in `src/server/clinical/prescription.ts` and Server Action `createPrescription` in `src/app/actions/clinical.ts`. Share code generator uses `crypto.randomInt` with a 32-character set (`ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, excluding `0`, `O`, `1`, `I`) to produce 6-character alphanumeric codes. Includes transaction creating both `HealthRecord` (`type: PRESCRIPTION`) and `Prescription` (`expiresAt: now + 30 days`), wrapped in a retry loop catching Prisma `P2002` unique constraint collisions up to 5 times. Built doctor prescription writer form at `/doctor/patients/[patientId]/prescribe` with dynamic controlled medication rows (1–10 items), stable row keys, client validation with `PrescriptionCreate`, and prominent share code display on success. Added unit and integration tests covering charset/length, retry on P2002, 5-attempt ceiling, role gating (`FORBIDDEN`), consent requirement (`CONSENT_REQUIRED`), and 0/11 drug bounds.
