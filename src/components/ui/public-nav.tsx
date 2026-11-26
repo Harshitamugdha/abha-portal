@@ -2,6 +2,7 @@ import { NavLinks } from "./nav-links";
 
 const PUBLIC_LINKS = [
   { href: "/", label: "Home" },
+  { href: "/institutions", label: "Institutions" },
   { href: "/#how-it-works", label: "How consent works" },
   { href: "/#faq", label: "FAQs" },
 ];

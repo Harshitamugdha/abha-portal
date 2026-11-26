@@ -3,6 +3,45 @@
 
 ---
 
+## [2026-11-26 19:50] Slice P7.1 — Public pages (landing and institution directory, ISR) (Phase 7 complete)
+
+**Done:** Implemented static and Incremental Static Regeneration (ISR) public pages for the portal. Moved the initial landing page to `src/app/(public)/page.tsx` mapping to `/` (notifying Harshita of the move to avoid route conflicts). The landing page details the ABDM unified health record architecture, highlights the five core platform roles (`PATIENT`, `DOCTOR`, `PHARMACY`, `LAB`, `ADMIN`) with role badges and CTAs, provides patient (`/login`) and staff (`/staff/login`) login actions, highlights consent workflows, and embeds a priority local preview image using `next/image`. Created public institution directory `/institutions` (`src/app/(public)/institutions/page.tsx`) and facility profile `/institutions/[id]` (`src/app/(public)/institutions/[id]/page.tsx`) with `export const revalidate = 3600`, `generateStaticParams`, dynamic `generateMetadata`, and `notFound()` handling. Public fields are strictly scoped using pure `toPublicInstitutionDTO` (`src/server/records/institutions.ts`) returning only `id`, `name`, `type`, and `city`. Engineered offline build resilience using `STATIC_INSTITUTIONS` fallback fixtures so `npm run build` succeeds even if PostgreSQL is offline or unreachable. Added unit test in `src/server/records/institutions.test.ts`. Added institutions link to `PublicNav`. Phase 7 is officially complete.
+
+**Server-rendered vs. Client-fetched comparison (5 lines):**
+1. Server-rendered `/patient/records`: The initial HTML document received from the server contains the full markup of all health record cards, titles, dates, badges, and institutions pre-rendered in view-source.
+2. Time to first content for `/patient/records`: Visual content is immediate upon browser parsing and painting of the initial server HTML, with zero client-side data-fetching waterfalls or loading spinners.
+3. Client-fetched doctor viewer `/doctor/patients/[id]`: View-source reveals only the outer page shell and loading skeleton (`Loading patient records…`), while health records themselves are absent from the initial document.
+4. Time to first content for doctor viewer: Content display is gated by a client-side network waterfall: the browser must download the JavaScript bundle, hydrate React, mount the query client, and await the `/api/v1/patients/:id/records` fetch before rendering cards.
+5. Operational trade-off: Server rendering delivers instant first content and complete SEO/crawling fidelity, whereas client fetching enables dynamic refetching (`refetchOnWindowFocus`), reactive consent-error transitions (`CONSENT_REQUIRED`), and client-side scope filtering without page reloads. What exact time-to-first-content and network waterfall timings did you observe in your DevTools Network tab when comparing both pages?
+
+**Files touched:** `src/app/(public)/page.tsx` (new) · `src/app/page.tsx` (deleted) · `src/app/(public)/institutions/page.tsx` (new) · `src/app/(public)/institutions/[id]/page.tsx` (new) · `src/server/records/institutions.ts` (modified) · `src/server/records/institutions.test.ts` (new) · `src/components/ui/public-nav.tsx` (modified) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run build
+npm run dev
+```
+1. Run `npm run build`: observe route output classifying `(public)` routes (`/`, `/institutions`, `/institutions/[id]`) as static (○) or ISR (● / revalidated), while private user routes (`/patient`, `/doctor`, `/lab`) stay dynamic (ƒ).
+2. Start server (`npm run dev`) → visit `/` in an incognito window: observe landing page with portal overview, ABDM roles, and login CTAs.
+3. Visit `/institutions`: right-click and select "View Page Source": verify institution names (e.g. City General Hospital) appear directly in the server-delivered HTML without client hydration.
+4. Log in as Asha Verma (`91-1000-0000-0001` / OTP `123456`) → visit `/institutions`: verify the page renders standard public facility data and contains no session, ABHA, or patient records data.
+5. Navigate to `/institutions/inst-citygen`: verify page title is "City General Hospital | ABHA Health Portal" (set via `generateMetadata`).
+
+**Access check:** Run `npm run build`. (public) pages show static or ISR; patient, doctor and lab pages show dynamic. View source of `/institutions` shows the names (server rendered). Log in as Asha, then open `/institutions`: nothing about Asha appears. `/institutions/inst-citygen` has its own page title.
+
+**Demo steps enabled:** 8 (Public visitors browse portal introduction, role architecture, and search participating healthcare institutions via fast static/ISR pages)
+
+**Learned:** Static Generation and ISR (`revalidate = 3600`) render public directories instantly while decoupling public page availability from runtime database latency. Pure mapper functions (`toPublicInstitutionDTO`) ensure internal database schemas and administrative flags never leak into publicly served static payloads. Adding static fallback fixtures ensures CI/CD build pipelines and container deployments succeed independently of transient database downtime.
+
+**AI used:** code: authored ISR public landing page, institution directory, metadata generators, mapper unit tests, and offline build resilience adapters.
+
+**Open issues:**
+- none
+
+**Next:** Phase 7 complete. All assigned phases (Phase 0 through Phase 7) are complete!
+
+---
+
 ## [2026-11-26 19:30] Slice P6.2 — Doctor dashboard with parallel routes (Phase 6 complete)
 
 **Done:** Implemented parallel routes for the doctor dashboard. Updated `src/app/doctor/layout.tsx` to receive parallel slots `pending` and `recent` alongside `children` wrapped in `DoctorQueryProvider`. Created parallel slot `doctor/@pending` querying the doctor's pending consent requests (`status: "REQUESTED"`) via `listConsents(user, { status: "REQUESTED" })`, displaying patient name, purpose, requested scopes, and waiting badge. Created parallel slot `doctor/@recent` querying approved consents (`status: "GRANTED"`), filtering for currently active consents (`displayStatus === "GRANTED"`), displaying approved scopes, valid until date, and direct navigation links to `/doctor/patients/:id` (`PatientViewer`). Added independent `loading.tsx` skeletons, client `error.tsx` boundaries, and `default.tsx` fallbacks returning `null` on both slots so all other `/doctor/*` subroutes hard-load without errors. Implemented missing `loading.tsx` and `error.tsx` boundaries across `/patient`, `/doctor`, and `/doctor/patients/[patientId]` with Server Component `ApiError` catch handling (ensuring sensitive errors are not masked in production). Phase 6 is officially complete.
