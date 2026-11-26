@@ -3,6 +3,39 @@
 
 ---
 
+## [2026-11-26 18:45] Slice P6.1 — Intercepting route: record detail modal
+
+**Done:** Implemented intercepting route modal for health record details. Added `src/app/patient/layout.tsx` rendering `{children}` and the parallel slot `{modal}` without adding a TopBar so that all patient subpages (consents, access-log, dashboard) maintain their own headers untouched. Created `src/app/patient/@modal/default.tsx` returning `null` as the unmatched slot fallback. Built client component `Modal` (`src/components/ui/modal.tsx`) with accessibility attributes (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`), automated focus transfer on mount via `useRef`, Escape key listener with pure `isEscapeKey` helper, backdrop click detection, and close button calling `router.back()`. Created shared `RecordDetailView` (`src/components/ui/record-detail-view.tsx`) used identically by both the intercepted modal and the full record detail page (`/patient/records/[id]`). Intercepted route `src/app/patient/@modal/(.)records/[id]/page.tsx` loads the record via `getRecord` and renders it within `Modal` on client navigation. Hard refresh or direct link loading continues to render the full standalone page `/patient/records/[id]`. Added unit test suite in `src/components/ui/modal.test.ts`.
+
+**Files touched:** `src/app/patient/layout.tsx` (new) · `src/app/patient/@modal/default.tsx` (new) · `src/app/patient/@modal/(.)records/[id]/page.tsx` (new) · `src/components/ui/modal.tsx` (new) · `src/components/ui/modal.test.ts` (new) · `src/components/ui/record-detail-view.tsx` (new) · `src/app/patient/records/[id]/page.tsx` (modified) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+1. Log in as Asha Verma (`91-1000-0000-0001` / OTP `123456`) → visit `/patient/records`.
+2. Click any record card: observe the modal dialog opens smoothly over the timeline while the URL updates to `/patient/records/[id]`.
+3. Press Escape, click the "×" close button, or click the backdrop: observe the modal closes and the URL returns to `/patient/records`.
+4. Click the record again, then press the browser Refresh button: observe the full standalone record detail page loads.
+5. In a new browser tab, paste `/patient/records/[id]`: verify the full page renders directly.
+6. Navigate to `/patient/consents` and `/patient/access-log`: verify both pages render normally with no modal interference.
+7. Log in as Rohan Kumar (`91-1000-0000-0002` / OTP `123456`) and attempt to open Asha's record URL: verify 404 Not Found is returned and no modal appears.
+
+**Access check:** Click a record: modal over the timeline and the URL changes. Refresh: full page. Back button closes the modal. Open the URL in a new tab: full page. Consents and Who viewed my records still render normally. Rohan opening Asha's record URL: 404, no modal.
+
+**Demo steps enabled:** 4 (Patient views record detail in an intercepted modal without losing timeline context, while retaining full shareable deep links)
+
+**Learned:** In Next.js App Router, `@slot` folders are parallel slots and not route segments. Intercepting the sibling segment `records` from within `/patient/@modal` requires the `(.)` matcher (`(.)records/[id]`) because the route segment level remains `/patient`. An empty `default.tsx` returning `null` ensures that other routes sharing the layout don't trigger unmatched slot errors.
+
+**AI used:** code: implemented Next.js intercepting route structure with parallel modal slot, accessible dialog component with focus management, and vitest unit tests.
+
+**Open issues:**
+- none
+
+**Next:** Slice P6.2 — Doctor dashboard with parallel routes (`@pending` and `@recent`).
+
+---
+
 ## [2026-11-26 15:15] Slice P5.2 — Lab: upload a result (Phase 5 complete)
 
 **Done:** Implemented lab result upload processing via `uploadLabResultRecord` (`src/server/lab/upload.ts`) and Server Action `uploadLabResult` (`src/app/actions/lab.ts`). Enforces strict operational sequencing: `requireSession`, Zod `LabResultUpload` validation, load order, authorize `labResult:upload` (`NOT_FOUND` if order belongs to another laboratory), status check (must be `PENDING` else `CONFLICT` 409), file size validation (<= 5 MB), and magic-byte MIME detection (`detectMime` for PDF, PNG, JPEG). Executes an atomic single database transaction: concurrency guard via `updateMany` (`status: "PENDING"` -> `"COMPLETED"`, throwing `CONFLICT` if count is 0), creates `FileObject`, creates `HealthRecord` (`LAB_REPORT` with `authorId` = lab user, `institutionId` = lab institution, `occurredAt` = now), and links `LabOrder.resultRecordId`. Added `/lab/orders/[orderId]` upload form with pending state and error alerts, completed report viewer, and loading/error boundaries. Revalidates `/lab` and `/patient/records`. Built comprehensive unit and action test suites verifying concurrency conflict, cross-institution 404, transaction rollback, and role/institution ownership. Phase 5 is officially complete.
