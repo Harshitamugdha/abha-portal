@@ -22,7 +22,7 @@ export function InstitutionGroup({ records }: { records: RecordDTO[] }) {
           </div>
           <div className="space-y-3">
             {group.records.map((record) => (
-              <RecordCard key={record.id} record={record} />
+              <RecordCard key={record.id} record={record} showInstitution={false} />
             ))}
           </div>
         </section>

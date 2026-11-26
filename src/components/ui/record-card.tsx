@@ -8,9 +8,11 @@ import { FileViewerTrigger } from "./file-viewer";
 export function RecordCard({
   record,
   href,
+  showInstitution = true,
 }: {
   record: RecordDTO;
   href?: string | null;
+  showInstitution?: boolean;
 }) {
   const isPrescription = record.type === "PRESCRIPTION" && record.prescription;
 
@@ -19,9 +21,11 @@ export function RecordCard({
       <div className="row" style={{ justifyContent: "space-between", marginBottom: "8px" }}>
         <span className="row" style={{ gap: "8px" }}>
           <Badge>{RECORD_TYPE_LABELS[record.type]}</Badge>
-          <span className="text-xs font-medium px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
-            {record.institutionName}
-          </span>
+          {showInstitution && (
+            <span className="text-xs font-medium px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200">
+              {record.institutionName}
+            </span>
+          )}
         </span>
         <span className="text-xs text-gray-500">{formatIST(record.occurredAt)}</span>
       </div>
