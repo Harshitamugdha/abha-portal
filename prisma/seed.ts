@@ -18,6 +18,7 @@ function daysFromNow(days: number) {
 }
 
 async function clearDatabase() {
+  await db.otpTransaction.deleteMany();
   await db.auditLog.deleteMany();
   await db.consentGrant.deleteMany();
   await db.labOrder.deleteMany();
@@ -48,6 +49,7 @@ type PatientSeed = {
   abhaNumber: string;
   abhaAddress: string;
   mobileLast4: string;
+  email: string | null;
   dob: string;
   gender: string;
 };
@@ -64,6 +66,7 @@ async function createPatient(p: PatientSeed) {
           abhaNumber: p.abhaNumber,
           abhaAddress: p.abhaAddress,
           mobileLast4: p.mobileLast4,
+          email: p.email,
           dob: new Date(p.dob),
           gender: p.gender,
         },
@@ -112,6 +115,7 @@ async function main() {
     abhaNumber: "91100000000001",
     abhaAddress: "asha.verma@abdm",
     mobileLast4: "4821",
+    email: process.env.DEMO_PATIENT_EMAIL || null,
     dob: "1990-04-12",
     gender: "F",
   });
@@ -121,6 +125,7 @@ async function main() {
     abhaNumber: "91100000000002",
     abhaAddress: "rohan.mehta@abdm",
     mobileLast4: "7310",
+    email: null,
     dob: "1985-09-03",
     gender: "M",
   });
@@ -130,6 +135,7 @@ async function main() {
     abhaNumber: "91100000000003",
     abhaAddress: "meera.pillai@abdm",
     mobileLast4: "5562",
+    email: null,
     dob: "1978-01-25",
     gender: "F",
   });

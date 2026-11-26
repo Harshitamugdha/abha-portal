@@ -84,6 +84,7 @@ model AbhaProfile {            // patients only
   abhaNumber  String @unique   // 14 digits, no hyphens
   abhaAddress String @unique   // lowercase, name@abdm
   mobileLast4 String           // what the OTP screen shows: "******4821"
+  email       String?          // if set (and RESEND_API_KEY is), the OTP is emailed here
   dob         DateTime
   gender      String
 }
@@ -165,6 +166,18 @@ model AuditLog {
   outcome      AuditOutcome
   reason       String?                   // "NO_ACTIVE_CONSENT" | "SCOPE_EXCLUDED" | "AUTHOR" | …
   @@index([patientId, at])
+}
+
+model OtpTransaction {         // one row per OTP request; replaces the in-memory store (works on Vercel)
+  id            String    @id      // the txnId sent to the browser
+  rateKey       String             // abhaNumber, or the typed value for unknown ABHAs
+  abhaNumber    String?            // null for an unknown ABHA: verify always fails
+  otpHash       String             // sha256(txnId + ":" + otp), never the OTP itself
+  expiresAt     DateTime           // createdAt + 5 minutes
+  wrongAttempts Int       @default(0)  // 3 = dead
+  usedAt        DateTime?          // set once; a second use fails
+  createdAt     DateTime           // rate limit: 3 per rateKey per 10 minutes
+  @@index([rateKey, createdAt])
 }
 
 model FileObject {

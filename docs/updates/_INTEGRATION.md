@@ -22,6 +22,27 @@ in one file, not scattered across three personal logs and a chat.
 
 ---
 
+## [2026-11-26 20:15] Schema change — OTPs in the database + real OTP by email (Harshita → everyone)
+
+**Received / changed:** **[schema]** new `OtpTransaction` table, new `AbhaProfile.email String?`
+(migration `otp_transactions_and_email`: adds only, safe on Neon's data). OTPs are now random, hashed,
+single use and stored in the DB instead of server memory, which fixes "OTP_INVALID with the right code" on
+Vercel. If a patient has an email and `RESEND_API_KEY` is set, the OTP is emailed (Resend HTTP API via
+`fetch`, **no new dependency**); otherwise the demo OTP `ABHA_DEV_OTP` still works. No contract change:
+`AbhaOtpResponse` is the same shape. New env: `RESEND_API_KEY`, `OTP_EMAIL_FROM` (optional),
+`DEMO_PATIENT_EMAIL` (seed only, Asha's email). `package.json` gained `vercel-build` =
+`prisma migrate deploy && next build`.
+
+**Gates:** `npm run check` PASS (272 tests; 6 new email tests in `abha/mock.test.ts`).
+
+**Broke:** nothing for callers. **Everyone:** run `npx prisma migrate dev` after pulling, and restart
+`npm run dev` (the old provider was cached in memory).
+
+**State:** login works the same for all personas; Asha gets a real email once `DEMO_PATIENT_EMAIL` is
+seeded and the Resend key is set.
+
+**Next:** set `RESEND_API_KEY` in Vercel; seed Neon with `DEMO_PATIENT_EMAIL`.
+
 ## [2026-11-24 23:55] UI — Ravuri's admin + pharmacy screens moved to the shared design (Harshita → Ravuri)
 
 **Received / changed:** Look only; no data functions, actions or contracts touched. `admin/page.tsx`

@@ -1,8 +1,9 @@
 import "server-only";
+import { createHash, randomInt, randomUUID, timingSafeEqual } from "crypto";
 import type { AbhaOtpResponse, AbhaProfileDTO } from "@/contracts/auth";
 import { parseAbhaInput, type AbhaInput } from "@/contracts/format";
 import { ApiError } from "@/server/http";
-import type { AbhaProvider } from "./types";
+import type { AbhaProvider, OtpSender, OtpStore } from "./types";
 
 const TXN_LIFETIME_MS = 5 * 60 * 1000;
 const MAX_WRONG_ATTEMPTS = 3;
@@ -14,26 +15,48 @@ export type AbhaDirectoryEntry = {
   abhaAddress: string;
   name: string;
   mobileLast4: string;
+  email: string | null;
   dob: Date;
   gender: string;
 };
 
 export type FindInDirectory = (input: AbhaInput) => Promise<AbhaDirectoryEntry | null>;
 
-type Transaction = {
-  abhaNumber: string | null;
-  otp: string;
-  expiresAt: number;
-  wrongAttempts: number;
+export type ProviderParts = {
+  findInDirectory: FindInDirectory;
+  store: OtpStore;
+  sender: OtpSender;
+  makeOtp: () => string;
 };
 
-export class MockAbhaProvider implements AbhaProvider {
-  findInDirectory: FindInDirectory;
-  transactions = new Map<string, Transaction>();
-  recentRequests = new Map<string, number[]>();
+export function randomOtp() {
+  return String(randomInt(0, 1000000)).padStart(6, "0");
+}
 
-  constructor(findInDirectory: FindInDirectory) {
-    this.findInDirectory = findInDirectory;
+function demoOtp() {
+  return process.env.ABHA_DEV_OTP || "123456";
+}
+
+function hashOtp(txnId: string, otp: string) {
+  return createHash("sha256")
+    .update(txnId + ":" + otp)
+    .digest("hex");
+}
+
+function sameHash(a: string, b: string) {
+  const first = Buffer.from(a);
+  const second = Buffer.from(b);
+  if (first.length !== second.length) {
+    return false;
+  }
+  return timingSafeEqual(first, second);
+}
+
+export class MockAbhaProvider implements AbhaProvider {
+  parts: ProviderParts;
+
+  constructor(parts: ProviderParts) {
+    this.parts = parts;
   }
 
   async requestOtp(abha: string): Promise<AbhaOtpResponse> {
@@ -42,64 +65,75 @@ export class MockAbhaProvider implements AbhaProvider {
       throw new ApiError("VALIDATION_FAILED", "Enter a 14-digit ABHA number or an ABHA address like name@abdm.");
     }
 
-    const person = await this.findInDirectory(input);
+    const person = await this.parts.findInDirectory(input);
 
     let abhaNumber = null;
     let mobileLast4 = fakeLast4(input.value);
-    let rateLimitKey = input.value;
+    let rateKey = input.value;
     if (person) {
       abhaNumber = person.abhaNumber;
       mobileLast4 = person.mobileLast4;
-      rateLimitKey = person.abhaNumber;
+      rateKey = person.abhaNumber;
     }
 
-    this.checkRateLimit(rateLimitKey);
+    const now = new Date();
+    await this.checkRateLimit(rateKey, now);
 
-    const otp = process.env.ABHA_DEV_OTP || "123456";
-    const txnId = crypto.randomUUID();
+    let otp = demoOtp();
+    let emailed = false;
+    if (person && person.email && this.parts.sender.isConfigured()) {
+      otp = this.parts.makeOtp();
+      await this.parts.sender.send(person.email, otp);
+      emailed = true;
+    }
 
-    this.transactions.set(txnId, {
+    const txnId = randomUUID();
+    await this.parts.store.create({
+      id: txnId,
+      rateKey: rateKey,
       abhaNumber: abhaNumber,
-      otp: otp,
-      expiresAt: Date.now() + TXN_LIFETIME_MS,
+      otpHash: hashOtp(txnId, otp),
+      expiresAt: new Date(now.getTime() + TXN_LIFETIME_MS),
       wrongAttempts: 0,
+      usedAt: null,
+      createdAt: now,
     });
 
     const reply: AbhaOtpResponse = {
       txnId: txnId,
       maskedMobile: "******" + mobileLast4,
     };
-    if (process.env.NODE_ENV === "development") {
+    if (process.env.NODE_ENV === "development" && !emailed) {
       reply.devOtp = otp;
     }
     return reply;
   }
 
   async verifyOtp(txnId: string, otp: string) {
-    const txn = this.transactions.get(txnId);
+    const txn = await this.parts.store.find(txnId);
     if (!txn) {
       throw new ApiError("OTP_INVALID");
     }
 
-    if (Date.now() >= txn.expiresAt) {
-      this.transactions.delete(txnId);
+    const now = new Date();
+    if (txn.usedAt || txn.wrongAttempts >= MAX_WRONG_ATTEMPTS || now >= txn.expiresAt) {
       throw new ApiError("OTP_INVALID");
     }
 
-    if (txn.abhaNumber === null || otp !== txn.otp) {
-      txn.wrongAttempts = txn.wrongAttempts + 1;
-      if (txn.wrongAttempts >= MAX_WRONG_ATTEMPTS) {
-        this.transactions.delete(txnId);
-      }
+    if (txn.abhaNumber === null || !sameHash(hashOtp(txnId, otp), txn.otpHash)) {
+      await this.parts.store.addWrongAttempt(txnId);
       throw new ApiError("OTP_INVALID");
     }
 
-    this.transactions.delete(txnId);
+    const marked = await this.parts.store.markUsed(txnId, now);
+    if (!marked) {
+      throw new ApiError("OTP_INVALID");
+    }
     return { abhaNumber: txn.abhaNumber };
   }
 
   async getProfile(abhaNumber: string): Promise<AbhaProfileDTO> {
-    const person = await this.findInDirectory({ kind: "number", value: abhaNumber });
+    const person = await this.parts.findInDirectory({ kind: "number", value: abhaNumber });
     if (!person) {
       throw new ApiError("NOT_FOUND");
     }
@@ -113,24 +147,12 @@ export class MockAbhaProvider implements AbhaProvider {
     };
   }
 
-  checkRateLimit(key: string) {
-    const now = Date.now();
-    const earlier = this.recentRequests.get(key) || [];
-
-    const recent: number[] = [];
-    for (const time of earlier) {
-      if (now - time < REQUEST_WINDOW_MS) {
-        recent.push(time);
-      }
-    }
-
-    if (recent.length >= MAX_REQUESTS) {
-      this.recentRequests.set(key, recent);
+  async checkRateLimit(rateKey: string, now: Date) {
+    const since = new Date(now.getTime() - REQUEST_WINDOW_MS);
+    const recent = await this.parts.store.countSince(rateKey, since);
+    if (recent >= MAX_REQUESTS) {
       throw new ApiError("RATE_LIMITED");
     }
-
-    recent.push(now);
-    this.recentRequests.set(key, recent);
   }
 }
 

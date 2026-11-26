@@ -30,6 +30,11 @@ sequenceDiagram
 - Unknown ABHA gets the same response shape as a known one, so the login form can't be used to
   discover which ABHA numbers exist.
 - Limits: OTP valid 5 minutes, 3 wrong attempts kills the transaction, 3 requests per ABHA per 10 minutes.
+- **Where the OTP lives:** a row in `OtpTransaction` (hashed, single use), not server memory, so request
+  and verify can land on different Vercel instances.
+- **How it's delivered:** if the patient's `AbhaProfile.email` is set and `RESEND_API_KEY` is configured,
+  a random 6-digit OTP is emailed (Resend HTTP API, no SDK) and never returned to the browser. Otherwise
+  the demo OTP `ABHA_DEV_OTP` is used. A failed email fails the request; it never falls back silently.
 
 Staff (doctor, pharmacy, lab, admin) sign in with email + password (bcryptjs), D8 + D19. Unverified
 staff are refused with `STAFF_UNVERIFIED` until an admin verifies them.

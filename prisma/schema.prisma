@@ -72,6 +72,7 @@ model AbhaProfile {
   abhaNumber  String   @unique
   abhaAddress String   @unique
   mobileLast4 String
+  email       String?
   dob         DateTime
   gender      String
 
@@ -195,4 +196,17 @@ model FileObject {
   createdAt  DateTime @default(now())
 
   record HealthRecord?
+}
+
+model OtpTransaction {
+  id            String    @id
+  rateKey       String
+  abhaNumber    String?
+  otpHash       String
+  expiresAt     DateTime
+  wrongAttempts Int       @default(0)
+  usedAt        DateTime?
+  createdAt     DateTime
+
+  @@index([rateKey, createdAt])
 }

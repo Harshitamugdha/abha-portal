@@ -1,19 +1,50 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { MemoryOtpStore } from "./memory-otp-store";
 import { MockAbhaProvider, type AbhaDirectoryEntry, type FindInDirectory } from "./mock";
+import type { OtpSender } from "./types";
 
 const asha: AbhaDirectoryEntry = {
   abhaNumber: "91100000000001",
   abhaAddress: "asha.verma@abdm",
   name: "Asha Verma",
   mobileLast4: "4821",
+  email: null,
   dob: new Date("1990-04-12T00:00:00Z"),
   gender: "F",
+};
+
+const rohan: AbhaDirectoryEntry = {
+  abhaNumber: "91100000000002",
+  abhaAddress: "rohan.mehta@abdm",
+  name: "Rohan Mehta",
+  mobileLast4: "7310",
+  email: "rohan@example.com",
+  dob: new Date("1985-09-03T00:00:00Z"),
+  gender: "M",
 };
 
 const findInFakeDirectory: FindInDirectory = async (input) => {
   if (input.kind === "number" && input.value === asha.abhaNumber) return asha;
   if (input.kind === "address" && input.value === asha.abhaAddress) return asha;
+  if (input.kind === "number" && input.value === rohan.abhaNumber) return rohan;
   return null;
+};
+
+type SentEmail = { email: string; otp: string };
+
+let sentEmails: SentEmail[] = [];
+let emailWorks = true;
+
+const fakeSender: OtpSender = {
+  isConfigured() {
+    return true;
+  },
+  async send(email: string, otp: string) {
+    if (!emailWorks) {
+      throw Object.assign(new Error("email down"), { code: "INTERNAL" });
+    }
+    sentEmails.push({ email: email, otp: otp });
+  },
 };
 
 const MINUTE = 60 * 1000;
@@ -21,7 +52,14 @@ const MINUTE = 60 * 1000;
 let provider: MockAbhaProvider;
 
 beforeEach(() => {
-  provider = new MockAbhaProvider(findInFakeDirectory);
+  sentEmails = [];
+  emailWorks = true;
+  provider = new MockAbhaProvider({
+    findInDirectory: findInFakeDirectory,
+    store: new MemoryOtpStore(),
+    sender: fakeSender,
+    makeOtp: () => "654321",
+  });
   vi.useFakeTimers();
   vi.setSystemTime(new Date("2026-11-16T10:00:00Z"));
 });
@@ -172,5 +210,50 @@ describe("input and dev hint", () => {
 
     vi.stubEnv("NODE_ENV", "development");
     expect((await provider.requestOtp("asha.verma@abdm")).devOtp).toBe("123456");
+  });
+});
+
+describe("real OTP by email", () => {
+  it("emails a fresh OTP to a person who has an email, and only that OTP works", async () => {
+    const { txnId } = await provider.requestOtp("91100000000002");
+
+    expect(sentEmails).toEqual([{ email: "rohan@example.com", otp: "654321" }]);
+    expect(await errorCodeOf(provider.verifyOtp(txnId, "123456"))).toBe("OTP_INVALID");
+    expect(await provider.verifyOtp(txnId, "654321")).toEqual({ abhaNumber: "91100000000002" });
+  });
+
+  it("never puts the emailed OTP in the reply, even in development", async () => {
+    vi.stubEnv("NODE_ENV", "development");
+    const reply = await provider.requestOtp("91100000000002");
+    expect(reply.devOtp).toBeUndefined();
+  });
+
+  it("uses the demo OTP for a person without an email, and sends nothing", async () => {
+    const { txnId } = await provider.requestOtp("91100000000001");
+    expect(sentEmails).toEqual([]);
+    expect(await provider.verifyOtp(txnId, "123456")).toEqual({ abhaNumber: "91100000000001" });
+  });
+
+  it("sends nothing for an unknown ABHA", async () => {
+    await provider.requestOtp("91100000000099");
+    expect(sentEmails).toEqual([]);
+  });
+
+  it("fails the request when the email can't be sent, instead of falling back to the demo OTP", async () => {
+    emailWorks = false;
+    expect(await errorCodeOf(provider.requestOtp("91100000000002"))).toBe("INTERNAL");
+  });
+
+  it("uses the demo OTP for everyone when email isn't set up", async () => {
+    const noEmail = new MockAbhaProvider({
+      findInDirectory: findInFakeDirectory,
+      store: new MemoryOtpStore(),
+      sender: { isConfigured: () => false, send: fakeSender.send },
+      makeOtp: () => "654321",
+    });
+    const { txnId } = await noEmail.requestOtp("91100000000002");
+
+    expect(sentEmails).toEqual([]);
+    expect(await noEmail.verifyOtp(txnId, "123456")).toEqual({ abhaNumber: "91100000000002" });
   });
 });

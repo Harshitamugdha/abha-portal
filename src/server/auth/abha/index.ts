@@ -1,7 +1,9 @@
 import "server-only";
 import type { AbhaInput } from "@/contracts/format";
 import { db } from "@/server/db";
-import { MockAbhaProvider } from "./mock";
+import { dbOtpStore } from "./db-otp-store";
+import { resendSender } from "./email-sender";
+import { MockAbhaProvider, randomOtp } from "./mock";
 import type { AbhaProvider } from "./types";
 
 async function findInDatabase(input: AbhaInput) {
@@ -21,20 +23,21 @@ async function findInDatabase(input: AbhaInput) {
     abhaAddress: profile.abhaAddress,
     name: profile.user.name,
     mobileLast4: profile.mobileLast4,
+    email: profile.email,
     dob: profile.dob,
     gender: profile.gender,
   };
 }
-
-const globalStore = globalThis as unknown as { abhaProvider: AbhaProvider | undefined };
 
 export function getAbhaProvider(): AbhaProvider {
   if (process.env.ABHA_PROVIDER && process.env.ABHA_PROVIDER !== "mock") {
     throw new Error("Only ABHA_PROVIDER=mock exists.");
   }
 
-  if (!globalStore.abhaProvider) {
-    globalStore.abhaProvider = new MockAbhaProvider(findInDatabase);
-  }
-  return globalStore.abhaProvider;
+  return new MockAbhaProvider({
+    findInDirectory: findInDatabase,
+    store: dbOtpStore,
+    sender: resendSender,
+    makeOtp: randomOtp,
+  });
 }
