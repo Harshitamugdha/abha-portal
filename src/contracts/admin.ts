@@ -15,7 +15,10 @@ export const StaffDTO = z.object({
 export type StaffDTO = z.infer<typeof StaffDTO>;
 
 export const ListStaffQuery = PageQuery.extend({
-  verified: z.coerce.boolean().optional(),
+  verified: z
+    .union([z.boolean(), z.enum(["true", "false"])])
+    .transform((val) => (typeof val === "boolean" ? val : val === "true"))
+    .optional(),
 });
 export type ListStaffQuery = z.infer<typeof ListStaffQuery>;
 

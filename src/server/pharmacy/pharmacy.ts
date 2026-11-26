@@ -110,7 +110,7 @@ export async function dispensePrescription(user: SessionUser, recordId: string):
     where: { recordId: recordId, dispensedAt: null },
     data: {
       dispensedAt: now,
-      dispensedBy: user.name,
+      dispensedBy: user.id,
     },
   });
   if (result.count === 0) {

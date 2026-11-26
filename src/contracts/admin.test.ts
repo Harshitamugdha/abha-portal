@@ -5,6 +5,7 @@ import {
   InstitutionCreate,
   InstitutionDTO,
   InstitutionUpdate,
+  ListStaffQuery,
   StaffDTO,
   VerifyStaffInput,
 } from "./admin";
@@ -36,6 +37,23 @@ describe("StaffDTO", () => {
       institutionIds: ["inst-citygen"],
     };
     expect(StaffDTO.safeParse(bad).success).toBe(false);
+  });
+});
+
+describe("ListStaffQuery", () => {
+  it("correctly parses verified false from string 'false' without coercing to true", () => {
+    const parsed = ListStaffQuery.parse({ verified: "false" });
+    expect(parsed.verified).toBe(false);
+  });
+
+  it("correctly parses verified true from string 'true'", () => {
+    const parsed = ListStaffQuery.parse({ verified: "true" });
+    expect(parsed.verified).toBe(true);
+  });
+
+  it("accepts boolean false directly", () => {
+    const parsed = ListStaffQuery.parse({ verified: false });
+    expect(parsed.verified).toBe(false);
   });
 });
 

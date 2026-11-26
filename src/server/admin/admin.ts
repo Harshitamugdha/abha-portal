@@ -9,7 +9,7 @@ import {
   type InstitutionDTO,
   type StaffDTO,
 } from "@/contracts/admin";
-import type { Page, Role, SessionUser } from "@/contracts/shared";
+import type { AuditOutcome, Page, Role, SessionUser } from "@/contracts/shared";
 import { authorize } from "@/server/auth/authorize";
 import { db } from "@/server/db";
 import { ApiError } from "@/server/http";
@@ -29,10 +29,12 @@ export async function listStaff(
   const skip = (page - 1) * pageSize;
 
   const staffRoles: Role[] = ["DOCTOR", "PHARMACY", "LAB"];
-  const where = {
+  const where: { role: { in: Role[] }; verified?: boolean } = {
     role: { in: staffRoles },
-    ...(query.verified !== undefined ? { verified: query.verified } : {}),
   };
+  if (query.verified !== undefined) {
+    where.verified = query.verified;
+  }
 
   const total = await db.user.count({ where });
   const users = await db.user.findMany({
@@ -137,12 +139,25 @@ export async function queryAudit(
     dateFilter.lte = new Date(query.to);
   }
 
-  const where = {
-    ...(query.patientId ? { patientId: query.patientId } : {}),
-    ...(query.actorId ? { actorId: query.actorId } : {}),
-    ...(query.outcome ? { outcome: query.outcome } : {}),
-    ...(query.from || query.to ? { at: dateFilter } : {}),
-  };
+  const where: {
+    patientId?: string;
+    actorId?: string;
+    outcome?: AuditOutcome;
+    at?: { gte?: Date; lte?: Date };
+  } = {};
+
+  if (query.patientId) {
+    where.patientId = query.patientId;
+  }
+  if (query.actorId) {
+    where.actorId = query.actorId;
+  }
+  if (query.outcome) {
+    where.outcome = query.outcome;
+  }
+  if (query.from || query.to) {
+    where.at = dateFilter;
+  }
 
   const total = await db.auditLog.count({ where });
   const rows = await db.auditLog.findMany({
@@ -225,6 +240,14 @@ export async function updateInstitution(user: SessionUser, input: InstitutionUpd
   const decision = await authorize(user, "institution:manage", { kind: "none" });
   if (!decision.allowed) {
     throw new ApiError(decision.code, "Admin access required");
+  }
+
+  const existing = await db.institution.findUnique({
+    where: { id: input.id },
+  });
+
+  if (!existing) {
+    throw new ApiError("NOT_FOUND", "Institution not found");
   }
 
   const updated = await db.institution.update({

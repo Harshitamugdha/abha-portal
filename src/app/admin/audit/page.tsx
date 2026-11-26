@@ -14,6 +14,8 @@ type Filters = {
   outcome?: AuditOutcome;
   patientId?: string;
   actorId?: string;
+  from?: string;
+  to?: string;
 };
 
 function text(value: string | string[] | undefined) {
@@ -38,6 +40,27 @@ function readPage(value: string | undefined) {
   return 1;
 }
 
+function readDay(value: string | undefined) {
+  if (value && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+  return undefined;
+}
+
+function startOfDayIST(day: string | undefined) {
+  if (!day) {
+    return undefined;
+  }
+  return new Date(day + "T00:00:00+05:30").toISOString();
+}
+
+function endOfDayIST(day: string | undefined) {
+  if (!day) {
+    return undefined;
+  }
+  return new Date(day + "T23:59:59.999+05:30").toISOString();
+}
+
 function pageHref(filters: Filters, page: number) {
   const params = new URLSearchParams();
   if (filters.outcome) {
@@ -48,6 +71,12 @@ function pageHref(filters: Filters, page: number) {
   }
   if (filters.actorId) {
     params.set("actorId", filters.actorId);
+  }
+  if (filters.from) {
+    params.set("from", filters.from);
+  }
+  if (filters.to) {
+    params.set("to", filters.to);
   }
   params.set("page", String(page));
   return "/admin/audit?" + params.toString();
@@ -64,6 +93,8 @@ export default async function AdminAuditPage(props: PageProps<"/admin/audit">) {
     outcome: readOutcome(text(searchParams.outcome)),
     patientId: text(searchParams.patientId),
     actorId: text(searchParams.actorId),
+    from: readDay(text(searchParams.from)),
+    to: readDay(text(searchParams.to)),
   };
   const page = readPage(text(searchParams.page));
 
@@ -71,6 +102,8 @@ export default async function AdminAuditPage(props: PageProps<"/admin/audit">) {
     outcome: filters.outcome,
     patientId: filters.patientId,
     actorId: filters.actorId,
+    from: startOfDayIST(filters.from),
+    to: endOfDayIST(filters.to),
     page: page,
     pageSize: PAGE_SIZE,
   });
@@ -104,6 +137,14 @@ export default async function AdminAuditPage(props: PageProps<"/admin/audit">) {
             <label className="label">
               Actor ID
               <input name="actorId" defaultValue={filters.actorId || ""} className="input" />
+            </label>
+            <label className="label">
+              From
+              <input type="date" name="from" defaultValue={filters.from || ""} className="input" />
+            </label>
+            <label className="label">
+              To
+              <input type="date" name="to" defaultValue={filters.to || ""} className="input" />
             </label>
             <div className="row">
               <button type="submit" className="btn btn-accent">
