@@ -198,6 +198,12 @@ model FileObject {
   record HealthRecord?
 }
 
+model StoredFile {
+  key       String   @id
+  data      Bytes
+  createdAt DateTime @default(now())
+}
+
 model OtpTransaction {
   id            String    @id
   rateKey       String

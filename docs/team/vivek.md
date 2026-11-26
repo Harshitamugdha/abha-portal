@@ -59,8 +59,8 @@ form), login, and Ravuri's pharmacy and admin screens.
   the excluded ones **not in the network response**. As Kavya with no consent: `403 CONSENT_REQUIRED`.
 
 ## Phase 2 — Uploads and files
-- `storage.ts`: `put(buffer, mime) → key`, `stream(key)`. Local dir (`FILE_STORAGE_DIR`) in dev; a
-  blob store in prod (agree it with Ravuri, who deploys). **Never `public/`** (TRAPS §12).
+- `storage.ts`: `put(buffer, mime) → key`, `stream(key)`, `remove(key)`. Bytes live in the Postgres
+  table `StoredFile` (dev and prod alike; Vercel's disk is read-only). **Never `public/`** (TRAPS §12).
 - `uploadDocument` Server Action: `requireSession` → `authorize('record:create:self')` → Zod → size
   ≤ 5 MB and MIME ∈ {pdf, png, jpeg} **checked from the file bytes**, not the extension → `FileObject`
   + `HealthRecord(DOCUMENT)` in one transaction → `revalidatePath('/patient/records')`.

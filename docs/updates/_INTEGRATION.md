@@ -22,6 +22,25 @@ in one file, not scattered across three personal logs and a chat.
 
 ---
 
+## [2026-11-26 22:30] Schema change — uploaded files stored in Postgres (Harshita → Vivek, Ravuri)
+
+**Received / changed:** **[schema]** new `StoredFile { key @id, data Bytes, createdAt }` (migration
+`stored_files`, add only). `src/server/records/storage.ts` keeps the same `put(buffer, mime) → key` and
+`stream(key) → Node stream`, so `records/upload.ts` and `records/stream.ts` are unchanged; it now saves and
+reads bytes in Postgres instead of `.uploads/`. New `remove(key)`; `lab/upload.ts` uses it to clean up after
+a failed transaction (was `fs.unlink`). `FILE_STORAGE_DIR` removed. Reason: Vercel's disk is read-only, so
+document and lab-result uploads failed there.
+
+**Gates:** `npm run check` PASS (445 tests; storage tests now use a fake `db`).
+
+**Broke:** nothing for callers. Files already in a local `.uploads/` folder are not moved; re-upload them.
+**Everyone:** `npx prisma migrate dev` after pulling. The migration was written offline
+(`prisma migrate diff`) because the author's `.env` pointed at Neon.
+
+**State:** uploads work on the deployed build.
+
+**Next:** Vivek to review `storage.ts`.
+
 ## [2026-11-26 20:15] Schema change — OTPs in the database + real OTP by email (Harshita → everyone)
 
 **Received / changed:** **[schema]** new `OtpTransaction` table, new `AbhaProfile.email String?`

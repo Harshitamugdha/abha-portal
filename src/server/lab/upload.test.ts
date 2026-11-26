@@ -18,19 +18,10 @@ vi.mock("@/server/db", () => ({
 
 vi.mock("@/server/records/storage", () => ({
   put: vi.fn(),
-  getFilePath: vi.fn().mockReturnValue("/mock/path/file.pdf"),
+  remove: vi.fn(),
   MAX_FILE_SIZE: 5 * 1024 * 1024,
 }));
 
-vi.mock("node:fs", () => ({
-  default: {
-    promises: {
-      unlink: vi.fn().mockResolvedValue(undefined),
-    },
-  },
-}));
-
-import fs from "node:fs";
 import { authorize } from "@/server/auth/authorize";
 import { db } from "@/server/db";
 import * as storage from "@/server/records/storage";
@@ -190,7 +181,7 @@ describe("uploadLabResultRecord", () => {
       }),
     ).rejects.toThrow("Database disk full");
 
-    expect(fs.promises.unlink).toHaveBeenCalledWith("/mock/path/file.pdf");
+    expect(storage.remove).toHaveBeenCalledWith("file-key-failed.pdf");
     expect(mockTx.healthRecord.create).not.toHaveBeenCalled();
   });
 

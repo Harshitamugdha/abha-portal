@@ -1,7 +1,7 @@
 import "server-only";
 import { randomUUID } from "node:crypto";
-import fs from "node:fs";
-import path from "node:path";
+import { Readable } from "node:stream";
+import { db } from "@/server/db";
 import { ApiError } from "@/server/http";
 
 export type AllowedMimeType = "application/pdf" | "image/png" | "image/jpeg";
@@ -53,35 +53,32 @@ export function detectMime(bytes: Uint8Array | Buffer): AllowedMimeType | null {
   return null;
 }
 
-export function getStorageDir(): string {
-  return process.env.FILE_STORAGE_DIR || path.join(process.cwd(), ".uploads");
-}
-
-export function getFilePath(key: string): string {
-  // Prevent directory traversal
-  const safeKey = path.basename(key);
-  return path.join(getStorageDir(), safeKey);
+function extensionFor(mime: string) {
+  if (mime === "application/pdf") {
+    return "pdf";
+  }
+  if (mime === "image/png") {
+    return "png";
+  }
+  return "jpg";
 }
 
 export async function put(buffer: Buffer | Uint8Array, mime: string): Promise<string> {
-  const dir = getStorageDir();
-  await fs.promises.mkdir(dir, { recursive: true });
-
-  const ext = mime === "application/pdf" ? "pdf" : mime === "image/png" ? "png" : "jpg";
-  const key = `${randomUUID()}.${ext}`;
-  const filePath = path.join(dir, key);
-
-  await fs.promises.writeFile(filePath, buffer);
+  const key = randomUUID() + "." + extensionFor(mime);
+  await db.storedFile.create({
+    data: { key: key, data: new Uint8Array(buffer) },
+  });
   return key;
 }
 
-export async function stream(key: string): Promise<fs.ReadStream> {
-  const filePath = getFilePath(key);
-  try {
-    await fs.promises.stat(filePath);
-  } catch {
+export async function stream(key: string): Promise<Readable> {
+  const row = await db.storedFile.findUnique({ where: { key: key } });
+  if (!row) {
     throw new ApiError("NOT_FOUND", "File not found in storage");
   }
+  return Readable.from([Buffer.from(row.data)]);
+}
 
-  return fs.createReadStream(filePath);
+export async function remove(key: string): Promise<void> {
+  await db.storedFile.deleteMany({ where: { key: key } });
 }

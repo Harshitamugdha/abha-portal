@@ -168,6 +168,12 @@ model AuditLog {
   @@index([patientId, at])
 }
 
+model StoredFile {             // the file bytes; Postgres so uploads work on Vercel (read-only disk)
+  key       String   @id         // uuid + .pdf/.png/.jpg, from storage.put()
+  data      Bytes                // ≤ 5 MB, checked before put()
+  createdAt DateTime @default(now())
+}
+
 model OtpTransaction {         // one row per OTP request; replaces the in-memory store (works on Vercel)
   id            String    @id      // the txnId sent to the browser
   rateKey       String             // abhaNumber, or the typed value for unknown ABHAs
@@ -182,7 +188,7 @@ model OtpTransaction {         // one row per OTP request; replaces the in-memor
 
 model FileObject {
   id        String   @id @default(cuid())
-  key       String                       // storage key, never a public URL
+  key       String                       // StoredFile.key, never a public URL
   mimeType  String                       // application/pdf | image/png | image/jpeg
   sizeBytes Int                          // ≤ 5 MB
   uploadedBy String

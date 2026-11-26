@@ -1,8 +1,30 @@
-import fs from "node:fs";
-import os from "node:os";
-import path from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { detectMime, getStorageDir, put, stream } from "./storage";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const files = new Map<string, Uint8Array>();
+
+vi.mock("@/server/db", () => ({
+  db: {
+    storedFile: {
+      create: vi.fn(async ({ data }: { data: { key: string; data: Uint8Array } }) => {
+        files.set(data.key, data.data);
+        return data;
+      }),
+      findUnique: vi.fn(async ({ where }: { where: { key: string } }) => {
+        const data = files.get(where.key);
+        if (!data) {
+          return null;
+        }
+        return { key: where.key, data: data };
+      }),
+      deleteMany: vi.fn(async ({ where }: { where: { key: string } }) => {
+        const existed = files.delete(where.key);
+        return { count: existed ? 1 : 0 };
+      }),
+    },
+  },
+}));
+
+import { detectMime, put, remove, stream } from "./storage";
 
 describe("storage and mime detection", () => {
   describe("detectMime", () => {
@@ -32,45 +54,45 @@ describe("storage and mime detection", () => {
     });
   });
 
-  describe("storage put/stream round trip in a temp folder", () => {
-    let tempDir: string;
-    const originalEnv = process.env.FILE_STORAGE_DIR;
-
+  describe("storage put/stream round trip in the database", () => {
     beforeEach(() => {
-      tempDir = fs.mkdtempSync(path.join(os.tmpdir(), "aabha-storage-test-"));
-      process.env.FILE_STORAGE_DIR = tempDir;
+      files.clear();
     });
 
-    afterEach(() => {
-      process.env.FILE_STORAGE_DIR = originalEnv;
-      if (fs.existsSync(tempDir)) {
-        fs.rmSync(tempDir, { recursive: true, force: true });
-      }
-    });
-
-    it("puts file and streams it back matching original content exactly", async () => {
-      expect(getStorageDir()).toBe(tempDir);
-
-      const testContent = Buffer.from("%PDF-1.4\nSample medical report document content\n%%EOF");
-      const key = await put(testContent, "application/pdf");
-
-      expect(typeof key).toBe("string");
-      expect(key.endsWith(".pdf")).toBe(true);
-
+    async function readAll(key: string) {
       const readStream = await stream(key);
       const chunks: Buffer[] = [];
       for await (const chunk of readStream) {
         chunks.push(Buffer.from(chunk));
       }
-      const retrievedContent = Buffer.concat(chunks);
+      return Buffer.concat(chunks);
+    }
 
-      expect(retrievedContent).toEqual(testContent);
+    it("puts a file and streams it back matching the original content exactly", async () => {
+      const testContent = Buffer.from("%PDF-1.4 Sample medical report document content %%EOF");
+      const key = await put(testContent, "application/pdf");
+
+      expect(key.endsWith(".pdf")).toBe(true);
+      expect(await readAll(key)).toEqual(testContent);
     });
 
-    it("throws NOT_FOUND when streaming non-existent key", async () => {
+    it("gives png and jpeg files the right extension", async () => {
+      expect((await put(Buffer.from([1, 2, 3]), "image/png")).endsWith(".png")).toBe(true);
+      expect((await put(Buffer.from([1, 2, 3]), "image/jpeg")).endsWith(".jpg")).toBe(true);
+    });
+
+    it("throws NOT_FOUND when streaming a key that doesn't exist", async () => {
       await expect(stream("non-existent-file.pdf")).rejects.toMatchObject({
         code: "NOT_FOUND",
       });
+    });
+
+    it("remove deletes the file, and removing a missing key doesn't throw", async () => {
+      const key = await put(Buffer.from("%PDF-1.4"), "application/pdf");
+      await remove(key);
+
+      await expect(stream(key)).rejects.toMatchObject({ code: "NOT_FOUND" });
+      await expect(remove(key)).resolves.toBeUndefined();
     });
   });
 });

@@ -1,5 +1,4 @@
 import "server-only";
-import fs from "node:fs";
 import type { LabOrder } from "@/generated/prisma/client";
 import type { RecordDTO } from "@/contracts/records";
 import type { SessionUser } from "@/contracts/shared";
@@ -97,14 +96,7 @@ export async function uploadLabResultRecord(
 
     return toRecordDTO(row);
   } catch (error) {
-    if (typeof storage.getFilePath === "function") {
-      try {
-        const filePath = storage.getFilePath(key);
-        await fs.promises.unlink(filePath);
-      } catch {
-        // ignore
-      }
-    }
+    await storage.remove(key);
     throw error;
   }
 }
