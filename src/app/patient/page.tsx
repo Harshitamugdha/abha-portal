@@ -1,12 +1,14 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { TopBar } from "@/components/ui/top-bar";
+import { LanguageToggle } from "@/components/ui/language-toggle";
 import type { ConsentDTO } from "@/contracts/consent";
 import { listMyAccessLog } from "@/server/audit/queries";
 import { getSession } from "@/server/auth/session";
 import { listConsents } from "@/server/consent/engine";
 import { listPatientRecords } from "@/server/records/list";
-import { PATIENT_LINKS } from "./patient-links";
+import { getLanguage } from "@/server/i18n";
+import { getPatientLinks } from "./patient-links";
 
 function splitByStatus(consents: ConsentDTO[]) {
   const waiting: ConsentDTO[] = [];
@@ -32,10 +34,16 @@ export default async function PatientHomePage() {
   const accessLog = await listMyAccessLog(user, { page: 1, pageSize: 1 });
   const records = await listPatientRecords(user, { patientId: user.id, pageSize: 1 });
   const { waiting, activeCount } = splitByStatus(consents.items);
+  const lang = await getLanguage();
+  const patientLinks = getPatientLinks(lang);
 
   return (
     <>
-      <TopBar name={user.name} links={PATIENT_LINKS} />
+      <TopBar
+        name={user.name}
+        links={patientLinks}
+        extra={<LanguageToggle current={lang} />}
+      />
       <main className="landing">
         <section className="band">
           <div className="container page-head">

@@ -1,0 +1,103 @@
+{
+  "nav": {
+    "home": "Home",
+    "records": "Records",
+    "upload": "Upload",
+    "consents": "Consents",
+    "accessLog": "Who viewed my records",
+    "institutions": "Institutions",
+    "howConsentWorks": "How consent works",
+    "faqs": "FAQs",
+    "patientLogin": "Patient login",
+    "staffLogin": "Staff login"
+  },
+  "landing": {
+    "heroTitle": "Your health records from every hospital, in one place",
+    "heroSubtitle": "Shared only with your consent",
+    "heroDescription": "ABHA Health Portal is India's digital health platform connecting hospitals, diagnostic laboratories, pharmacies, and citizens under the Ayushman Bharat Digital Mission (ABDM). Log in to access your records or manage healthcare services.",
+    "patientLogin": "Patient login",
+    "staffLogin": "Staff login",
+    "browseDirectoryPrompt": "Looking for participating hospitals and labs?",
+    "browseDirectoryLink": "Browse directory →",
+    "registerStaff": "Register as staff",
+    "heroImageAlt": "A consent request in the portal: Dr Arjun Rao asks to see visits and lab reports for 14 days, with buttons to approve or deny.",
+    "heroImageCaption": "Example: a doctor's request, as you see it in Consents.",
+    "rolesHeading": "Built for every ABDM participant",
+    "rolesSub": "Five distinct workflows, unified by secure consent and open standards",
+    "roles": {
+      "patient": {
+        "title": "Patients",
+        "badge": "Citizens",
+        "desc": "View your lifetime longitudinal health records across hospitals, manage consent requests, and inspect audit logs of every access attempt.",
+        "cta": "Log in with ABHA"
+      },
+      "doctor": {
+        "title": "Doctors",
+        "badge": "Clinical Staff",
+        "desc": "Search registered patients by ABHA identifier, request time-bound scoped consent, and author encounters, prescriptions, and lab orders.",
+        "cta": "Doctor login"
+      },
+      "pharmacy": {
+        "title": "Pharmacies",
+        "badge": "Dispensary",
+        "desc": "Dispense electronic prescriptions securely using one-time 6-character cryptographic share codes without accessing unrelated medical history.",
+        "cta": "Pharmacy login"
+      },
+      "lab": {
+        "title": "Diagnostic Labs",
+        "badge": "Diagnostics",
+        "desc": "Process pending diagnostic test orders by patient name and upload structured test reports and findings directly into the ABDM network.",
+        "cta": "Lab staff login"
+      },
+      "admin": {
+        "title": "Administrators",
+        "badge": "Governance",
+        "desc": "Manage registered healthcare institutions, verify medical staff accounts, and oversee comprehensive compliance and audit trails.",
+        "cta": "Admin login"
+      }
+    },
+    "howConsentWorks": {
+      "heading": "How consent works",
+      "sub": "You are in control. Nothing is shared without your explicit approval.",
+      "steps": {
+        "step1": {
+          "title": "A doctor asks",
+          "text": "The doctor chooses which record types they need, why, and for how many days."
+        },
+        "step2": {
+          "title": "You decide",
+          "text": "Approve, untick record types you don't want to share, or deny. Nothing is shared before you approve."
+        },
+        "step3": {
+          "title": "Access ends",
+          "text": "It stops on its own when the days are up. You can revoke it earlier at any moment."
+        }
+      }
+    },
+    "faqs": {
+      "heading": "Frequently asked questions",
+      "items": {
+        "faq1": {
+          "question": "What is an ABHA number?",
+          "answer": "A 14-digit health ID, for example 91-1000-0000-0001. You can also log in with your ABHA address, such as name@abdm. We send an OTP to the mobile number linked to it."
+        },
+        "faq2": {
+          "question": "Who can see my records?",
+          "answer": "Only you, and a doctor while you have approved their request. They see only the record types you allowed, and only for the days you allowed."
+        },
+        "faq3": {
+          "question": "How do I stop a doctor seeing my records?",
+          "answer": "Open Consents and choose Revoke access. It works immediately: the doctor's next attempt shows “Consent required”."
+        },
+        "faq4": {
+          "question": "Can I see who looked at my records?",
+          "answer": "Yes. Who viewed my records lists every look, with the date, the person and the consent used. Refused attempts are listed too."
+        },
+        "faq5": {
+          "question": "What does a pharmacy see?",
+          "answer": "With the share code on your prescription, a pharmacy sees that one prescription: the medicines, the doctor and your name. Nothing else."
+        }
+      }
+    }
+  }
+}

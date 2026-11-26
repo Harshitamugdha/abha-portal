@@ -5,7 +5,9 @@ import { RecordDetailView } from "@/components/ui/record-detail-view";
 import { getSession } from "@/server/auth/session";
 import { ApiError } from "@/server/http";
 import { getRecord } from "@/server/records/list";
-import { PATIENT_LINKS } from "../../patient-links";
+import { getLanguage } from "@/server/i18n";
+import { LanguageToggle } from "@/components/ui/language-toggle";
+import { getPatientLinks } from "../../patient-links";
 
 type PageProps = {
   params: Promise<{
@@ -31,9 +33,16 @@ export default async function PatientRecordDetailPage(props: PageProps) {
     throw error;
   }
 
+  const lang = await getLanguage();
+  const patientLinks = getPatientLinks(lang);
+
   return (
     <>
-      <TopBar name={user.name} links={PATIENT_LINKS} />
+      <TopBar
+        name={user.name}
+        links={patientLinks}
+        extra={<LanguageToggle current={lang} />}
+      />
       <main className="landing">
         <section className="band">
           <div className="container page-head">

@@ -3,6 +3,39 @@
 
 ---
 
+## [2026-11-26 22:20] Slice P8.1 — Hindi and English toggle
+
+**Done:** Implemented bilingual support (Hindi and English) for the public landing page and patient navigation. Created dictionary files `messages/en.json` and `messages/hi.json` covering landing page content (hero, roles, how consent works, and FAQs) and navigation labels with 100% key parity (no clinical content is translated). Created server helper `getMessages()` in `src/server/i18n.ts` that reads the `lang` cookie via `getLanguage()` (defaults to `"en"` and safely falls back to `"en"` for unknown or malformed values). Created Server Action `setLanguage` in `src/app/actions/i18n.ts` validating the input language with Zod (`LanguageSchema = z.enum(["en", "hi"])`), storing the preference in the `lang` cookie (`path: "/"`, `sameSite: "lax"`, 1-year duration), and triggering `revalidatePath("/", "layout")`. Built client toggle button `<LanguageToggle />` (`src/components/ui/language-toggle.tsx`) calling `setLanguage` with `useTransition` and `router.refresh()`. Added toggle to `PublicNav` on the landing page and to `TopBar` across Vivek's patient screens (`/patient`, `/patient/records`, `/patient/records/[id]`, `/patient/upload`). Updated `src/app/patient/patient-links.ts` to provide `getPatientLinks(lang)` while keeping `PATIENT_LINKS` intact for Harshita's pages. Note: Harshita's pages (`/patient/consents` and `/patient/access-log`) still use `PATIENT_LINKS` (English); to switch their navigation labels to Hindi as well, Harshita only needs to replace `PATIENT_LINKS` with `getPatientLinks(await getLanguage())`. Reading the `lang` cookie makes the landing page (`/`) dynamic (server-rendered per request to resolve the user's language preference). That is accepted; `/institutions` and `/institutions/[id]` remain purely static / ISR (`revalidate = 3600`) and untranslated as required. Added unit test suite in `src/server/i18n.test.ts` verifying key parity, unknown cookie fallback to `en`, and `setLanguage` validation rejection.
+
+**Files touched:** `messages/en.json` (new) · `messages/hi.json` (new) · `src/server/i18n.ts` (new) · `src/server/i18n.test.ts` (new) · `src/app/actions/i18n.ts` (new) · `src/components/ui/language-toggle.tsx` (new) · `src/components/ui/public-nav.tsx` (modified) · `src/components/ui/top-bar.tsx` (modified) · `src/app/patient/patient-links.ts` (modified) · `src/app/(public)/page.tsx` (modified) · `src/app/patient/page.tsx` (modified) · `src/app/patient/records/page.tsx` (modified) · `src/app/patient/records/[id]/page.tsx` (modified) · `src/app/patient/upload/page.tsx` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+1. Open `http://localhost:3000/` in an incognito window: observe landing page loads in English by default.
+2. Click the language toggle button ("हिंदी") in the top navigation bar: observe the page text (hero headline, roles, steps, and FAQs) switches cleanly to Hindi without client-side lag.
+3. Refresh the page: observe the page immediately renders in Hindi on the first server response with zero flash of English.
+4. Open DevTools → Application → Cookies: verify cookie `lang` is set to `hi` (`Path=/; SameSite=Lax; Max-Age=31536000`), and `localStorage` / `sessionStorage` are completely empty.
+5. Open a new private browser window to `http://localhost:3000/`: verify it opens in English by default (no cookie).
+6. Log in as Asha Verma (`91-1000-0000-0001` / OTP `123456`) → visit `/patient`: observe patient navigation labels ("होम", "रिकॉर्ड्स", "अपलोड", "सहमति", "मेरे रिकॉर्ड किसने देखे") are in Hindi and the language toggle is visible in the top bar.
+7. Click "English" in the top bar: observe patient navigation instantly switches to English.
+
+**Access check:** Toggle to Hindi: text changes, a refresh keeps it, no flash of English. DevTools Application tab: cookie `lang` exists, nothing in localStorage or sessionStorage. A fresh private window opens in English. I review the Hindi text myself.
+
+**Demo steps enabled:** 8 (Public and authenticated patient users toggle between English and Hindi with server-rendered instant language persistence)
+
+**Learned:** Storing UI language preferences in a cookie read by server components ensures the initial server render matches user choice without client-side hydration flicker ("flash of unlocalized content"). Keeping `/institutions` free from cookie reads preserves its static ISR optimization while allowing the root landing page to be dynamically personalized.
+
+**AI used:** code: created JSON i18n dictionaries, server cookie resolver helper, Server Action for language switching with Zod validation, accessible client toggle button, and Vitest test suite.
+
+**Open issues:**
+- none
+
+**Next:** Phase 8 complete. Ready for Lighthouse performance/accessibility audit or final review.
+
+---
+
 ## [2026-11-26 19:50] Slice P7.1 — Public pages (landing and institution directory, ISR) (Phase 7 complete)
 
 **Done:** Implemented static and Incremental Static Regeneration (ISR) public pages for the portal. Moved the initial landing page to `src/app/(public)/page.tsx` mapping to `/` (notifying Harshita of the move to avoid route conflicts). The landing page details the ABDM unified health record architecture, highlights the five core platform roles (`PATIENT`, `DOCTOR`, `PHARMACY`, `LAB`, `ADMIN`) with role badges and CTAs, provides patient (`/login`) and staff (`/staff/login`) login actions, highlights consent workflows, and embeds a priority local preview image using `next/image`. Created public institution directory `/institutions` (`src/app/(public)/institutions/page.tsx`) and facility profile `/institutions/[id]` (`src/app/(public)/institutions/[id]/page.tsx`) with `export const revalidate = 3600`, `generateStaticParams`, dynamic `generateMetadata`, and `notFound()` handling. Public fields are strictly scoped using pure `toPublicInstitutionDTO` (`src/server/records/institutions.ts`) returning only `id`, `name`, `type`, and `city`. Engineered offline build resilience using `STATIC_INSTITUTIONS` fallback fixtures so `npm run build` succeeds even if PostgreSQL is offline or unreachable. Added unit test in `src/server/records/institutions.test.ts`. Added institutions link to `PublicNav`. Phase 7 is officially complete.

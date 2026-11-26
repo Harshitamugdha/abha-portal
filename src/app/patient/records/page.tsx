@@ -7,7 +7,9 @@ import { TopBar } from "@/components/ui/top-bar";
 import { RecordType } from "@/contracts/shared";
 import { getSession } from "@/server/auth/session";
 import { listPatientInstitutions, listPatientRecords } from "@/server/records/list";
-import { PATIENT_LINKS } from "../patient-links";
+import { getLanguage } from "@/server/i18n";
+import { LanguageToggle } from "@/components/ui/language-toggle";
+import { getPatientLinks } from "../patient-links";
 
 function toIsoDate(dateStr?: string, endOfDay = false): string | undefined {
   if (!dateStr) return undefined;
@@ -65,9 +67,16 @@ export default async function PatientRecordsPage(props: PageProps) {
     return qs ? `/patient/records?${qs}` : "/patient/records";
   }
 
+  const lang = await getLanguage();
+  const patientLinks = getPatientLinks(lang);
+
   return (
     <>
-      <TopBar name={user.name} links={PATIENT_LINKS} />
+      <TopBar
+        name={user.name}
+        links={patientLinks}
+        extra={<LanguageToggle current={lang} />}
+      />
       <main className="landing">
         <section className="band">
           <div className="container page-head">
