@@ -3,6 +3,37 @@
 
 ---
 
+## [2026-11-26 19:30] Slice P6.2 — Doctor dashboard with parallel routes (Phase 6 complete)
+
+**Done:** Implemented parallel routes for the doctor dashboard. Updated `src/app/doctor/layout.tsx` to receive parallel slots `pending` and `recent` alongside `children` wrapped in `DoctorQueryProvider`. Created parallel slot `doctor/@pending` querying the doctor's pending consent requests (`status: "REQUESTED"`) via `listConsents(user, { status: "REQUESTED" })`, displaying patient name, purpose, requested scopes, and waiting badge. Created parallel slot `doctor/@recent` querying approved consents (`status: "GRANTED"`), filtering for currently active consents (`displayStatus === "GRANTED"`), displaying approved scopes, valid until date, and direct navigation links to `/doctor/patients/:id` (`PatientViewer`). Added independent `loading.tsx` skeletons, client `error.tsx` boundaries, and `default.tsx` fallbacks returning `null` on both slots so all other `/doctor/*` subroutes hard-load without errors. Implemented missing `loading.tsx` and `error.tsx` boundaries across `/patient`, `/doctor`, and `/doctor/patients/[patientId]` with Server Component `ApiError` catch handling (ensuring sensitive errors are not masked in production). Phase 6 is officially complete.
+
+**Files touched:** `src/app/doctor/layout.tsx` (modified) · `src/app/doctor/@pending/page.tsx` (new) · `src/app/doctor/@pending/loading.tsx` (new) · `src/app/doctor/@pending/error.tsx` (new) · `src/app/doctor/@pending/default.tsx` (new) · `src/app/doctor/@recent/page.tsx` (new) · `src/app/doctor/@recent/loading.tsx` (new) · `src/app/doctor/@recent/error.tsx` (new) · `src/app/doctor/@recent/default.tsx` (new) · `src/app/patient/loading.tsx` (new) · `src/app/patient/error.tsx` (new) · `src/app/doctor/loading.tsx` (new) · `src/app/doctor/error.tsx` (new) · `src/app/doctor/patients/[patientId]/loading.tsx` (new) · `src/app/doctor/patients/[patientId]/error.tsx` (new) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+1. Log in as Dr Kavya (`kavya@citygen.test` / `Demo@1234`) → visit `/doctor`.
+2. Observe the dashboard displaying the "Clinical actions" tile alongside two independent panels: "Pending Requests" (showing requests waiting for patient approval) and "Active Patient Consents" (showing granted active consents with validity dates and direct links to open patient records).
+3. In browser DevTools Network tab, set throttling to "Slow 3G" and refresh `/doctor`: observe each parallel slot independently rendering its own pulsing loading skeleton before data streams in.
+4. Navigate directly to `/doctor/patients` and hard-refresh: observe the search page loads cleanly without errors from the parallel route slots (handled by `default.tsx`).
+5. Open `/doctor/patients/user-asha`: observe the viewer page renders with its segment loading/error boundaries intact.
+
+**Access check:** Kavya's dashboard shows a pending request (after P3.3) and her active consents. With the network throttled in DevTools each panel shows its own loading state. A hard refresh on `/doctor/patients` still works.
+
+**Demo steps enabled:** 5 (Doctor dashboard displays pending consent requests awaiting patient approval and active patient consents with one-click navigation to patient records)
+
+**Learned:** Parallel route slots (`@pending`, `@recent`) provide independent React streaming Suspense boundaries. Since Next.js production builds mask Server Component error messages in client `error.tsx` boundaries (generating a generic message with digest), operational and domain errors (`ApiError`) should be caught directly inside the Server Component and rendered as inline alert panels, while `error.tsx` serves as the fallback for unexpected runtime crashes.
+
+**AI used:** code: built Next.js parallel route slots, independent loading skeletons, error boundaries, and default fallback handlers.
+
+**Open issues:**
+- none
+
+**Next:** Phase 7 — Public pages (Landing page, institution directory with ISR, metadata, and rendering strategy comparison).
+
+---
+
 ## [2026-11-26 18:45] Slice P6.1 — Intercepting route: record detail modal
 
 **Done:** Implemented intercepting route modal for health record details. Added `src/app/patient/layout.tsx` rendering `{children}` and the parallel slot `{modal}` without adding a TopBar so that all patient subpages (consents, access-log, dashboard) maintain their own headers untouched. Created `src/app/patient/@modal/default.tsx` returning `null` as the unmatched slot fallback. Built client component `Modal` (`src/components/ui/modal.tsx`) with accessibility attributes (`role="dialog"`, `aria-modal="true"`, `aria-labelledby`), automated focus transfer on mount via `useRef`, Escape key listener with pure `isEscapeKey` helper, backdrop click detection, and close button calling `router.back()`. Created shared `RecordDetailView` (`src/components/ui/record-detail-view.tsx`) used identically by both the intercepted modal and the full record detail page (`/patient/records/[id]`). Intercepted route `src/app/patient/@modal/(.)records/[id]/page.tsx` loads the record via `getRecord` and renders it within `Modal` on client navigation. Hard refresh or direct link loading continues to render the full standalone page `/patient/records/[id]`. Added unit test suite in `src/components/ui/modal.test.ts`.
