@@ -79,7 +79,8 @@ export function OtpForm({ firstTxnId, maskedMobile, abha, firstDevOtp }: OtpForm
   return (
     <form className="form-card" onSubmit={verify}>
       <p>
-        We sent a 6-digit OTP to the mobile number ending <strong>{maskedMobile}</strong>.
+        We sent a 6-digit OTP to the email address or mobile number linked to your ABHA (mobile ending{" "}
+        <strong>{maskedMobile}</strong>).
       </p>
       {devOtp && <p className="hint">Demo OTP: {devOtp}</p>}
       <label className="label">

@@ -175,7 +175,7 @@ export default async function AdminAuditPage(props: PageProps<"/admin/audit">) {
                   <tbody>
                     {result.items.map((entry) => (
                       <tr key={entry.id} className={entry.outcome === "DENIED" ? "denied" : undefined}>
-                        <td>{formatIST(entry.at)}</td>
+                        <td className="nowrap">{formatIST(entry.at)}</td>
                         <td>
                           {entry.outcome === "DENIED" ? (
                             <span className="badge badge-red">Refused</span>
@@ -192,8 +192,8 @@ export default async function AdminAuditPage(props: PageProps<"/admin/audit">) {
                           <code>{entry.action}</code>
                         </td>
                         <td>{entry.resourceType}</td>
-                        <td>{entry.patientId ? <code>{entry.patientId}</code> : "None"}</td>
-                        <td>{entry.reason || "None"}</td>
+                        <td>{entry.patientId ? <code>{entry.patientId}</code> : <span className="muted">None</span>}</td>
+                        <td>{entry.reason || <span className="muted">None</span>}</td>
                       </tr>
                     ))}
                   </tbody>

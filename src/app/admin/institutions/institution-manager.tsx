@@ -107,25 +107,33 @@ export function InstitutionManager({ institutions }: InstitutionManagerProps) {
               </tr>
             </thead>
             <tbody>
-              {institutions.map((inst) => (
-                <tr key={inst.id}>
-                  <td>
-                    <strong>{inst.name}</strong>
-                  </td>
-                  <td>
-                    <span className="badge badge-grey">{TYPE_LABELS[inst.type] || inst.type}</span>
-                  </td>
-                  <td>{inst.city}</td>
-                  <td>
-                    <code>{inst.id}</code>
-                  </td>
-                  <td>
-                    <button type="button" onClick={() => startEdit(inst)} className="btn btn-secondary btn-small">
-                      Edit
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {institutions.map((inst) => {
+                const isEditing = inst.id === editingId;
+                return (
+                  <tr key={inst.id} className={isEditing ? "row-editing" : undefined}>
+                    <td>
+                      <strong>{inst.name}</strong>
+                    </td>
+                    <td>
+                      <span className="badge badge-grey">{TYPE_LABELS[inst.type] || inst.type}</span>
+                    </td>
+                    <td>{inst.city}</td>
+                    <td className="nowrap">
+                      <code>{inst.id}</code>
+                    </td>
+                    <td>
+                      <button
+                        type="button"
+                        onClick={() => startEdit(inst)}
+                        disabled={isEditing}
+                        className="btn btn-secondary btn-small"
+                      >
+                        {isEditing ? "Editing" : "Edit"}
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>

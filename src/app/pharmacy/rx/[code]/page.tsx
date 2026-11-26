@@ -72,10 +72,10 @@ export default async function PharmacyRxPage({ params }: PageProps) {
                         <td>
                           <strong>{item.drug}</strong>
                         </td>
-                        <td>{item.dose}</td>
-                        <td>{item.frequency}</td>
-                        <td>{item.durationDays} days</td>
-                        <td>{item.notes || "None"}</td>
+                        <td className="nowrap">{item.dose}</td>
+                        <td className="nowrap">{item.frequency}</td>
+                        <td className="nowrap">{item.durationDays} days</td>
+                        <td>{item.notes || <span className="muted">None</span>}</td>
                       </tr>
                     ))}
                   </tbody>
