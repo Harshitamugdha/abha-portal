@@ -113,6 +113,14 @@ export function PatientViewer({
             </p>
           </div>
           <div className="row" style={{ gap: "8px" }}>
+            {isConsentActive && (
+              <Link
+                href={`/doctor/patients/${encodeURIComponent(patientId)}/prescribe`}
+                className="btn btn-primary btn-small"
+              >
+                + Write prescription
+              </Link>
+            )}
             <Link
               href={`/doctor/patients/${encodeURIComponent(patientId)}/request-consent`}
               className="btn btn-secondary btn-small"

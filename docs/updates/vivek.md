@@ -3,6 +3,33 @@
 
 ---
 
+## [2026-11-26 10:35] Slice P4.1 — Prescriptions (action, share code, writer form)
+
+**Done:** Implemented `writePrescription` in `src/server/clinical/prescription.ts` and Server Action `createPrescription` in `src/app/actions/clinical.ts`. Share code generator uses `crypto.randomInt` with a 32-character set (`ABCDEFGHJKLMNPQRSTUVWXYZ23456789`, excluding `0`, `O`, `1`, `I`) to produce 6-character alphanumeric codes. Includes transaction creating both `HealthRecord` (`type: PRESCRIPTION`) and `Prescription` (`expiresAt: now + 30 days`), wrapped in a retry loop catching Prisma `P2002` unique constraint collisions up to 5 times. Built doctor prescription writer form at `/doctor/patients/[patientId]/prescribe` with dynamic controlled medication rows (1–10 items), stable row keys, client validation with `PrescriptionCreate`, and prominent share code display on success. Added unit and integration tests covering charset/length, retry on P2002, 5-attempt ceiling, role gating (`FORBIDDEN`), consent requirement (`CONSENT_REQUIRED`), and 0/11 drug bounds.
+
+**Files touched:** `src/server/clinical/prescription.ts` (new) · `src/server/clinical/prescription.test.ts` (new) · `src/app/actions/clinical.ts` (new) · `src/app/actions/clinical.test.ts` (new) · `src/app/doctor/patients/[patientId]/prescribe/prescribe-form.tsx` (new) · `src/app/doctor/patients/[patientId]/prescribe/page.tsx` (new) · `CHANGELOG.md` (modified) · `docs/updates/vivek.md` (modified)
+
+**Run command:**
+```bash
+npm run dev
+```
+Log in as Dr Kavya (`kavya@citygen.test` / `Demo@1234`) → open `/doctor/patients/user-asha` → click "+ Write prescription" (or navigate to `/doctor/patients/user-asha/prescribe`) → add 2 drugs → click "Issue prescription" → 6-character share code is displayed in large font.
+
+**Access check:** Dr Kavya (active consent covering PRESCRIPTION) prescribes 2 drugs: code shown. Asha sees it in her timeline (`/patient/records`) with the code. Dr Kavya without consent (or after Asha revokes): Consent required message, nothing created. If Ravuri's pharmacy is merged, his lookup finds the new code.
+
+**Demo steps enabled:** 6 (Doctor writes prescription, gets share code; patient sees it in timeline with share code)
+
+**Learned:** Robust share code generation requires cryptographically secure randomness (`crypto.randomInt`) rather than pseudo-random functions, along with collision retries outside the failed transaction to handle database uniqueness constraints reliably.
+
+**AI used:** code: implemented prescription engine with retry loop, share code generator, Server Action, dynamic prescribe form, and comprehensive Vitest test suites.
+
+**Open issues:**
+- none
+
+**Next:** Slice P4.2 — Encounters (`createEncounter` action, clinical notes form, and timeline integration).
+
+---
+
 ## [2026-11-26 01:30] Slice P3.4 — File viewer loaded on demand (Phase 3 complete)
 
 **Done:** Implemented client component `FileViewer` rendering a native `iframe` pointing to `/api/v1/files/[id]`. Wrapped in `FileViewerTrigger` using `next/dynamic` (`ssr: false` with animated loading fallback), which lazy-loads the bundle chunk only when the user clicks "View file". Implemented pure helper `canViewFile` with unit tests ensuring records without `fileId` never display file actions. Integrated into `RecordCard` (doctor viewer) and patient record detail page. Phase 3 is officially complete.
